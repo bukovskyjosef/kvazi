@@ -42,10 +42,8 @@ docs/
   governance/
     decisions.md
     open-issues.md
-    glossary.md
   history/
-    audit-round-1-summary.md
-    audit-round-2-summary.md
+    README.md
 db/
   schema-draft.sql
 ```
