@@ -1,35 +1,81 @@
 # Nejdelší kvazivěta
 
-Repozitář projektu **Nejdelší kvazivěta** – jazykové soutěže založené na skládání co nejdelší české věty z omezeného systému odvozeného od motivu `KVAZI`.
+Repozitář projektu **Nejdelší kvazivěta**.
 
-## Dokumentace
+## Rychlá orientace
 
-- `docs/00-project-context.md` – smysl projektu a designové principy
-- `docs/rules/` – veřejná i rozhodcovská pravidla, AI policy a verzování
-- `docs/kvazitahak/` – normativní soutěžní modely a jejich rozpracování
-- `docs/architecture/` – návrh webu, databáze, validace, komentářů a administrace
-- `docs/governance/decisions.md` – přijatá rozhodnutí
-- `docs/governance/open-issues.md` – otevřené body a roadmapa
-- `docs/governance/glossary.md` – pojmy
-- `docs/history/README.md` – historie vývoje pravidel
-- `db/schema-draft.sql` – pracovní PostgreSQL schéma
+### Pro hráče
+- `docs/rules/01-jak-hrat.md`
+- `docs/kvazitahak/README.md`
 
-## Aktuální TODO
+### Pro audit
+- `AGENTS.md`
+- `docs/audit/README.md`
+- GitHub issue #11
 
-Největší otevřené úkoly jsou:
+### Pro vývoj
+- `AGENTS.md`
+- `docs/architecture/00-boundaries.md`
+- `app/README.md`
 
-- dokončit normativní kvazitahák,
-- navrhnout slovesné časovací typy,
-- uzavřít sadu valenčních rámců a vidu,
-- provést reachability audit,
-- dokončit datový model morfologického formuláře,
-- připravit a naplnit interní morfologický katalog.
+## Normativní zdroje
 
-## Normativní vrstvy
+Soutěžní platnost určují:
+- `docs/rules/02-rozhodcovska-specifikace.md`
+- výslovně označené normativní části `docs/kvazitahak/`
+- `docs/rules/03-ai-policy.md`
+- `docs/rules/04-verzovani-a-sprava.md`
 
-1. **Jak hrát** – stručná veřejná vrstva.
-2. **Kvazitahák** – praktická vrstva; normativní jsou jen výslovně označené tabulky a seznamy.
-3. **Rozhodcovská specifikace** – úplná pravidla pro platnost, spory, identitu, proces a verzování.
+`docs/rules/01-jak-hrat.md` je stručná vysvětlující vrstva.
+
+Architektura, databáze, UI a interní katalog pravidla implementují; samy je nemění.
+
+## Struktura
+
+```text
+AGENTS.md
+.github/
+app/
+db/
+docs/
+  audit/
+  rules/
+  kvazitahak/
+  architecture/
+  governance/
+  history/
+```
+
+## Rozhodování a otevřené body
+
+Finální produktová a pravidlová rozhodnutí provádí Josef Bukovský.
+
+Používané prefixy GitHub Issues:
+- `[DECISION]` – otevřená volba
+- `[AUDIT]` – auditní nález
+- `[IMPLEMENTATION]` – technický úkol
+- `[META]` – procesní práce
+
+Podrobný postup: `docs/governance/decision-workflow.md`.
+
+Aktuální rozhodovací backlog:
+- #1 kvazitahák
+- #2 slovesné časovací typy
+- #3 valenční rámce a vid
+- #4 reachability audit
+- #5 morfologický formulář
+- #6 interní morfologický katalog
+- #7 znakový validátor
+- #8 architektura a DB model
+- #9 release proces
+- #10 scope MVP
+- #11 nezávislý audit repozitáře
+
+## Dokumentační vrstvy pro hráče
+
+1. **Jak hrát** – jednoduchý vstup.
+2. **Kvazitahák** – praktické modely a tabulky.
+3. **Rozhodcovská specifikace** – úplná normativní pravidla.
 
 ## Autorství
 
