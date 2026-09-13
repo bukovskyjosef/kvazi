@@ -1,131 +1,134 @@
 # Jak hrát
 
-> **Status:** veřejná stručná vrstva. Sama o sobě pravidla nerozšiřuje. Při rozporu rozhoduje rozhodcovská specifikace a normativní části kvazitaháku.
+> **Stručná verze pro hráče.** Přesné soutěžní tabulky jsou v kvazitaháku a úplná pravidla v rozhodcovské specifikaci.
 
-## Myšlenka
+## O co jde
 
-Cílem je vytvořit **co nejdelší gramaticky obhajitelnou českou kvazivětu** ze znaků vznikajících opakováním motivu `KVAZI`.
+Vytvoř **co nejdelší českou větu** z velmi omezené zásoby znaků.
 
-Kvaziproblém nemá praktický účel. Smyslem je přemýšlet, kombinovat a hledat řešení vlastní hlavou.
+Můžeš používat skutečná česká slova i vlastní **kvazislova**. Hra je schválně zbytečný problém pro lidskou hlavu: cílem je přemýšlet, kombinovat a hledat řešení vlastními silami.
 
-## 1. Jak vznikají znaky
+## 1. Všechno vychází z KVAZI
 
-Základ je opakovaný motiv `KVAZI`.
+Základní motiv je:
 
-Každý výskyt může mít tyto varianty:
+`KVAZI`
 
-- `KV` lze nahradit jedním znakem `Q`,
-- `A` může být `A` nebo `Á`,
-- `Z` zůstává `Z`,
-- poslední `I` může být `I`, `Í`, `Y` nebo `Ý`.
+V každém opakování můžeš:
 
-Úplné motivy:
+- `KV` nahradit jedním znakem `Q`,
+- použít `A` nebo `Á`,
+- ponechat `Z`,
+- na konci použít `I`, `Í`, `Y` nebo `Ý`.
 
-```text
-KVAZI KVAZÍ KVAZY KVAZÝ
-KVÁZI KVÁZÍ KVÁZY KVÁZÝ
-QAZI  QAZÍ  QAZY  QAZÝ
-QÁZI  QÁZÍ  QÁZY  QÁZÝ
-```
+Vznikají tedy například `KVAZI`, `KVÁZÝ`, `QAZÍ`, `QÁZY` a další povolené varianty.
 
-`Q` je jeden soutěžní znak, vyslovuje se `/kv/` a při skórování se počítá jako jedno písmeno.
+`Q` se vyslovuje jako `/kv/`, ale je to **jeden znak**.
 
-## 2. Slova
+## 2. Z motivů řežeš slova
 
 Běžné slovo:
 
 - má 3 až 5 znaků,
-- je souvislou částí jediného motivu,
-- nesmí překročit hranici mezi dvěma motivy.
+- musí celé ležet uvnitř jednoho motivu,
+- nesmí přeskočit ani překročit hranici dvou motivů.
 
-Výjimkou jsou jednopísmenná skutečná slova:
+Věta může začít i skončit uprostřed motivu.
 
-- předložky `k`, `v`, `z`,
-- spojky `a`, `i`.
+Jednopísmennou výjimku mají pouze:
 
-Každé z nich lze použít nejvýše jednou.
+`k, v, z, a, i`
 
-Pro účely hry se `k`, `v`, `z` považují za přípustné v nevokalizované podobě před jakýmkoli jinak dovoleným slovem. Podoby `ke`, `ve`, `ze` se v soutěži nepoužívají.
+Každé z těchto pěti slov smíš použít nejvýše jednou.
 
-## 3. Celá věta
+Předložky `k`, `v`, `z` používáme v této hře vždy právě v této krátké podobě; `ke`, `ve`, `ze` se nepoužívají.
 
-Po spojení všech slov v jejich pevném pořadí musí vzniknout souvislý úsek nepřetržité posloupnosti povolených motivů.
-
-Věta smí začít uprostřed prvního motivu a skončit uprostřed posledního.
+## 3. Musí z toho vzniknout jedna česká věta
 
 Kvazivěta má:
 
-- jednu jednoduchou hlavní predikační osu,
-- jeden podmět; u dovoleného imperativu může být nevyjádřený,
+- jeden podmět,
 - jeden přísudek,
-- právě jeden token plnovýznamového slovesa.
+- právě jeden výskyt plnovýznamového slovesa.
 
-Povoleny jsou pouze syntaktické vztahy výslovně uvedené v pravidlech nebo normativním kvazitaháku.
+U rozkazu může být podmět nevyjádřený, pokud je z tvaru slovesa jasný.
 
-## 4. Slovní druhy
+Přesně povolené větné vztahy jsou v kvazitaháku. Nelze využít libovolnou exotickou konstrukci jen proto, že někde v češtině existuje.
 
-Povoleny jsou:
+## 4. Co může být slovem
+
+Povolena jsou:
 
 - podstatná jména,
 - přídavná jména,
 - slovesa,
-- skutečně existující česká zájmena pouze v rozsahu povoleném normativními modely,
-- `k`, `v`, `z`,
-- `a`, `i`.
+- povolená skutečná zájmena,
+- `k, v, z, a, i`.
 
-Nepovolují se číslovky, příslovce, částice, citoslovce a jiné neuvedené slovní druhy.
+Můžeš použít:
 
-## 5. Skutečná slova a kvazislova
+### Skutečné české slovo
+Jeho použitý tvar musí být současně:
 
-Můžeš použít skutečné české slovo nebo vytvořit nové **kvazislovo**.
+1. skutečným spisovným českým tvarem,
+2. tvarem odpovídajícím některému soutěžnímu modelu z kvazitaháku.
 
-Kvazislovo nemusí mít konkrétní význam. Musí ale mít přesně deklarovanou morfologii podle soutěžních modelů.
+Zvláštní nepravidelné tvary mimo soutěžní modely se nepoužívají.
 
-Skutečné české slovo lze použít jen tehdy, když:
+### Kvazislovo
+Slovo si můžeš vymyslet. Nemusí ani nic konkrétního znamenat.
 
-1. konkrétní použitý tvar je doloženým tvarem současné spisovné češtiny,
-2. současně odpovídá některému povolenému soutěžnímu morfologickému modelu.
+Musíš mu ale přiřadit některý povolený soutěžní model a používat ho podle něj.
 
-Nepravidelné, defektivní, nesklonné a jiné atypické vlastnosti skutečných slov se nepoužívají, pokud nespadají do soutěžních modelů.
+## 5. Stejnou soutěžní identitu nepoužiješ dvakrát
 
-## 6. Identitu nelze opakovat
+Jakmile jednou použiješ konkrétní soutěžní identitu slova, je vyčerpaná.
 
-Jakmile jednou použiješ určitou soutěžní identitu, nesmíš později použít jiný tvar téže identity.
+Nestačí změnit pád, číslo, význam nebo větnou funkci a tvrdit, že jde o nové slovo.
 
-Jiný pád, číslo, význam nebo syntaktická funkce samy o sobě novou identitu nevytvářejí.
+Přesné určování identity najdeš v kvazitaháku a úplných pravidlech.
 
-Přesná definice identity je v rozhodcovské specifikaci.
+## 6. Jak se měří rekord
 
-## 7. Skóre
+1. Vyhrává **více slov**.
+2. Při shodě vyhrává **více písmen bez mezer**.
+3. Při shodě obou hodnot jde o společný rekord.
 
-1. více slov je lepší,
-2. při shodě rozhoduje více písmen bez mezer,
-3. při shodě obou hodnot jde o společný rekord.
+`Q` se počítá jako jedno písmeno, `KV` jako dvě.
 
-`Q` se počítá jako jeden znak, `KV` jako dva.
+Na konci věty musí být `.`, `?` nebo `!`; závěrečné znaménko se do délky nepočítá.
 
-## 8. Interpunkce
+## 7. Řešení musíš obhájit
 
-Uvnitř kvazivěty jsou pouze soutěžní znaky a mezery mezi slovy.
+Při odevzdání se každé slovo popíše ve strukturovaném formuláři:
 
-Na konci musí být odpovídající `.`, `?` nebo `!`.
+- co je to za slovo,
+- podle jakého modelu funguje,
+- jaký konkrétní tvar používáš,
+- jakou má ve větě funkci.
 
-Závěrečná interpunkce se do skóre nepočítá.
+Aplikace sama zkontroluje technická znaková omezení. Jazykové rozhodnutí ale musí být obhajitelné podle pravidel.
 
-## 9. AI
+## 8. AI
 
-AI smí soutěžícímu vysvětlovat **obecná pravidla současné spisovné češtiny**.
+AI smíš používat k vysvětlování **obecné češtiny** – třeba co je lemma, pád nebo doplněk.
 
-Nesmí s ním komunikovat o ničem, co se přímo týká soutěžního obsahu: pravidel kvaziproblému, kvazitaháku, existujících či hypotetických vět, kandidátních slov, dat, strategií, analýz nebo validace.
+Nesmíš s ní ale řešit nic, co se přímo týká kvaziproblému: pravidla hry, kvazitahák, existující či plánovanou kvazivětu, kandidátní slova, strategii ani kontrolu řešení.
 
-> **AI smí vysvětlovat češtinu. Nesmí se soutěžícím komunikovat o kvaziproblému.**
+> **AI smí vysvětlovat češtinu. Nesmí s tebou řešit kvaziproblém.**
 
-## 10. Platnost a rekord
+## 9. Co když najdeš díru v pravidlech?
 
-Každé řádně podané řešení, které je podle příslušné verze pravidel platné a nevzniklo porušením soutěžního procesu, musí být uznáno.
+Pokud je tvoje řešení podle aktuální verze opravdu platné a dodržel jsi soutěžní proces, musí být uznáno.
 
-Neočekávaný exploit se pro danou verzi uzná; pravidla lze změnit až v nové verzi.
+Díru můžeme zavřít až v další verzi pravidel. Starý výsledek zůstane součástí historie.
 
 ---
 
-Další praktické tabulky a příklady jsou v **kvazitaháku**. Úplná pravidla jsou v **rozhodcovské specifikaci**.
+### Chceš začít hrát?
+
+Pokračuj do **kvazitaháku**. Ten obsahuje konkrétní povolené modely a jednoduché příklady.
+
+### Chceš řešit sporný případ?
+
+Použij **rozhodcovskou specifikaci**.
