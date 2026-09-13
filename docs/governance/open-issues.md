@@ -1,37 +1,61 @@
 # Otevřené body a úkoly
 
-Tento dokument eviduje úkoly, které ještě nejsou rozhodnuté nebo dokončené.
+Tento dokument je stručný index. Autoritativní diskuse a stav jednotlivých otevřených bodů jsou v GitHub Issues.
+
+Finální produktová a pravidlová rozhodnutí provádí Josef Bukovský.
 
 ## P0 – pravidla a kvazitahák
 
-1. Připravit normativní kvazitahák: syntax, substantivní paradigmata, adjektivní paradigmata, slovesné časovací typy, vid, valenční rámce a běžné české analogie.
-2. Navrhnout malou uzavřenou sadu slovesných časovacích typů.
-3. Navrhnout uzavřenou sadu valenčních rámců.
-4. Uzavřít soutěžní sadu vidu.
-5. Provést reachability audit, zejména pro pomocná slovesa, zájmena, vzor kuře, otcův/matčin, stupňování a krátké adjektivní tvary.
+- **#1** `[DECISION] Dokončit normativní kvazitahák`
+- **#2** `[DECISION] Navrhnout uzavřené slovesné časovací typy`
+- **#3** `[DECISION] Uzavřít soutěžní sadu valenčních rámců a vidu`
+- **#4** `[DECISION] Provést reachability audit a rozdělit hlavní vs. hraniční pravidla`
 
-Výsledek reachability auditu:
-- reálně použitelné mechanismy do hlavního taháku,
-- hraniční a marginální mechanismy do závazného dodatku,
-- prokazatelně nedosažitelné mechanismy nezatěžují veřejnou vrstvu.
+Výstup reachability auditu má rozlišit:
+- reálně použitelné mechanismy pro hlavní tahák,
+- hraniční nebo málo pravděpodobné mechanismy pro závazný dodatek,
+- prokazatelně nedosažitelné větve, které nemají zatěžovat veřejnou vrstvu.
 
-## P1 – formulář a morfologický katalog
+## P1 – formulář a interní morfologická znalost
 
-6. Navrhnout úplný datový model formuláře pro každý slovní druh.
-7. Připravit neveřejný interní morfologický katalog: lexémy, identity, schválené tvary, zdroje a verze katalogu.
-8. Navrhnout proces námitek proti katalogu.
-9. Definovat proces kontroly a schválení kandidátních katalogových dat.
+- **#5** `[DECISION] Navrhnout úplný morfologický formulář a soutěžní identitu`
+- **#6** `[DECISION] Navrhnout interní morfologický katalog a námitkový proces`
 
-## P2 – aplikace
+Veřejný kompletní katalog slov se nezveřejňuje. Interní katalog může sloužit deterministické validaci, ale je podřízen pravidlům a musí být opravitelný přes námitkový proces.
 
-10. Připravit přesný znakový validátor a testovací sadu.
-11. Implementovat revalidaci vět mezi verzemi pravidel.
-12. Definovat admin proces: schválení, vrácení k doplnění, odmítnutí, procesní porušení a audit log.
-13. Dokončit komentářový mechanismus a provozní limity.
+## P2 – validace, architektura a DB
 
-## P3 – redakce a launch
+- **#7** `[DECISION] Uzavřít deterministický znakový validátor a jeho testovací model`
+- **#8** `[DECISION] Uzavřít architekturu a databázový model před implementací MVP`
 
-14. Po dokončení kvazitaháku přepsat veřejné „Jak hrát“ pro pochopení přibližně do pěti minut.
-15. Připravit didaktické příklady tak, aby se z nich nestal katalog řešení.
-16. Určit release proces a názvy verzí.
-17. Připravit proces kvaziceny a výročního kvazizasedání.
+Pracovní SQL návrh je v `db/schema-draft.sql` a zatím není produkční migrační historií.
+
+## P3 – release a implementace
+
+- **#9** `[DECISION] Připravit release proces pravidel, dokumentace a implementace`
+- **#10** `[DECISION] Definovat implementační scope MVP po auditu`
+
+Vývoj nemá předjímat výsledky otevřených decision issues.
+
+## Nezávislý audit
+
+- **#11** `[AUDIT] Kompletní nezávislý audit repozitáře`
+
+Auditor má načíst:
+- `AGENTS.md`
+- `docs/audit/README.md`
+- celý normativní balík,
+- kvazitahák,
+- governance,
+- architekturu,
+- DB model.
+
+Každý samostatný nový nález má dostat vlastní `[AUDIT]` issue.
+
+## Další redakční a launch úkoly
+
+Tyto úkoly zatím nemusí mít vlastní decision issue, dokud se neobjeví sporná volba:
+- po dokončení kvazitaháku zjednodušit veřejné `Jak hrát` pro pochopení během několika minut,
+- připravit didaktické příklady bez vytvoření katalogu kandidátních tahů,
+- připravit veřejnou prezentaci kvaziceny a kvazizasedání,
+- doplnit produkční DB migrace až po uzavření relevantních rozhodnutí.
