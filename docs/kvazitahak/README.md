@@ -1,16 +1,47 @@
 # Kvazitahák
 
-> **Status:** koncept struktury. Normativní tabulky ještě nejsou kompletně připraveny.
+> **Status:** samostatný auditovatelný artefakt. Struktura je rozhodnutá, některé normativní tabulky jsou stále TODO.
 
-Kvazitahák je praktická vrstva mezi stručnými pravidly a rozhodcovskou specifikací. Má umožnit běžnému hráči hrát bez nutnosti studovat odborné mluvnice a externí jazykové databáze.
+Kvazitahák je praktická vrstva mezi stručným `Jak hrát` a rozhodcovskou specifikací.
+
+Jeho hlavní cíl:
+
+> **Běžný hráč má být schopen hrát bez průběžného studia odborných mluvnic a jazykových databází.**
+
+## Co kvazitahák je
+
+- katalog povolených soutěžních mechanismů,
+- místo pro přesná paradigmata a uzavřené seznamy,
+- praktická pomůcka s krátkými běžnými příklady.
+
+## Co kvazitahák není
+
+- úplná mluvnice češtiny,
+- veřejný slovník všech použitelných slov,
+- katalog kandidátních řešení,
+- náhrada rozhodcovské specifikace.
 
 ## Normativní role
 
 Kvazitahák je součástí aktuální verze pravidel.
 
-Pouze tabulky a seznamy výslovně označené jako **NORMATIVNÍ** mají závazný účinek. Příklady, komentáře a vysvětlivky jsou didaktické a samy o sobě pravidla nerozšiřují.
+Pouze tabulky a seznamy výslovně označené jako **NORMATIVNÍ** mají závazný účinek.
 
-## Musí obsahovat
+Příklady, komentáře a vysvětlivky jsou didaktické a samy o sobě pravidla nerozšiřují.
+
+`TODO` není normativní default. Znamená neuzavřené rozhodnutí.
+
+## Struktura
+
+- `00-audit-brief.md` – samostatné zadání pro audit taháku
+- `01-syntax.md` – uzavřená sada syntaktických vztahů
+- `02-substantiva.md` – substantivní soutěžní vzory
+- `03-adjektiva.md` – adjektivní soutěžní modely
+- `04-slovesa.md` – časovací typy a vid
+- `05-valence.md` – uzavřené valenční rámce
+- `06-hranicni-pravidla.md` – málo pravděpodobné a hraniční mechanismy
+
+## Povinný cílový obsah
 
 1. uzavřený seznam povolených syntaktických vztahů,
 2. substantivní soutěžní vzory a jejich přesná paradigmata,
@@ -19,8 +50,19 @@ Pouze tabulky a seznamy výslovně označené jako **NORMATIVNÍ** mají závazn
 5. uzavřenou sadu povolených vidů,
 6. uzavřenou sadu slovesných valenčních rámců,
 7. běžné české analogie pro významově citlivé syntaktické vztahy,
-8. normativní poznámky vyplývající z reachability auditu.
+8. rozdělení běžných a hraničních mechanismů podle reachability auditu.
 
 ## Designová zásada
 
-Tahák není seznam hotových slov ani zásobník řešení. Popisuje mechanismy, nikoli kandidátní slovník.
+Tahák popisuje **mechanismy**, nikoli inventory konkrétních soutěžních slov.
+
+Pokud by norma v taháku otevřela výhodu pouze člověku se znalostí jevu mimo tahák, je to důvod k auditu dané mechaniky.
+
+## Otevřené decision issues
+
+- #1 dokončení kvazitaháku
+- #2 slovesné časovací typy
+- #3 valence a vid
+- #4 reachability audit
+
+Nezávislý auditor má kvazitahák posoudit jako samostatný produkt pro hráče, ne pouze jako přílohu pravidel.
