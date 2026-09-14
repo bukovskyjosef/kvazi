@@ -16,14 +16,16 @@ Základní motiv je:
 
 V každém opakování můžeš:
 
-- `KV` nahradit jedním znakem `Q`,
+- na začátku použít buď dvojici `KV`, nebo samostatné písmeno `Q`,
 - použít `A` nebo `Á`,
 - ponechat `Z`,
 - na konci použít `I`, `Í`, `Y` nebo `Ý`.
 
 Vznikají tedy například `KVAZI`, `KVÁZÝ`, `QAZÍ`, `QÁZY` a další povolené varianty.
 
-`Q` se vyslovuje jako `/kv/`, ale je to **jeden znak**.
+`Q` se vyslovuje jako `/kv/`, ale je to **samostatné soutěžní písmeno**, nikoli zkratka nebo alternativní zápis dvojice `KV`.
+
+To znamená, že například `QAZ` a `KVAZ` jsou dvě různě zapsaná slova. Při určování lemmatu, morfologie, soutěžní identity i při dokazování skutečného českého slova se `Q` nikdy automaticky nerozvíjí na `KV`. Stejná výslovnost sama o sobě neznamená stejnou morfologickou identitu.
 
 ## 2. Z motivů řežeš slova
 
