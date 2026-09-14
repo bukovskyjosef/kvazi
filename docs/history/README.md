@@ -1,3 +1,5 @@
-# History
+# Historie vývoje pravidel
 
-This directory is historical. Use the normative documents for current rules and GitHub Issues for current work.
+Tento adresář je historický. Aktuální soutěžní stav určují normativní dokumenty a aktuální práci GitHub Issues.
+
+Historické soubory mohou obsahovat starší formulace, názvy issues nebo tehdejší stav projektu; nesmějí přebít současný source of truth.
