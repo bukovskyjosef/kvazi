@@ -12,20 +12,19 @@ Pro každý soutěžní model normativní tabulka přesně určí:
 
 1. podmínku lemmatu / základního tvaru,
 2. mechanické pravidlo určení soutěžního kmene, pokud jej model používá,
-3. povolenou realizaci pro každou soutěžně přípustnou kombinaci morfologických hodnot,
-4. případné další variantní realizace pouze tehdy, jsou-li v tabulce výslovně uvedeny.
+3. právě jednu kanonickou realizaci pro každou soutěžně přípustnou kombinaci morfologických hodnot.
 
 Co v normativním modelu výslovně uvedeno není, nelze do něj převzít jen proto, že taková varianta existuje v obecné češtině. Hráč si soutěžní kmen ani další alternaci nevytváří volně; musí plynout z pravidla konkrétního modelu.
 
 **Soutěžní kmen je vždy odvozen deterministicky z lemmatu a zvoleného modelu. Hráč jej nevolí ani neobhajuje vlastní analogií.** Pokud model používá více kmenových podob, jejich vznik a použití musí být mechanicky popsány přímo v modelu.
 
-Každá morfologická buňka má standardně **jednu kanonickou realizaci**. Další realizace je přípustná pouze tehdy, když ji normativní tabulka výslovně uvádí jako další povolenou variantu. Obecná česká dubleta se sama do soutěžního modelu nepřenáší.
+V první zmrazené rules verzi platí **jedna morfologická buňka = právě jedna kanonická realizace**. Morfologické dublety se v této verzi nepovolují, ani když jsou obě varianty v obecné češtině standardní. Případnou další realizaci lze zavést až explicitní změnou budoucí verze pravidel.
 
 **Obecné české hláskové alternace se automaticky nepoužívají.** Jestliže model pracuje se vztahem `kmen + koncovka`, použije se mechanicky kmen určený modelem bez další fonologické změny jen proto, že by ji obecná čeština v podobném prostředí znala. Změna kmene je dovolena pouze tehdy, když je jako deterministické pravidlo výslovně zabudována do konkrétního soutěžního modelu a model určuje i buňky, ve kterých se použije. Taková změna není volbou hráče.
 
 Výsledný model tedy musí umožnit mechanickou kontrolu vztahu:
 
-`lemma + model + morfologické hodnoty → konečná sada povolených tvarů`.
+`lemma + model + morfologické hodnoty → právě jeden povolený tvar`.
 
 **Reachability není kritériem existence modelu.** Všechny níže uvedené normativní modely zůstávají součástí pravidel i tehdy, pokud se později ukáže, že některý z nich při aktuálních znakových a motivových omezeních nemá žádný použitelný povrchový tvar. Hráčské materiály takovou případnou slepou cestu nemají předem označovat.
 
@@ -78,12 +77,10 @@ Pro každý vzor sestavit úplnou tabulku:
 - singulár: 1.–7. pád,
 - plurál: 1.–7. pád,
 - přesné mechanické pravidlo kmene,
-- všechny soutěžně povolené variantní realizace,
+- právě jednu kanonickou realizaci každé buňky,
 - žádné implicitní lexikální výjimky jednotlivých slov.
 
 To, co bude v normativní tabulce, platí. Externí dubleta nebo alternace mimo tabulku se do soutěžního modelu nepřenáší.
-
-Při rozhodování, zda do tabulky výslovně přidat další standardní variantu, se reachability nepoužívá jako důvod pro její přijetí ani odmítnutí. Varianta se posuzuje jako součást zvoleného morfologického modelu a musí být přijata explicitně.
 
 ## Skutečná slova
 
