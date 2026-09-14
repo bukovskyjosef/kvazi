@@ -125,7 +125,8 @@ Dříve schválený UX princip zůstává:
 ### Katalog a formulář
 
 - Morfologický učící se katalog nesmí před submittem radit hráči, zda jeho novou morfologickou analýzu už zná.
-- U katalogu skutečných slov je samostatně otevřeno (#72), zda bude celý zveřejněný, částečně dohledatelný, nebo neveřejný.
+- Katalog skutečných slov není veřejně procházetelný. Hráč může po kompletním vyplnění vlastní morfologické identity a konkrétního použitého tvaru požádat o exact-match kontrolu podle #72.
+- Exact-match kontrola pouze potvrdí již schválenou kombinaci; z částečných údajů nesmí vypisovat možné identity, podobná slova ani jiné alternativy.
 - Hráč vždy předkládá požadovanou deklaraci podle pravidel; technické UI nesmí samo vytvářet jazykové pravidlo.
 
 ## Uživatelské účty a administrace
@@ -190,7 +191,7 @@ Komentáře nejsou součástí MVP. Neimplementují se komentářové identity, 
 
 ## Katalogy
 
-### Katalog skutečných slov — rozhodnutí #68
+### Katalog skutečných slov — rozhodnutí #68 a #72
 
 - Pro status „skutečné slovo“ je soutěžní autoritou náš ručně spravovaný katalog skutečných slov/tvarů.
 - Je-li odpovídající soutěžní identita a použitý tvar v katalogu schválený, považuje se pro soutěž za skutečné slovo.
@@ -198,7 +199,10 @@ Komentáře nejsou součástí MVP. Neimplementují se komentářové identity, 
 - IJP, ASSČ a další odborné jazykové zdroje jsou podklady pro správu katalogu, nikoli samy přímý soutěžní whitelist.
 - Katalog je záměrně průběžně spravovatelný a jeho jednotlivé změny nevyžadují novou `rules_version`.
 - Přijímáme tím menší míru formální reprodukovatelnosti ve prospěch jednoduchosti a recesního charakteru projektu.
-- Zda bude katalog veřejně a taxativně zveřejněn, zůstává otevřeno v #72.
+- Katalog se veřejně nezveřejňuje jako taxativní ani procházetelný seznam.
+- Hráč může ověřit pouze vlastní hotový návrh: uvede úplnou morfologickou identitu a konkrétní použitý tvar a dostane pouze potvrzení, zda tato přesná kombinace již je schválena jako skutečné slovo.
+- Z neúplného zadání katalog nesmí napovídat možné identity, podobné položky ani jiné kandidáty.
+- Nepotvrzená přesná kombinace není automaticky zamítnutá; lze ji předložit k ručnímu posouzení.
 
 ### Morfologický učící se katalog — rozhodnutí 13/19
 
@@ -212,7 +216,7 @@ Morfologický katalog je znalostní báze předchozího morfologického rozhodov
 
 ### Katalogová podpora je součást MVP — rozhodnutí 19/19
 
-První veřejné MVP musí umět používat katalog skutečných slov a minimální učící se morfologický katalog při review. Pokročilé bulk importy, složitý námitkový workflow a veřejné katalogové rozhraní mohou zůstat mimo první MVP; způsob zveřejnění katalogu skutečných slov je otevřen v #72.
+První veřejné MVP musí umět používat katalog skutečných slov a minimální učící se morfologický katalog při review. Pokročilé bulk importy a složitý námitkový workflow mohou zůstat mimo první MVP; veřejná exact-match kontrola katalogu skutečných slov se řídí #72.
 
 ## Revize, revalidace a historie
 
@@ -253,7 +257,7 @@ První veřejné MVP musí umět používat katalog skutečných slov a minimál
 - FE může před submittem deterministicky kontrolovat pouze veřejná znaková a strukturální pravidla a úplnost deklarace.
 - FE neposuzuje jazykovou správnost morfologie, syntaxe, významu ani slovní valenční obhajoby.
 - FE nesmí navrhovat náhradní slova, tvary, tokenizaci, analýzu nebo syntaktické vazby.
-- Způsob zpřístupnění katalogu skutečných slov hráčům je otevřená produktová otázka #72.
+- Výjimkou je explicitně vyžádaná exact-match kontrola katalogu skutečných slov podle #72, která je dostupná až po kompletním vyplnění morfologické identity a konkrétního použitého tvaru a smí pouze potvrdit již schválenou přesnou kombinaci.
 
 ## MVP scope – uzavřeno
 
@@ -263,6 +267,7 @@ První veřejné MVP povinně obsahuje:
 - interaktivní strukturovaný formulář,
 - immutable submission revisions,
 - katalog skutečných slov a minimální interní učící se morfologický katalog,
+- exact-match ověření vlastního kompletně deklarovaného kandidáta proti katalogu skutečných slov podle #72,
 - neveřejné admin review,
 - veřejný seznam pouze schválených vět se skóre a autorstvím,
 - veřejný detail schválené věty s lehkým jazykovým rozborem podle #73, nikoli s úplným paradigmatem a validačním spisem,
