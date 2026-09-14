@@ -51,13 +51,17 @@ Povolené hodnoty jsou:
 
 Vid sám o sobě nevytváří soutěžní identitu. Obouvidovost je jedna gramatická hodnota, nikoli dvě identity. Stejná sada platí i pro kvazislovesa.
 
-### Valence — rozhodnutí 4/19 a 5/19
+### Valence — rozhodnutí 4/19, 5/19 a #66
 
-- Valence kvazislovesa není omezena malým normativním whitelistem rámců typu ACC/DAT/GEN/INS.
-- Hráč musí rámec jednoznačně deklarovat a realizovat všechny jeho obligatorní sloty.
-- Deklarovaný rámec kvazislovesa musí být doložen konkrétním současným českým slovesem se stejnou valencí.
-- Modelové sloveso pro valenci nemusí být stejné jako model časování.
-- FE před submittem ověřuje pouze úplnost/strukturu, nikoli jazykovou správnost valenční analogie.
+- Valence není součástí morfologické ani soutěžní identity slovesa.
+- Morfologickou soutěžní identitu slovesa tvoří `infinitiv + soutěžní časovací typ`.
+- Vid ani valence samy o sobě novou identitu slovesa nevytvářejí.
+- Valence není uzavřený whitelist rámců a nepřevádí se na povinný kanonický kód nebo strukturovaný seznam slotů.
+- Hráč ji obhajuje volným textem pro konkrétní použití slovesa ve větě.
+- Obhajoba musí srozumitelně uvést, jaká doplnění zvolené použití vyžaduje, která slova ve větě je realizují a o jaké konkrétní současné české sloveso a jeho použití se opírá.
+- Všechna obligatorní doplnění vyplývající z obhájeného použití musí být ve větě výslovně realizována.
+- Valence se automaticky jazykově nevaliduje ani neporovnává jako katalogová identita. Při jazykovém review ale může vést k zamítnutí věty, pokud analogie nebo realizace obligatorních doplnění neobstojí.
+- Modelové sloveso pro valenci nemusí být stejné jako případný jazykový podklad pro časování.
 
 ## Syntaxe a formulář
 
@@ -153,6 +157,7 @@ Katalog je znalostní báze předchozího rozhodování pro konkrétní `rules_v
 - Schválení neznámého případu vytváří budoucí `APPROVED`; zamítnutí `REJECTED`.
 - Zamítnutí kteréhokoli slova/identity nezbytné pro deklarovanou analýzu znamená zamítnutí dané revize věty.
 - Historie katalogu starších rules verzí se zachovává, ale automaticky se nepřenáší do verze nové.
+- Valenční obhajoba není součástí katalogového klíče morfologické identity slovesa.
 
 ### Katalog je součást MVP — rozhodnutí 19/19
 
@@ -204,7 +209,7 @@ Mimo první MVP mohou zůstat pokročilé bulk importy, veřejné katalogové ro
 ## Hranice live validace
 
 - FE může před submittem deterministicky kontrolovat pouze veřejná znaková a strukturální pravidla a úplnost deklarace.
-- FE neposuzuje jazykovou správnost morfologie, valence, syntaxe ani významu.
+- FE neposuzuje jazykovou správnost morfologie, syntaxe, významu ani slovní valenční obhajoby.
 - FE nesmí navrhovat náhradní slova, tvary, tokenizaci, analýzu nebo syntaktické vazby.
 - Katalogová kontrola probíhá až nad uzamčenou revizí a její interní výsledek je před administrativním rozhodnutím neveřejný.
 
