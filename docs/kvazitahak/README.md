@@ -1,5 +1,7 @@
 # Kvazitahák
 
-This directory contains the practical player-facing layer between `Jak hrát` and the referee specification. Only sections explicitly marked `NORMATIVNÍ` are binding.
+Tento adresář je praktická vrstva mezi `Jak hrát` a rozhodcovskou specifikací. Jednotlivé soubory jasně označují části, které jsou součástí pravidel, a části vysvětlující nebo návrhové.
 
-See `05-valence.md` for the current valency model. Current work is tracked in GitHub Issues; this README intentionally contains no issue list.
+Valenci popisuje `05-valence.md`.
+
+Aktuální otevřená práce se zjišťuje pouze z GitHub Issues; tento README neudržuje vlastní seznam otevřených bodů.
