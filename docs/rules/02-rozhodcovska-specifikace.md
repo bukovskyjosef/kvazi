@@ -1,17 +1,18 @@
 # Rozhodcovská specifikace
 
-> **Status:** hlavní normativní dokument. Společně s výslovně normativními částmi kvazitaháku určuje platnost řešení.
+> **Status:** hlavní normativní dokument. Společně s výslovně normativními částmi kvazitaháku určuje platnost řešení. Morfologický freeze ještě blokují otevřené #1, #2 a #74; technická implementace nesmí jejich mezery sama doplnit.
 
 ## 1. Hierarchie
 
 Při posuzování platí v tomto pořadí:
 
-1. výslovná pravidla kvaziproblému,
+1. tato rozhodcovská specifikace,
 2. normativní tabulky a seznamy kvazitaháku v rozsahu, v němž na ně pravidla odkazují,
-3. současná spisovná čeština ve věcech, které soutěžní systém výslovně neupravuje,
-4. konečný výklad kvaziautority v nejasném nebo sporném případě.
+3. `03-ai-policy.md` a `04-verzovani-a-sprava.md` pro jejich normativní oblasti,
+4. současná spisovná čeština ve věcech, které soutěžní systém výslovně neupravuje,
+5. konečný výklad kvaziautority v nejasném nebo sporném případě.
 
-Technická implementace ani formulář nejsou vyšší autoritou než pravidla. Spravovaný katalog skutečných slov má pouze zvláštní autoritativní roli vymezenou v oddílu 9.
+Technická implementace, databáze ani formulář nejsou vyšší autoritou než pravidla. Spravovaný katalog skutečných slov má pouze zvláštní autoritativní roli vymezenou v oddílu 9.
 
 ## 2. Soutěžní abeceda
 
@@ -23,19 +24,17 @@ Velká a malá písmena jsou při kontrole řetězce i identity totožná.
 
 Diakritika se rozlišuje:
 
-- `A ≠ Á`
-- `I ≠ Í`
-- `Y ≠ Ý`
+- `A ≠ Á`,
+- `I ≠ Í`,
+- `Y ≠ Ý`.
 
-Každý skutečně zapsaný soutěžní znak má při skórování hodnotu jednoho písmene.
-
-`Q = 1`, `KV = 2`.
+Každý skutečně zapsaný soutěžní znak má při skórování hodnotu jednoho písmene. `Q = 1`, `KV = 2`.
 
 `Q` se vyslovuje `/kv/`, ale je samostatným soutěžním písmenem. Není zkratkou, ligaturou ani alternativním pravopisným zápisem dvojice `KV`.
 
 Při určování lemmatu, základního tvaru, morfologie, soutěžní identity, skutečnosti slova a při práci s jazykovými zdroji se `Q` nikdy automaticky nerozvíjí ani nenormalizuje na `KV`.
 
-Shodná výslovnost `Q` a posloupnosti `KV` sama o sobě nezakládá žádnou morfologickou, lexikální ani identitní shodu. Například zápisy `QAZ` a `KVAZ` představují dvě odlišná slova a nelze jim pouze kvůli stejné výslovnosti přiřadit tutéž morfologickou identitu.
+Shodná výslovnost `Q` a posloupnosti `KV` sama o sobě nezakládá žádnou morfologickou, lexikální ani identitní shodu. Například `QAZ` a `KVAZ` jsou dva různé zápisy a nelze jim jen kvůli výslovnosti přiřadit tutéž morfologickou identitu.
 
 ## 3. Motiv
 
@@ -78,7 +77,11 @@ Jednopísmenné výjimky:
 
 Každé z těchto pěti slov lze použít nejvýše jednou.
 
-Předložky `k`, `v`, `z` se z herních důvodů používají vždy v nevokalizované podobě; `ke`, `ve`, `ze` se nepoužívají. Tato výjimka se týká pouze jejich povrchové podoby. Jinak zůstávají běžnými českými předložkami a musí tvořit jazykově platnou předložkovou konstrukci s řízeným jmenným členem. Zachovává se běžná pádová rekce: `k` + dativ, `v` + lokál nebo akuzativ podle významu konstrukce, `z` + genitiv.
+Předložky `k`, `v`, `z` se z herních důvodů používají vždy v nevokalizované podobě; `ke`, `ve`, `ze` se nepoužívají. Tato výjimka se týká pouze jejich povrchové podoby. Jinak zůstávají běžnými českými předložkami a musí tvořit jazykově platnou předložkovou konstrukci s řízeným jmenným členem:
+
+- `k` + dativ,
+- `v` + lokál nebo akuzativ podle významu konstrukce,
+- `z` + genitiv.
 
 ## 5. Věta
 
@@ -90,34 +93,23 @@ Musí obsahovat:
 - právě jeden přísudek,
 - právě jeden token plnovýznamového slovesa.
 
-Několikanásobný podmět a několikanásobný přísudek nejsou dovoleny.
+Několikanásobný podmět a několikanásobný přísudek nejsou dovoleny. U oznamovací a tázací věty je podmět výslovně vyjádřen a má jednu řídící hlavu.
 
-U oznamovací a tázací věty je podmět výslovně vyjádřen a má jednu řídící hlavu.
-
-Doplněk se pro účely soutěže nepovažuje za další hlavní predikační osu ani další přísudek.
-
-Přístavek není dovolen.
-
-Elipsa obligatorního členu není dovolena.
+Doplněk se pro účely soutěže nepovažuje za další hlavní predikační osu ani další přísudek. Přístavek není dovolen. Elipsa obligatorního členu není dovolena.
 
 Všechna obligatorní doplnění, která vyplývají z obhájeného valenčního použití slovesa, musí být ve větě výslovně realizována; jedinou zvláštní výjimkou je povolený nevyjádřený podmět imperativu.
 
 Celá syntaktická analýza musí být jedna propojená struktura kolem jediného přísudku. Syntaktické závislosti nesmějí tvořit kruh. Podmět a přísudek musí být v kategoriích, v nichž to současná spisovná čeština vyžaduje, v běžné morfosyntaktické shodě.
 
-### Pomocná slovesa
+### Složené slovesné tvary a pomocná slovesa
 
-Původní návrh dovoloval skutečný pomocný tvar jako součást jediného přísudku. Tato větev je nyní **předmětem reachability auditu**.
+Pravidla mohou formálně připustit složený slovesný tvar, aniž by tím vznikl druhý přísudek nebo druhé plnovýznamové sloveso. Pomocný slovesný token musí být součástí jediného přísudku a sám splnit obecná pravidla pro svůj konkrétní povrchový tvar.
 
-Dokud není audit uzavřen:
-
-- hlavní veřejná pravidla ji nemusí prezentovat jako běžnou herní možnost,
-- případné posouzení patří do závazných hraničních pravidel.
+Jeho normativní morfologická reprezentace a přesný rozsah se uzavírají společně se slovesným systémem v #2. **Reachability není důvod tento mechanismus skrýt, odstranit ani považovat za rozhodnutý.**
 
 ## 6. Povolená syntax
 
-Povolené jsou **pouze** syntaktické vztahy a konstrukce uvedené v normativním kvazitaháku.
-
-Aktuálně zamýšlené základní kategorie:
+Povoleny jsou pouze hlavní syntaktické vztahy a konstrukce uvedené v normativním `docs/kvazitahak/01-syntax.md`:
 
 - podmět,
 - přísudek,
@@ -126,17 +118,17 @@ Aktuálně zamýšlené základní kategorie:
 - přívlastek neshodný,
 - příslovečné určení,
 - doplněk,
-- koordinace pomocí `a` a `i`, pokud nevznikne několikanásobný podmět ani přísudek.
+- koordinace pomocí `a` nebo `i`, pokud nevznikne několikanásobný podmět ani přísudek.
 
 Spojky `a`, `i` musí spojovat dvě výslovně přítomné souřadné části téže věty. Obě části musí mít stejnou hlavní syntaktickou funkci a koordinovaná skupina jako celek zastává jednu syntaktickou roli vůči nadřazené konstrukci.
 
-Lexikální rekce podstatných a přídavných jmen se v soutěži **nepoužívá**.
+Lexikální rekce podstatných a přídavných jmen se v soutěži nepoužívá.
 
-Uzavřenost platí pro hlavní syntaktické vztahy uvedené výše. Jejich běžné významové podtypy nejsou samostatnými soutěžními konstrukcemi a nemusí být vyjmenovány všechny. Příklady v kvazitaháku jsou názorné, nikoli vyčerpávající.
+Uzavřenost platí pro hlavní vztahy. Jejich běžné významové podtypy nejsou samostatnými soutěžními konstrukcemi a nemusí být vyjmenovány všechny. Příklady v kvazitaháku jsou názorné, nikoli vyčerpávající.
 
-Každý deklarovaný vztah musí splnit rozhodovací test své hlavní funkce v normativním kvazitaháku a odevzdání musí zachytit všechny tímto testem vyžadované vazby ke konkrétním tokenům. Pouhé přiřazení názvu povolené funkce konstrukci, která její test nesplňuje, nestačí.
+Každý deklarovaný vztah musí splnit rozhodovací test své hlavní funkce a odevzdání musí zachytit všechny tímto testem vyžadované vazby ke konkrétním tokenům. Pouhé přiřazení názvu povolené funkce konstrukci, která její test nesplňuje, nestačí.
 
-Je-li syntaktická platnost členu závislá na valenci slovesa, posuzuje se podle slovní valenční obhajoby dle oddílu 13 a `docs/kvazitahak/05-valence.md`, nikoli podle uzavřeného seznamu strukturovaných rámců.
+Je-li syntaktická platnost členu závislá na valenci slovesa, posuzuje se podle slovní valenční obhajoby dle oddílu 13 a `05-valence.md`, nikoli podle uzavřeného seznamu strukturovaných rámců.
 
 Není-li některá další mezislovní podmínka výslovně soutěžně upravena, musí konstrukce obstát jako současná spisovná čeština.
 
@@ -147,7 +139,7 @@ Povoleny jsou:
 - substantiva,
 - adjektiva,
 - slovesa,
-- skutečná česká zájmena pouze v rozsahu, který dovolí normativní soutěžní modely a reachability audit,
+- skutečná česká zájmena,
 - `k`, `v`, `z`,
 - `a`, `i`.
 
@@ -159,7 +151,9 @@ Zakázány jsou:
 - citoslovce,
 - ostatní neuvedené slovní druhy.
 
-Nová zájmena nelze vytvářet.
+Nová kvazizájmena nelze vytvářet.
+
+Přesný normativní způsob deklarace a ověřování skutečných zájmen je poslední samostatný freeze bod #74. Do jeho uzavření nesmí technická implementace sama vymyslet zájmenný model ani zájmena skrýt kvůli reachability.
 
 ## 8. Kvazislovo
 
@@ -177,122 +171,119 @@ Znaková pravidla musí splňovat pouze konkrétní tvar použitý ve větě. Le
 
 Existence jiné možné analýzy stejného povrchového tvaru nevadí; rozhodující je jedna úplná a konzistentní deklarovaná analýza.
 
-Shoda zápisu se skutečným českým slovem sama o sobě neurčuje, zda jde o skutečné slovo, nebo kvazislovo. Rozhoduje celá soutěžní identita a aktuální stav katalogu skutečných slov:
+Shoda zápisu se skutečným českým slovem sama o sobě neurčuje, zda jde o skutečné slovo, nebo kvazislovo. Rozhoduje celá soutěžní identita a stav katalogu:
 
-- odpovídá-li deklarovaná identita a použitý tvar schválené položce katalogu skutečných slov, jde pro soutěž o skutečné slovo a tutéž identitu nelze v daném posouzení znovu prohlásit za kvazislovo,
+- odpovídá-li deklarovaná identita a použitý tvar schválené položce katalogu, jde pro soutěž o skutečné slovo a tutéž identitu nelze v daném posouzení znovu prohlásit za kvazislovo,
 - není-li deklarovaná identita/tvar v katalogu jako skutečné slovo schválená, může být při splnění ostatních pravidel posuzována jako kvazislovo,
-- takové kvazislovo musí samo splnit zvolený soutěžní model; pouhá existence stejně zapsaného českého slova mimo katalog jeho kvazimorfologii nedokládá.
+- kvazislovo musí samo splnit zvolený soutěžní model; pouhá existence stejně zapsaného českého slova mimo katalog jeho kvazimorfologii nedokládá.
 
-## 9. Skutečné české slovo
+## 9. Skutečné české slovo a katalog
 
 Pro soutěžní status skutečného slova je autoritou **spravovaný katalog skutečných slov a tvarů**.
 
-Skutečné české slovo lze použít pouze tehdy, když:
+U kategorií řízených soutěžním morfologickým modelem lze skutečné slovo použít pouze tehdy, když:
 
 1. jeho základní tvar, slovní druh a vlastnosti tvořící soutěžní identitu odpovídají schválené položce katalogu,
 2. jeho konkrétní použitý tvar je v katalogu schválený pro tuto identitu a deklarované morfologické hodnoty,
-3. tentýž konkrétní tvar současně odpovídá některému povolenému soutěžnímu morfologickému modelu.
+3. tentýž konkrétní tvar současně odpovídá povolenému soutěžnímu morfologickému modelu.
 
-Není-li kandidátní skutečné slovo v katalogu schválené, řešitel může požádat kvaziautoritu o přezkoumání nebo vznést námitku. Po jazykovém ověření lze katalog doplnit nebo opravit.
+Není-li kandidátní skutečné slovo v katalogu schválené, řešitel může požádat kvaziautoritu o přezkoumání. Po jazykovém ověření lze katalog doplnit nebo opravit.
 
-Při správě katalogu může kvaziautorita vycházet zejména z IJP, ASSČ, dalších jazykových příruček, mluvnic a relevantních odborných zdrojů. Tyto zdroje však samy nejsou přímým soutěžním whitelistem hráče; rozhodující je přijatý stav našeho katalogu.
+Při správě katalogu může kvaziautorita vycházet zejména z IJP, ASSČ, dalších jazykových příruček, mluvnic a relevantních odborných zdrojů. Tyto zdroje však samy nejsou přímým soutěžním whitelistem hráče; rozhodující je přijatý stav katalogu.
 
 Katalog je záměrně průběžně spravovatelný. Jeho jednotlivé opravy nebo doplnění samy o sobě nevyžadují novou `rules_version`.
 
-Nepravidelné, defektivní, nesklonné nebo jinak atypické tvary a vlastnosti, které nespadají do soutěžních modelů, se nepoužívají ani tehdy, když příslušné české slovo v katalogu existuje.
+Katalog není veřejně procházetelný. Hráč může nechat ověřit pouze **hotový vlastní návrh**: úplnou morfologickou identitu a konkrétní použitý tvar. Exact-match kontrola smí pouze potvrdit, že tato přesná kombinace je již schválená; nesmí z částečných údajů nabízet možné identity, autocomplete, podobná slova ani alternativní analýzy. Nepotvrzený exact match neznamená zamítnutí a hráč může kandidát normálně předložit k review.
 
-Zda bude úplný katalog veřejně a taxativně zveřejněn, je samostatné otevřené produktové rozhodnutí (#72).
+Nepravidelné, defektivní, nesklonné nebo jinak atypické vlastnosti, které nespadají do příslušného soutěžního modelu, se nepoužívají ani tehdy, když dané české slovo v katalogu existuje. Zvláštní pravidlo skutečných zájmen se uzavírá v #74.
 
 ## 10. Morfologické modely
 
-Kvazislova i soutěžně použitelná skutečná slova se řídí uzavřenými soutěžními modely.
+Kvazislova i soutěžně použitelná skutečná slova v produktivních kategoriích se řídí uzavřenými soutěžními modely.
 
-Konkrétní paradigmata a povolené hodnoty jsou normativně uvedeny v kvazitaháku.
+Název modelu je herní označení modelu inspirovaného češtinou, nikoli otevřený odkaz na všechny české dublety, alternace nebo lexikální výjimky.
 
-Obecně:
+Každý model musí přesně určit:
 
-- model přebírá své normativní paradigma,
-- model přesně určuje vztah mezi základním tvarem, deklarovanými morfologickými hodnotami a konkrétním použitým tvarem,
-- samotná deklarace hráče bez odvození použitého tvaru podle zvoleného modelu nestačí,
-- model nesmí umožňovat odvození téhož konkrétního použitého tvaru z libovolně mnoha základních tvarů a soutěžních identit,
-- varianty výslovně povolené v normativní tabulce nezakládají novou identitu,
-- lexikální nebo nepravidelné odchylky mimo model se nepřenášejí.
+- podmínku lemmatu / základního tvaru,
+- mechanické pravidlo kmene, pokud jej používá,
+- vztah mezi deklarovanými morfologickými hodnotami a použitým tvarem,
+- všechny normativně povolené realizace a varianty.
 
-Tento požadavek nepřikazuje jedinou možnou analýzu povrchového tvaru. Konečný počet různých analýz, které jsou jednotlivě přesně doložitelné normativními modely, je přípustný.
+Pro jeden použitý tvar nesmí model připouštět libovolně mnoho základních tvarů a soutěžních identit. Konečný počet různých přesně doložitelných analýz je přípustný.
+
+Existence jiné spisovné varianty mimo normativní tabulku sama soutěžní přípustnost nezakládá. Variantní realizace sama nevytváří novou soutěžní identitu.
+
+**Reachability není součást definice modelu.** Normativně povolený model nebo větev zůstává v pravidlech i tehdy, pokud žádná jeho realizace nemůže projít aktuálním znakovým/motivovým systémem.
 
 ## 11. Substantiva
 
-Soutěžní substantivní vzory:
+Soutěžní substantivní modely:
 
 ### Mužský rod
-- `pán` – životný, lemma na souhlásku
-- `muž` – životný, lemma na souhlásku
-- `předseda` – životný, lemma na `-a`
-- `soudce` – životný, lemma na `-e`
-- `hrad` – neživotný, lemma na souhlásku
-- `stroj` – neživotný, lemma na souhlásku
+- `pán` – životný, lemma na souhlásku,
+- `muž` – životný, lemma na souhlásku,
+- `předseda` – životný, lemma na `-a`,
+- `soudce` – životný, lemma na `-e`,
+- `hrad` – neživotný, lemma na souhlásku,
+- `stroj` – neživotný, lemma na souhlásku.
 
-U `pán/muž` a `hrad/stroj` se u kvazislov nevyžaduje přirozená fonologická preference tvrdosti/měkkosti; rozhodující je konzistence zvoleného soutěžního modelu.
+U `pán/muž` a `hrad/stroj` se u kvazislov nevyžaduje přirozená fonologická preference tvrdosti/měkkosti; rozhodující je zvolený uzavřený soutěžní model.
 
 ### Ženský rod
-- `žena` – lemma na `-a`
-- `růže` – lemma na `-e`
-- `píseň` – lemma na souhlásku
-- `kost` – lemma na souhlásku
+- `žena` – lemma na `-a`,
+- `růže` – lemma na `-e`,
+- `píseň` – lemma na souhlásku,
+- `kost` – lemma na souhlásku.
 
 ### Střední rod
-- `město` – lemma na `-o`
-- `moře` – lemma na `-e`
-- `kuře` – lemma na `-e`, rozšířený kmen typu `kuřete/kuřeti`
-- `stavení` – lemma na `-í`
+- `město` – lemma na `-o`,
+- `moře` – lemma na `-e`,
+- `kuře` – lemma na `-e`, rozšířený kmen podle normativního modelu,
+- `stavení` – lemma na `-í`.
 
-Model `kuře` podléhá reachability auditu; pokud se ukáže soutěžně nedosažitelný, přesune se z hlavního herního taháku do hraniční specifikace.
+Všechny uvedené modely zůstávají normativně dostupné bez ohledu na reachability. Přesná paradigmata a pravidla kmene se uzavírají v #1.
 
 ## 12. Adjektiva
 
-Aktuálně definované soutěžní modely:
+Soutěžní modely:
 
-- `mladý`
-- `jarní`
-- přivlastňovací typy `otcův`, `matčin`
+- `mladý`,
+- `jarní`,
+- `otcův`,
+- `matčin`.
 
-Přivlastňovací typy, stupňování a krátké jmenné tvary podléhají reachability auditu.
+Stupňování je koncepčně povolený mechanismus. Krátké / jmenné tvary lze použít pouze v rozsahu, který výslovně dovolí finální normativní model. Novému kvaziadjektivu nelze svévolně vytvořit neproduktivní nebo nepravidelný krátký tvar.
 
 Substantivizované adjektivum je morfologicky stále adjektivum.
 
-Skutečné doložené krátké formy lze použít pouze tehdy, pokud je připouští normativní soutěžní model; novému adjektivu nelze svévolně vytvořit nepravidelný krátký tvar.
-
-Obecná slovotvorba sama o sobě nezakládá platnost ani identitu. Slovotvorný vztah se dokládá jen tam, kde jej konkrétní soutěžní model výslovně vyžaduje.
+Reachability není důvodem žádný z těchto modelů nebo mechanismů odstranit, skrýt nebo přesunout mimo hráčskou nabídku. Přesná paradigmata uzavírá #1.
 
 ## 13. Slovesa a valence
 
 Kvazisloveso:
 
-- používá jeden z uzavřených soutěžních časovacích typů v kvazitaháku,
-- volí vid z uzavřené soutěžní sady,
+- používá jeden z uzavřených soutěžních časovacích typů,
+- volí vid z hodnot `nedokonavý`, `dokonavý`, `obouvidový`,
 - obsahuje slovní valenční obhajobu konkrétního použití ve větě.
 
-Valence není samostatný strukturovaný soutěžní model a není součástí morfologické ani soutěžní identity slovesa.
+Morfologickou soutěžní identitu slovesa tvoří:
 
-Hráč ji obhajuje volným textem. Z obhajoby musí být srozumitelné:
+`infinitiv + soutěžní časovací typ`
+
+Vid ani valence samy o sobě novou identitu nevytvářejí.
+
+Valence není samostatný strukturovaný soutěžní model. Hráč ji obhajuje volným textem. Z obhajoby musí být srozumitelné:
 
 - jaká doplnění zvolené použití slovesa vyžaduje,
 - která slova nebo části konkrétní kvazivěty tato doplnění realizují,
 - o jaké konkrétní současné české sloveso a jeho použití se obhajoba opírá.
 
-Pravidla nevyžadují převod této obhajoby do kanonického kódu typu `ACC`, `DAT + ACC` ani do strukturovaného seznamu valenčních slotů.
+Pravidla nevyžadují převod této obhajoby do kanonického kódu nebo strukturovaného seznamu valenčních slotů. Všechna obligatorní doplnění z obhájeného použití musí být ve větě výslovně realizována.
 
-Všechna obligatorní doplnění vyplývající z obhájeného valenčního použití musí být ve větě výslovně realizována.
+Modelové sloveso pro valenci nemusí být stejné jako případný jazykový podklad pro časování. Časování se neposuzuje analogií s libovolným českým slovesem.
 
-Modelové sloveso pro valenci nemusí být stejné jako případný jazykový podklad pro časování nebo jiné morfologické vlastnosti.
-
-Časování se neposuzuje analogií s libovolným českým slovesem.
-
-Vid se nedokládá libovolným externím modelovým slovesem.
-
-Valenční obhajoba se automaticky jazykově nevaliduje ani neporovnává jako katalogová identita. Při jazykovém review však může být důvodem k zamítnutí řešení, pokud analogie neobstojí nebo ve větě chybí obligatorní doplnění, které z obhájeného použití vyplývá.
-
-Přesné časovací typy zůstávají `TODO` normativního kvazitaháku.
+Finální soutěžní časovací typy, jejich úplná paradigmata a pomocné slovesné mechanismy uzavírá #2. Reachability se při jejich výběru nepoužívá jako filtr.
 
 ## 14. Fiktivní význam
 
@@ -307,70 +298,34 @@ Fiktivní význam:
 - nesmí nahrazovat valenční obhajobu,
 - nesmí obcházet soutěžní omezení.
 
-Lze jej použít pouze v rámci výslovně povoleného syntaktického vztahu.
-
-Pokud je význam pro platnost konstrukce podstatný, použití musí odpovídat běžné české analogii uvedené v kvazitaháku nebo jiné zjevně stejné konstrukci současné spisovné češtiny. Jiná analogie může doložit běžný významový podtyp povoleného vztahu, ale nesmí vytvořit nový hlavní syntaktický vztah ani obejít jeho rozhodovací test nebo valenční obhajobu.
+Lze jej použít pouze v rámci výslovně povoleného syntaktického vztahu. Pokud je význam pro platnost konstrukce podstatný, musí použití odpovídat současné spisovné české analogii stejného hlavního vztahu.
 
 ## 15. Soutěžní identita
 
 Jednou použitá soutěžní identita je v dané větě vyčerpaná.
 
 ### Substantivum
-
-Identitu tvoří:
-
 `lemma + rod + životnost (je-li relevantní) + soutěžní skloňovací model`
 
 Pád a číslo novou identitu nevytvářejí.
 
 ### Adjektivum
-
-Identitu tvoří:
-
 `lemma / základní tvar + soutěžní skloňovací model`
 
 Rod, pád, číslo, stupeň a syntaktická funkce novou identitu nevytvářejí.
 
 ### Sloveso
-
-Identitu tvoří:
-
 `infinitiv + soutěžní časovací typ`
 
-Vid ani valence samy o sobě novou identitu nevytvářejí.
-
-V jedné kvazivětě je právě jeden plnovýznamový slovesný token; valence se proto nepoužívá jako prostředek rozlišování více slovesných identit uvnitř jedné věty.
+Vid ani valence novou identitu nevytvářejí.
 
 ### Zájmeno
-
-Pokud bude v aktuální verzi soutěžně dosažitelné, identitu tvoří konkrétní skutečný zájmenný lexém podle normativní specifikace.
+Finální identita skutečného zájmena je předmětem #74. Do jeho uzavření nesmí implementace zvolit vlastní pravidlo.
 
 ### Funkční jednopísmenná slova
-
 `k`, `v`, `z`, `a`, `i` jsou jednotlivé soutěžní identity; každou lze použít nejvýše jednou.
 
-### Co identitu nevytváří
-
-Samo o sobě novou identitu nevytváří zejména:
-
-- význam,
-- syntaktická funkce,
-- pád,
-- číslo,
-- stupeň adjektiva,
-- vid slovesa,
-- valenční obhajoba slovesa,
-- variantní koncovka,
-- dubleta,
-- slovotvorný původ,
-- etymologie,
-- rozdíl velkých/malých písmen.
-
-Rozdíl mezi `Q` a posloupností `KV` není variantním zápisem téže identity. Pokud se dva tvary nebo jejich základní tvary liší `Q` oproti `KV`, jde o skutečný rozdíl v zápisu, který se při morfologické identifikaci zachovává; shodná výslovnost jej nemaže.
-
-Skutečné slovo a kvazislovo stejného zápisu mohou být dvě různé identity jen tehdy, pokud se skutečně liší některou vlastností, která je podle těchto pravidel součástí identity.
-
-Je-li konkrétní identita a tvar schválen v katalogu skutečných slov, nelze tutéž identitu v témže aktuálním posouzení vydávat za kvazislovo. Jiná morfologická identita stejného zápisu může být kvazislovem, pokud sama splní příslušný soutěžní model.
+Rozdíl mezi `Q` a `KV` není variantním zápisem téže identity. Rozdíl velkých/malých písmen identitu nemění.
 
 ## 16. Interpunkce
 
@@ -378,38 +333,41 @@ Uvnitř soutěžního zápisu nejsou čárky, středníky, dvojtečky, pomlčky,
 
 Nelze použít konstrukci, která by takové znaménko podle současné spisovné normy vyžadovala.
 
-Na konci je povinně `.`, `?` nebo `!`.
+Hráč deklaruje typ věty:
+
+- oznamovací → `.`,
+- tázací → `?`,
+- rozkazovací → `!`.
 
 Závěrečné znaménko není soutěžním znakem a nepočítá se do délky.
 
-## 17. Analýza řešení
+## 17. Analýza řešení a veřejný detail
 
-Stačí jedna úplná a interně konzistentní analýza.
+Stačí jedna úplná a interně konzistentní analýza. Řešitel nemusí dokazovat, že jiná možná analýza neexistuje.
 
-Řešitel nemusí dokazovat, že jiná možná analýza neexistuje.
+Odevzdání musí obsahovat úplná data vyžadovaná aktuálními modely a field schematem #5, včetně plné morfologické deklarace a případných obhajob. U slovesa je navíc povinná slovní valenční obhajoba podle oddílu 13.
 
-Odevzdání musí pro každé slovo strukturovaně zachytit alespoň:
+Konkrétní UI ani datový model nesmí měnit jazykovou platnost.
 
-- pořadí a použitý tvar,
-- slovní druh,
-- úplnou morfologickou identifikaci vyžadovanou pro daný slovní druh a soutěžní model,
-- soutěžní identitu,
-- morfologickou obhajobu a případné požadované podklady,
-- syntaktickou funkci,
-- všechny vztahy ke konkrétním dalším tokenům, které zvolená syntaktická konstrukce vyžaduje,
-- další údaje daného modelu.
+### Veřejné zveřejnění schválené věty
+Úplný rozhodcovský spis není veřejným výstupem.
 
-U slovesa musí být navíc uvedena slovní valenční obhajoba podle oddílu 13. Tato obhajoba se nepřevádí do další morfologické identity ani do povinného strukturovaného valenčního rámce.
+V seznamu schválených vět se zveřejňuje zejména:
 
-Odborný významový podtyp hlavní syntaktické funkce není povinným strukturovaným údajem, pokud jej jiné výslovné normativní pravidlo nevyžaduje. Je-li vztah nejasný nebo závislý na fiktivním významu, zachytí se v obhajobě běžná česká analogie.
+- věta,
+- počet slov,
+- počet soutěžních znaků,
+- autor / spoluautoři.
 
-Konkrétní UI ani datový model formuláře nesmí měnit jazykovou platnost.
+V detailu lze u jednotlivých slov zveřejnit lehký jazykový rozbor: použitý tvar, skutečné slovo / kvazislovo, slovní druh, lemma, soutěžní model, základní vlastnosti konkrétního použitého tvaru a syntaktickou roli / jednoduché vazby.
+
+Kompletní paradigma, úplná morfologická obhajoba, interní review, důkazní podklady a katalogové interní stavy zůstávají neveřejné.
 
 ## 18. Zdroje a důkazní břemeno
 
 Důkazní břemeno v jazykovém sporu nese řešitel.
 
-Status skutečného soutěžního slova se neposuzuje přímým splněním jednoho povinného externího slovníku, ale podle katalogu skutečných slov z oddílu 9.
+Status skutečného soutěžního slova se neposuzuje přímým splněním jednoho povinného externího slovníku, ale podle katalogu z oddílu 9.
 
 Při námitce proti katalogu nebo při jiné jazykové obhajobě mohou být relevantní zejména:
 
@@ -418,53 +376,57 @@ Při námitce proti katalogu nebo při jiné jazykové obhajobě mohou být rele
 - odborné slovníky a publikace,
 - jiné relevantní odborné zdroje.
 
-Náhodný internetový výskyt sám o sobě nestačí jako přesvědčivá jazyková obhajoba. Kvaziautorita však není vázána jediným taxativním seznamem externích zdrojů při správě katalogu skutečných slov.
+Náhodný internetový výskyt sám o sobě nestačí jako přesvědčivá jazyková obhajoba. U kvazislova se nedokládá existence slova, ale pravidlo/model, o který se opírá. U valence se dokládá jazyková analogie konkrétního použití slovesa.
 
-U kvazislova se nedokládá existence slova, ale pravidlo/model, o který se opírá. U valenční obhajoby se dokládá jazyková analogie konkrétního použití slovesa, nikoli samostatná soutěžní identita.
+## 19. Nástroje, fair play a důvěra
 
-## 19. Nástroje
+Úplná normativní politika používání nástrojů je v `03-ai-policy.md`.
 
-Úplná normativní politika používání nástrojů je v `03-ai-policy.md`. Tento dokument ji neduplikuje.
+Základní duch je: **AI smí vysvětlit hru, nesmí ji za hráče hrát.** Automatický nástroj nesmí za hráče hledat, generovat, skládat nebo optimalizovat soutěžní kandidáty.
+
+Dodržování této části stojí na fair play a vzájemné důvěře. Projekt nevyžaduje pracovní logy, screenshoty, historii promptů ani jiný dohledový důkaz způsobu vzniku řešení a nevytváří vyšetřovací režim používání nástrojů.
 
 ## 20. Platnost, uznání a kvaziautorita
 
-Kvaziautorita konečně rozhoduje, zda řešení podle příslušné verze pravidel platné je.
+Kvaziautorita konečně rozhoduje, zda je řešení podle příslušné verze pravidel platné.
 
-Je-li řešení:
+Jazykově platné a řádně podané řešení nelze odmítnout pouze proto, že využívá neočekávanou nebo nežádoucí vlastnost pravidel. Pravidlovou díru lze zavřít až v nové verzi pravidel. Oprava nebo doplnění katalogu skutečných slov je běžná provozní správa podle oddílu 9.
 
-- platné,
-- řádně podané,
-- nevzniklo porušením pravidel soutěžního procesu nebo zakázaných prostředků,
-
-musí být uznáno.
-
-Jazykově platné řešení nelze odmítnout pouze proto, že využívá neočekávanou nebo nežádoucí vlastnost pravidel.
-
-Pravidlovou díru lze zavřít až v nové verzi pravidel. Oprava nebo doplnění katalogu skutečných slov je však běžná provozní správa podle oddílu 9 a sama o sobě novou `rules_version` nevyžaduje.
-
-Řešení lze vyřadit při porušení soutěžního procesu, například:
-
-- použitím zakázaných prostředků,
-- nepravdivým podáním,
-- falšováním podkladů,
-- zneužitím soutěžního systému.
+Nepravdivé nebo zfalšované údaje v samotném podání mohou vést k jeho zamítnutí. Projekt ale neprovádí forenzní kontrolu toho, jak hráč řešení hledal.
 
 ## 21. Skóre
 
 Primární: počet slov.
 
-Sekundární: počet soutěžních písmen bez mezer.
+Sekundární: počet soutěžních znaků bez mezer.
 
-Shoda obou hodnot = společný rekord.
+Shoda obou hodnot = společný rekord. Pořadí podání nerozhoduje.
 
-Pořadí podání nerozhoduje.
+`Q` se počítá jako jeden skutečně zapsaný znak; `KV` jako dva.
 
-## 22. Reachability a struktura veřejných pravidel
+## 22. Reachability a slepé cesty
 
-Před veřejnou verzí se provede interní reachability audit.
+**Reachability je analytická vlastnost pravidel, nikoli normativní filtr.**
 
-Hlavní pravidla a normativní tahák mají hráči prezentovat především mechanismy, které jsou v aktuálním soutěžním systému reálně použitelné.
+Platí:
 
-Pravidla pro hraniční, výjimečné nebo málo pravděpodobné situace se přesouvají do samostatné závazné kapitoly.
+- model, morfologická větev nebo jiný normativně povolený mechanismus zůstává součástí pravidel i při prokázané nedosažitelnosti,
+- nedosažitelnost není důvodem volbu skrýt, zakázat, odstranit z UI ani přesunout do hraniční kapitoly,
+- hráčské materiály nemají známé slepé cesty označovat nebo prozrazovat jen proto, že je interní audit zjistil,
+- interní reachability analýza může sloužit k auditu, testům a poznání herního prostoru,
+- konkrétní hráčův použitý povrchový tvar musí samozřejmě vždy splnit všechna znaková, motivová, morfologická a syntaktická pravidla.
 
-Samotné nenalezení příkladu není důkaz nedosažitelnosti; odstranění mechanismu má být podloženo jednoznačným závěrem v rámci uzavřeného soutěžního systému.
+Možnost hledat i cesty, které nakonec nevedou k platnému tahu, je záměrnou součástí hry.
+
+## 23. Autorství, spolupráce a navazování
+
+Kvazi je otevřený kumulativní problém.
+
+- zveřejněné schválené řešení, jednotlivé kvazislovo, konstrukci nebo jiný zveřejněný nápad smí kdokoli použít, upravit nebo rozvíjet,
+- na jednotlivé herní nápady se nezavádí výlučné vlastnictví,
+- lidé smějí řešení konzultovat a tvořit společně,
+- jedno podání může mít více spoluautorů,
+- autorem konkrétního podání je osoba / skupina uvedená u tohoto podání; předchozí rekordy a jejich autoři se zpětně nemažou,
+- přesná kopie existující věty sama nevytváří nový delší rekord; pravidla nevyšetřují, zda šlo o opis nebo nezávislý objev.
+
+Veřejné zveřejnění podle oddílu 17 proto zároveň vytváří legitimní společnou znalost hry.
