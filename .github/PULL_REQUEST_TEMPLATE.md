@@ -8,11 +8,18 @@
 - [ ] audit / governance
 - [ ] redakční změna bez změny významu
 
-## Související issue
-Closes / relates to #
+## Související GitHub Issue
+
+Každá netriviální změna musí vycházet z issue. Uveď např. `Closes #123` nebo `Relates to #123`.
+
+- Issue: #
+- [ ] issue má správné labely
+- [ ] PR neřeší skrytou práci mimo scope issue
 
 ## Rozhodnutí
-Pokud změna obsahuje produktové nebo pravidlové rozhodnutí, uveď odkaz na issue a explicitní rozhodnutí Josefa Bukovského.
+Pokud změna obsahuje produktové nebo pravidlové rozhodnutí:
+- [ ] explicitní výsledek rozhodnutí je zachycen v příslušném issue
+- [ ] rozhodnutí provedl Josef Bukovský
 
 ## Dopad na normativní chování
 - [ ] žádný
@@ -23,7 +30,8 @@ Pokud změna obsahuje produktové nebo pravidlové rozhodnutí, uveď odkaz na i
 - [ ] `Jak hrát` odpovídá normativním pravidlům
 - [ ] kvazitahák odpovídá rozhodcovské specifikaci
 - [ ] architektura/DB nepřidává skryté soutěžní pravidlo
-- [ ] byly aktualizovány související otevřené body / decision log
+- [ ] související issue obsahuje aktuální výsledek, závislosti a případnou navazující práci
+- [ ] nevznikl paralelní Markdown backlog nebo ruční seznam otevřených bodů
 - [ ] TODO nebylo omylem proměněno v implicitní rozhodnutí
 
 ## Testy / ověření
