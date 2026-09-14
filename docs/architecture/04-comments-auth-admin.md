@@ -1,4 +1,4 @@
-# Uživatelské účty, komentáře a administrace
+# Uživatelské účty a administrace
 
 ## Uživatelské účty
 
@@ -31,18 +31,9 @@ Konkrétní algoritmus password hashování, parametry session/cookies, délka a
 
 ## Komentáře
 
-Produktový scope komentářů ještě není uzavřen. Starší návrh anonymních komentářů přes magic link se nepovažuje za platný auth směr.
+Komentáře nejsou součástí prvního MVP a v této fázi se neimplementují.
 
-Pokud komentáře v MVP zůstanou, musí být jejich identita a oprávnění navrženy nad aktuálním modelem registrovaných uživatelů, nikoli nad HMAC pseudonymem odvozeným z e-mailu.
-
-## Moderace komentářů
-
-Pokud budou komentáře součástí produktu, mohou používat například stavy:
-- `VISIBLE`,
-- `HIDDEN`,
-- `DELETED`.
-
-Přesný scope, limity a retenční pravidla komentářů budou rozhodnuty samostatně.
+Nevzniká tedy komentářový datový model, magic-link identita komentujících, moderace komentářů, denní komentářové limity ani komentářový privacy/retention workflow. Případné budoucí zavedení komentářů bude nové produktové rozhodnutí a musí vycházet z tehdy platného modelu registrovaných uživatelů.
 
 ## Admin
 
@@ -57,7 +48,6 @@ KISS rozhraní:
 
 ### Dashboard
 - čekající věty,
-- případné nové komentáře,
 - schválené věty,
 - námitky proti katalogu.
 
