@@ -104,10 +104,12 @@ Na konci věty musí být `.`, `?` nebo `!`; závěrečné znaménko se do délk
 
 Při odevzdání se každé slovo popíše ve strukturovaném formuláři:
 
-- co je to za slovo,
-- podle jakého modelu funguje,
-- jaký konkrétní tvar používáš,
-- jakou má ve větě funkci.
+- jeho slovní druh,
+- úplnou morfologickou identifikaci podle zvoleného slovního druhu a soutěžního modelu,
+- jeho soutěžní identitu a konkrétní použitý tvar,
+- jeho větnou funkci,
+- jeho vztah nebo vztahy ke konkrétním dalším slovům věty,
+- požadovanou obhajobu a zdroje.
 
 Aplikace sama zkontroluje technická znaková omezení. Jazykové rozhodnutí ale musí být obhajitelné podle pravidel.
 

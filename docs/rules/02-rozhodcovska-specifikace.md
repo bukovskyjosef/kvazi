@@ -345,9 +345,12 @@ Stačí jedna úplná a interně konzistentní analýza.
 Odevzdání musí pro každé slovo strukturovaně zachytit alespoň:
 
 - pořadí a použitý tvar,
+- slovní druh,
+- úplnou morfologickou identifikaci vyžadovanou pro daný slovní druh a soutěžní model,
 - soutěžní identitu,
-- morfologické údaje a obhajobu,
-- syntaktickou funkci a vazbu,
+- morfologickou obhajobu a požadované zdroje,
+- syntaktickou funkci,
+- všechny vztahy ke konkrétním dalším tokenům, které zvolená syntaktická konstrukce vyžaduje,
 - další údaje daného modelu.
 
 Konkrétní UI ani datový model formuláře nesmí měnit jazykovou platnost.

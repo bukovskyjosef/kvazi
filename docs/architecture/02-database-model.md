@@ -99,3 +99,4 @@ Reprezentuje platnost jedné revize vůči konkrétní verzi pravidel a umožňu
 4. uživatelská deklarace automaticky nerozšiřuje katalog.
 5. veřejný web neumožní vytěžit úplný interní katalog.
 6. morfologická pravda je oddělena od toho, co autor věty pouze deklaruje.
+7. každý token podané revize má úplnou deklarovanou identifikaci a všechny pravidly vyžadované syntaktické vztahy uložené strukturovaně.

@@ -79,7 +79,16 @@ Formulář pracuje s jednotlivými slovy:
 
 Mezery ve výsledném zobrazení generuje aplikace sama.
 
-Po zadání slov následuje strukturovaná analýza slovo po slově. Podle zvoleného slovního druhu se zobrazí relevantní pole.
+Po zadání slov následuje povinná strukturovaná analýza slovo po slově. U každého tokenu formulář vyžaduje:
+
+- slovní druh,
+- úplnou morfologickou identifikaci požadovanou aktuální verzí pravidel pro daný slovní druh a soutěžní model,
+- soutěžní identitu a konkrétní použitý tvar,
+- větnou funkci,
+- jeden nebo více strukturovaných vztahů ke konkrétním dalším tokenům, pokud je zvolená konstrukce vyžaduje,
+- obhajobu a zdroje v rozsahu požadovaném pravidly.
+
+Podle zvoleného slovního druhu a modelu se zobrazí odpovídající povinná pole. Údaje, které pravidla vyžadují strukturovaně, nelze nahradit jediným obecným textovým polem.
 
 ## MVP schvalovací workflow
 

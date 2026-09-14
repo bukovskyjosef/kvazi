@@ -130,6 +130,8 @@ Reachability rozhodne, co zůstane v hlavní vrstvě.
 
 - slova se zadávají jednotlivě v pevném pořadí,
 - uživatel nevkládá mezery,
+- každý token vyžaduje slovní druh, úplnou identifikaci podle zvoleného modelu, soutěžní identitu, větnou funkci a všechny požadované vztahy ke konkrétním dalším tokenům,
+- obhajoba a zdroje jsou povinné v rozsahu stanoveném pravidly,
 - technická implementace nesmí měnit platnost,
 - morfologický katalog je provozní autorita, nikoli vyšší pravidlo.
 
