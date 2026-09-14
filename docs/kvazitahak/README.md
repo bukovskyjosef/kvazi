@@ -21,6 +21,10 @@ Jeho hlavní cíl:
 - katalog kandidátních řešení,
 - náhrada rozhodcovské specifikace.
 
+## Skutečná slova
+
+Kvazitahák nezveřejňuje předfiltrovaný seznam skutečných soutěžních slov. Hráč jejich existenci ověřuje ručně ve slovníkové části IJP nebo mezi zveřejněnými hesly ASSČ; jiné zdroje samy o sobě existenci soutěžního slova neprokazují.
+
 ## Normativní role
 
 Kvazitahák je součástí aktuální verze pravidel.

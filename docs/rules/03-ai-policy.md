@@ -14,8 +14,9 @@ Nástroj smí pomáhat s pasivním studiem dovolených zdrojů a s mechanickým 
 
 Soutěžící smí zejména:
 
-- ručně číst dovolené veřejné slovníky, příručky, knihy a odborné texty,
-- ručně v dovoleném zdroji vyhledat konkrétní, člověkem předem zvolené slovo nebo obecný jazykový jev,
+- ručně číst veřejné příručky, knihy a odborné texty pro obecné jazykové poučení a obhajobu jiných jazykových otázek,
+- skutečné soutěžní slovo hledat pouze ručně, a to ve slovníkové části IJP nebo mezi zveřejněnými hesly ASSČ; jen tyto zdroje mohou doložit jeho existenci,
+- ručně v relevantním zdroji vyhledat jiný, člověkem předem zvolený obecný jazykový jev,
 - zapisovat, řadit a formátovat vlastní poznámky,
 - použít kalkulačku nebo jinou mechanickou pomůcku k počítání,
 - ověřit jeden konkrétní, člověkem vytvořený kandidát proti výslovnému pravidlu,

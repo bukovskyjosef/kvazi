@@ -37,6 +37,8 @@ Tento dokument je stručný decision log. Není náhradou normativních pravidel
 
 - kvazislova používají uzavřené soutěžní modely,
 - skutečný použitý tvar musí být reálně spisovný a současně spadat do soutěžního modelu,
+- existenci skutečného slova lze doložit pouze slovníkovou částí IJP nebo zveřejněným heslem ASSČ,
+- hledání skutečných slov je pouze ruční; SSJČ, PSJČ, korpusy, jiné slovníky ani internetové výskyty samy o sobě nestačí,
 - nepravidelné/defektivní/nesklonné zvláštnosti mimo modely se nepoužívají,
 - veřejný úplný katalog slov se nezveřejňuje,
 - interní katalog může existovat.

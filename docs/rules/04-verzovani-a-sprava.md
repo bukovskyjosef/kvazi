@@ -22,6 +22,8 @@ Technická specifikace, databázový model ani UI nesmějí změnit jazykovou pl
 ## Interní morfologický katalog
 Interní katalog je provozní zdroj pro deterministickou validaci, nikoli vyšší autorita než pravidla. Proti chybnému nebo neúplnému katalogu lze podat námitku; po jejím uznání se katalog opraví a řešení znovu posoudí.
 
+Existenci skutečného soutěžního slova lze doložit pouze slovníkovou částí IJP nebo zveřejněným heslem ASSČ. Změna této sady zdrojů je změnou soutěžního pravidla a vyžaduje novou verzi.
+
 Veřejný úplný seznam přípustných českých slov a tvarů se nezveřejňuje.
 
 ## Kvaziautorita

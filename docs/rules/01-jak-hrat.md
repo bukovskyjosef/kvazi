@@ -73,6 +73,8 @@ Jeho použitý tvar musí být současně:
 1. skutečným spisovným českým tvarem,
 2. tvarem odpovídajícím některému soutěžnímu modelu z kvazitaháku.
 
+Skutečné slovo smíš hledat pouze ručně ve slovníkové části **IJP** nebo mezi zveřejněnými hesly **ASSČ**. Jen tyto dva zdroje mohou doložit jeho existenci; **SSJČ**, **PSJČ**, korpusy ani běžný web samy o sobě nestačí.
+
 Zvláštní nepravidelné tvary mimo soutěžní modely se nepoužívají.
 
 ### Kvazislovo

@@ -55,4 +55,6 @@ Konkrétní reálný tvar musí:
 1. skutečně existovat v současné spisovné češtině,
 2. současně odpovídat jednomu z výše uvedených normativních modelů.
 
+Existenci slova lze doložit pouze slovníkovou částí IJP nebo zveřejněným heslem ASSČ. Hráč při hledání v těchto zdrojích postupuje pouze ručně.
+
 Atypické reálné tvary mimo modely se nepoužívají.

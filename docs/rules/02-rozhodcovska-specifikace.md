@@ -168,6 +168,15 @@ Skutečné české slovo lze použít pouze tehdy, když:
 1. jeho konkrétní použitý tvar je doloženým tvarem současné spisovné češtiny,
 2. tentýž konkrétní tvar současně odpovídá některému povolenému soutěžnímu morfologickému modelu.
 
+Existenci skutečného slova lze soutěžně doložit pouze:
+
+- slovníkovou částí [Internetové jazykové příručky ÚJČ](https://prirucka.ujc.cas.cz/) (IJP),
+- již zveřejněným heslem [Akademického slovníku současné češtiny](https://www.slovnikcestiny.cz/) (ASSČ).
+
+Záznam v některém z těchto zdrojů dokládá pouze existenci slova; nenahrazuje ostatní podmínky tohoto oddílu, zejména současnou spisovnost konkrétního tvaru a shodu se soutěžním modelem.
+
+SSJČ, PSJČ, korpusy, jiné slovníky ani internetové výskyty samy o sobě existenci skutečného soutěžního slova neprokazují.
+
 Nepravidelné, defektivní, nesklonné nebo jinak atypické tvary a vlastnosti, které nespadají do soutěžních modelů, se nepoužívají.
 
 Externí existence zvláštního reálného tvaru sama o sobě nezakládá právo použít jej v soutěži.
@@ -347,14 +356,16 @@ Konkrétní UI ani datový model formuláře nesmí měnit jazykovou platnost.
 
 Důkazní břemeno v jazykovém sporu nese řešitel.
 
-Relevantní mohou být zejména:
+Důkaz existence skutečného soutěžního slova se řídí uzavřeným seznamem zdrojů v oddílu 9.
+
+Pro jiné jazykové otázky mohou být relevantní zejména:
 
 - ÚJČ a jeho slovníky/příručky,
 - akademické a vysokoškolské mluvnice,
 - odborné slovníky a publikace,
 - jiné relevantní odborné zdroje.
 
-Náhodný internetový výskyt sám o sobě nestačí.
+Žádný z těchto dalších zdrojů nerozšiřuje množinu skutečných soutěžních slov vymezenou oddílem 9. Náhodný internetový výskyt sám o sobě nestačí ani pro jinou jazykovou obhajobu.
 
 U kvazislova se nedokládá existence slova, ale pravidlo/model, o který se opírá.
 
