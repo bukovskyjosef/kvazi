@@ -1,114 +1,26 @@
-# Hranice mezi pravidly, daty a implementací
+# Boundaries between rules, data and implementation
 
-Tento dokument určuje architektonické hranice projektu. Není pravidlem hry, ale implementace se jím má řídit.
+This document defines technical boundaries. It is not a game rule.
 
-## 1. Normativní pravidla
+## Normative layer
+Competition validity comes from the normative rule documents and explicitly normative parts of the Kvazitahák. Implementation must not change their meaning.
 
-Určují, co je soutěžně platné.
+## Explanatory layer
+`Jak hrát`, examples and explanatory text help readers understand the game. They do not create new rules.
 
-Patří sem:
-- rozhodcovská specifikace,
-- normativní části kvazitaháku,
-- politika použití nástrojů a AI,
-- verzování a procesní pravidla.
+## Technical layer
+Architecture, forms, APIs, database structures, validators, authentication and admin workflows represent accepted rules. They must not settle an unresolved product or language question.
 
-Implementace je nesmí měnit.
+## Internal catalog
+The internal catalog is an operational knowledge base below the rules. A conflict between the catalog and the rules is a catalog defect.
 
-## 2. Veřejná vysvětlující dokumentace
+## User declaration
+A submitted analysis is the contestant's claim. It does not by itself create authoritative linguistic truth or expand the catalog.
 
-`Jak hrát`, příklady a vysvětlivky:
-- mají usnadnit pochopení,
-- nesmějí zavést nové pravidlo,
-- při rozporu se opravují podle normativního zdroje.
+## Derived data
+Counts, normalized text, validation results and rankings must be reproducible from source data and the relevant rules/validator provenance.
 
-## 3. Technická specifikace
+## Development gate
+Implementation may proceed only where behavior is already decided or can remain genuinely parameterized. If a product question is unresolved, use the workflow in `/docs/governance/decision-workflow.md` and GitHub Issues instead of inventing a default.
 
-Určuje, jak se pravidla reprezentují a obsluhují:
-- API,
-- formuláře,
-- DB tabulky,
-- validační algoritmy,
-- autentizace,
-- admin workflow.
-
-Nesmí rozhodnout jazykovou otázku, která není rozhodnutá v pravidlech.
-
-## 4. Interní morfologický katalog
-
-Je neveřejná provozní znalostní báze.
-
-Jeho role:
-- rychlá deterministická kontrola,
-- evidence schválených analýz,
-- zdroje a historie oprav.
-
-Není vyšší autoritou než pravidla.
-
-Pokud je katalog v rozporu s pravidly, opravuje se katalog.
-
-## 5. Uživatelská deklarace
-
-Autor kvazivěty ve formuláři deklaruje:
-- vlastní analýzu,
-- soutěžní identitu,
-- morfologické hodnoty,
-- syntaktické vazby,
-- zdroje.
-
-Tato deklarace je tvrzení soutěžícího. Sama nevytváří novou morfologickou pravdu ani nerozšiřuje katalog.
-
-## 6. Odvozená data
-
-Aplikace může odvozovat například:
-- počet slov,
-- počet znaků,
-- normalizovaný zápis,
-- mechanický validační výsledek,
-- žebříček.
-
-Odvozené hodnoty musí být znovu vypočitatelné ze zdrojových dat a verze pravidel/validátoru.
-
-## 7. Budoucí implementační prostor
-
-Aplikační kód má žít odděleně od normativní dokumentace.
-
-Doporučená budoucí struktura:
-
-```text
-app/                 aplikační PHP kód
-public/              veřejný web root a statické assety
-tests/               automatické testy
-db/migrations/       produkční DB migrace
-db/seed/             normativně schválené číselníky / provozní seed data
-docs/                produktová a technická dokumentace
-```
-
-Aktuální `db/schema-draft.sql` je návrhový artefakt, ne produkční migrační historie.
-
-## 8. Vývojový gate
-
-Vývojář může implementovat pouze to, co:
-- je již rozhodnuté,
-- nebo lze implementovat parametricky bez předjímání otevřeného rozhodnutí.
-
-Pokud narazí na otevřenou produktovou otázku, založí `[DECISION]` issue a spornou logiku nehardcoduje.
-
-## 9. Příklad správné hranice
-
-Pravidlo řekne:
-> sloveso vybírá jeden z normativních časovacích typů.
-
-Kvazitahák definuje:
-> seznam a paradigmata typů.
-
-DB uloží:
-> `verb_conjugation_type_id`.
-
-UI zobrazí:
-> select s povolenými typy.
-
-Vývojář nesmí do selectu přidat nebo odebrat typ jen proto, že se mu implementačně hodí.
-
-## 10. Příklad chybné hranice
-
-Pokud pravidla dovolují kombinaci X, ale databázový constraint ji zakáže, nejde o nové pravidlo hry. Je to chyba implementace.
+`/db/schema-draft.sql` is a working design artifact, not production migration history.
