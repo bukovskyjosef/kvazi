@@ -41,6 +41,7 @@ Příklady, komentáře a vysvětlivky jsou didaktické a samy o sobě pravidla 
 - `05-valence.md` – uzavřené valenční rámce
 - `06-hranicni-pravidla.md` – málo pravděpodobné a hraniční mechanismy
 - `07-player-format-proposal.md` – nenormativní návrh výsledné podoby materiálu pro hráče
+- `08-independent-content-proposal.md` – nezávislý nenormativní návrh konkrétního obsahu k zapracování
 
 ## Povinný cílový obsah
 
