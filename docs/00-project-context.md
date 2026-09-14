@@ -6,7 +6,7 @@ Nejdelší kvazivěta je záměrně nepraktický problém. Má vytvářet prosto
 
 Hra nemá dokazovat jazykovědnou erudici. Dlouhodobým cílem je, aby byla hratelná pro běžnou veřejnost a aby výhodu nepřinášelo především vytěžování odborných lingvistických databází.
 
-Proto se systém postupně posouvá od otevřeného „použij cokoli, co existuje v češtině“ k uzavřeným soutěžním morfologickým, syntaktickým a valenčním modelům.
+Proto se systém postupně posouvá od otevřeného „použij cokoli, co existuje v češtině“ k uzavřeným soutěžním morfologickým a syntaktickým modelům a k explicitně deklarované a obhajované valenci.
 
 ## Princip práce člověka a techniky
 
