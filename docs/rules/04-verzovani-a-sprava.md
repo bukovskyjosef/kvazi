@@ -32,7 +32,7 @@ Stejná immutable revize může být bez nového podání znovu posouzena podle 
 
 Aktuální žebříček používá pouze řešení platná a uznaná podle aktuální `rules_version`. Historické výsledky podle starších verzí zůstávají zachované.
 
-Při revalidaci se znovu posuzuje obsah řešení podle nové jazykové/pravidlové verze. Historická compliance soutěžního procesu (například dodržení tehdy platné AI/tool policy při vytvoření podání) je fakt svázaný s původním podáním a zpětně se podle nové procesní policy nepřehodnocuje.
+Při revalidaci se znovu posuzuje obsah řešení podle nové jazykové/pravidlové verze. Způsob, jakým hráč řešení vytvořil, se zpětně nevyšetřuje ani nerevaliduje; fair-play pravidla stojí na důvěře.
 
 Pokud se mezi verzemi změní scoring semantics, skóre je výsledkem validace konkrétní revize vůči konkrétní `rules_version`; nesmí se přepsat historické skóre jiné verze.
 
@@ -106,6 +106,12 @@ Veřejně se standardně nezveřejňuje:
 
 Tyto neveřejné podklady mohou být zachovány pro posouzení, audit a případnou námitku. Omezený veřejný detail nemění pravidlo, že zveřejněné řešení lze jako celek i po částech legitimně použít při dalším hledání.
 
+## Fair play a důvěra
+
+Pravidla práce s nástroji a AI jsou čestná dohoda mezi hráči. Soutěž nebude vyžadovat pracovní logy, historii promptů ani jiné důkazy a nebude vést řízení o tom, zda hráč při hledání řešení použil zakázaný nástroj.
+
+Odesláním řešení hráč jednoduše potvrzuje, že hrál fér a řešení vzniklo v duchu pravidel. Toto potvrzení není podkladem pro následné vyšetřování; je vyjádřením vzájemné důvěry, bez níž recesní charakter soutěže nedává smysl.
+
 ## Technická specifikace a omezení aplikace
 Technická specifikace, databázový model ani UI nesmějí změnit jazykovou platnost řešení.
 
@@ -114,7 +120,9 @@ Pokud aplikace neumí zaznamenat případ, který pravidla dovolují, veřejný 
 Provozní limity aplikace jsou nenormativní a samy o sobě nesmějí vytvořit soutěžní maximální délku věty.
 
 ## Kvaziautorita
-Kvaziautorita rozhoduje platnost podle pravidel, interpretační spory, námitky proti katalogu skutečných slov a porušení soutěžního procesu. Nemůže odmítnout řádné, platné řešení pouze proto, že se jí způsob využití pravidel nelíbí.
+Kvaziautorita rozhoduje jazykovou a pravidlovou platnost řešení, interpretační spory a námitky proti katalogu skutečných slov. Nevede disciplinární řízení o tom, jak hráč řešení vytvořil.
+
+Nemůže odmítnout řádné, platné řešení pouze proto, že se jí způsob využití pravidel nelíbí.
 
 ## Kvazicena
 Kvazicena je subjektivní ocenění oddělené od objektivního rekordu.
