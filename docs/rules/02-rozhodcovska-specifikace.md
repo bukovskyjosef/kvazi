@@ -78,7 +78,7 @@ Jednopísmenné výjimky:
 
 Každé z těchto pěti slov lze použít nejvýše jednou.
 
-Pro soutěž jsou nevokalizované `k`, `v`, `z` přípustné před jakýmkoli jinak dovoleným slovem. `ke`, `ve`, `ze` se nepoužívají.
+Předložky `k`, `v`, `z` se z herních důvodů používají vždy v nevokalizované podobě; `ke`, `ve`, `ze` se nepoužívají. Tato výjimka se týká pouze jejich povrchové podoby. Jinak zůstávají běžnými českými předložkami a musí tvořit jazykově platnou předložkovou konstrukci s řízeným jmenným členem. Zachovává se běžná pádová rekce: `k` + dativ, `v` + lokál nebo akuzativ podle významu konstrukce, `z` + genitiv.
 
 ## 5. Věta
 
@@ -101,6 +101,8 @@ Přístavek není dovolen.
 Elipsa obligatorního členu není dovolena.
 
 Všechna obligatorní doplnění, která vyplývají z obhájeného valenčního použití slovesa, musí být ve větě výslovně realizována; jedinou zvláštní výjimkou je povolený nevyjádřený podmět imperativu.
+
+Celá syntaktická analýza musí být jedna propojená struktura kolem jediného přísudku. Syntaktické závislosti nesmějí tvořit kruh. Podmět a přísudek musí být v kategoriích, v nichž to současná spisovná čeština vyžaduje, v běžné morfosyntaktické shodě.
 
 ### Pomocná slovesa
 
@@ -126,7 +128,7 @@ Aktuálně zamýšlené základní kategorie:
 - doplněk,
 - koordinace pomocí `a` a `i`, pokud nevznikne několikanásobný podmět ani přísudek.
 
-Spojky `a`, `i` musí spojovat dvě výslovně přítomné souřadné části téže věty.
+Spojky `a`, `i` musí spojovat dvě výslovně přítomné souřadné části téže věty. Obě části musí mít stejnou hlavní syntaktickou funkci a koordinovaná skupina jako celek zastává jednu syntaktickou roli vůči nadřazené konstrukci.
 
 Lexikální rekce podstatných a přídavných jmen se v soutěži **nepoužívá**.
 
@@ -135,6 +137,8 @@ Uzavřenost platí pro hlavní syntaktické vztahy uvedené výše. Jejich běž
 Každý deklarovaný vztah musí splnit rozhodovací test své hlavní funkce v normativním kvazitaháku a odevzdání musí zachytit všechny tímto testem vyžadované vazby ke konkrétním tokenům. Pouhé přiřazení názvu povolené funkce konstrukci, která její test nesplňuje, nestačí.
 
 Je-li syntaktická platnost členu závislá na valenci slovesa, posuzuje se podle slovní valenční obhajoby dle oddílu 13 a `docs/kvazitahak/05-valence.md`, nikoli podle uzavřeného seznamu strukturovaných rámců.
+
+Není-li některá další mezislovní podmínka výslovně soutěžně upravena, musí konstrukce obstát jako současná spisovná čeština.
 
 ## 7. Slovní druhy
 

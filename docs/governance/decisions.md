@@ -65,6 +65,16 @@ Vid sám o sobě nevytváří soutěžní identitu. Obouvidovost je jedna gramat
 
 ## Syntaxe a formulář
 
+### Globální syntax jedné věty — rozhodnutí #67
+
+- Kvazivěta má jediný přísudek jako jediný kořen hlavní predikační osy.
+- Všechny ostatní větné členy musí být zapojeny do jedné propojené syntaktické analýzy této věty.
+- Syntaktické závislosti nesmějí tvořit kruh.
+- Podmět a přísudek musí být v relevantních kategoriích v běžné morfosyntaktické shodě současné spisovné češtiny.
+- Koordinované části musí mít stejnou hlavní syntaktickou funkci a jejich skupina jako celek zastává jednu syntaktickou roli vůči nadřazené konstrukci.
+- Soutěžní výjimka pro `k/v/z` se týká pouze nevokalizované podoby. Jinak jde o běžné české předložky s běžnou rekcí: `k` + dativ, `v` + lokál nebo akuzativ podle významu, `z` + genitiv.
+- Není-li další mezislovní podmínka soutěžně výslovně upravena, musí konstrukce obstát jako současná spisovná čeština.
+
 ### Token vs. slovo a předložky — rozhodnutí 6/19
 
 - `token` je technický identifikátor konkrétního výskytu slova v podání.

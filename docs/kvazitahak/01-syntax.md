@@ -1,6 +1,6 @@
 # Kvazitahák – syntax
 
-> **Status:** základní vztahy a jejich rozhodovací testy jsou normativně uzavřené; hráčskou grafickou podobu lze dále zjednodušovat.
+> **Status:** základní vztahy, jejich rozhodovací testy a minimální globální podmínky jedné věty jsou normativně uzavřené; hráčskou grafickou podobu lze dále zjednodušovat.
 
 ## NORMATIVNÍ: uzavřený seznam hlavních vztahů
 
@@ -24,6 +24,29 @@ Pouhé označení členu názvem povolené funkce nestačí. Každý člen musí
 1. splnit rozhodovací test své hlavní funkce,
 2. uvést všechny touto funkcí vyžadované vazby ke konkrétním slovům věty,
 3. respektovat valenční obhajobu slovesa, morfologii a ostatní zákazy pravidel.
+
+## NORMATIVNÍ: globální podmínky jedné věty
+
+Vedle lokálních testů jednotlivých členů musí celá analýza splnit také toto minimum:
+
+- existuje právě jeden přísudek jako jediný kořen hlavní predikační osy,
+- všechny ostatní větné členy jsou zapojeny do jedné propojené syntaktické analýzy této věty,
+- syntaktické závislosti nesmějí tvořit kruh,
+- podmět a přísudek musí být v kategoriích, v nichž to současná spisovná čeština vyžaduje, v běžné morfosyntaktické shodě,
+- koordinované části musí mít stejnou hlavní syntaktickou funkci a koordinovaná skupina jako celek zastává jednu syntaktickou roli vůči nadřazené konstrukci,
+- není-li některá další mezislovní podmínka výslovně soutěžně upravena, musí konstrukce obstát jako současná spisovná čeština.
+
+### Předložky `k`, `v`, `z`
+
+Soutěžní výjimka se týká pouze jejich povrchové podoby: používají se vždy nevokalizovaně jako `k`, `v`, `z`; podoby `ke`, `ve`, `ze` se nepoužívají.
+
+Jinak zůstávají běžnými českými předložkami a musí tvořit jazykově platnou předložkovou konstrukci s řízeným jmenným členem. Zachovává se jejich běžná pádová rekce:
+
+- `k` + dativ,
+- `v` + lokál nebo akuzativ podle významu konstrukce,
+- `z` + genitiv.
+
+Nevokalizovaná soutěžní podoba sama o sobě nedovoluje použít předložku před libovolným tvarem.
 
 ## NORMATIVNÍ: rozhodovací testy
 
@@ -85,8 +108,8 @@ Významové podtypy příslovečného určení se soutěžně neuzavírají do �
 
 ### Koordinace
 
-- **Vazby:** `a` nebo `i` odkazuje na hlavy obou výslovně přítomných souřadných částí.
-- **Test:** mají obě části stejnou hlavní syntaktickou funkci a jsou zapojeny do téže věty?
+- **Vazby:** `a` nebo `i` odkazuje na hlavy obou výslovně přítomných souřadných částí; koordinovaná skupina jako celek je zapojena do jedné nadřazené syntaktické role.
+- **Test:** mají obě části stejnou hlavní syntaktickou funkci, jsou zapojeny do téže věty a lze jejich skupinu chápat jako jednu souřadnou realizaci této funkce?
 - **Povinnost:** koordinace je volitelná; při jejím použití musí být obě spojované části výslovně přítomné.
 - **Běžná analogie:** `Koupil jablka a hrušky.`
 
@@ -98,6 +121,8 @@ Zakázány jsou zejména:
 
 - přístavek,
 - elipsa obligatorního členu,
+- syntaktická analýza rozpadlá do více nepropojených částí,
+- kruhové syntaktické závislosti,
 - koordinace vytvářející více podmětových hlav,
 - koordinace vytvářející více přísudků,
 - konstrukce, kterou nelze podle rozhodovacích testů zařadit do některého povoleného hlavního vztahu,

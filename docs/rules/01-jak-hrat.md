@@ -43,7 +43,7 @@ Jednopísmennou výjimku mají pouze:
 
 Každé z těchto pěti slov smíš použít nejvýše jednou.
 
-Předložky `k`, `v`, `z` používáme v této hře vždy právě v této krátké podobě; `ke`, `ve`, `ze` se nepoužívají.
+Předložky `k`, `v`, `z` používáme v této hře vždy právě v této krátké podobě; `ke`, `ve`, `ze` se nepoužívají. Tato výjimka mění jen jejich podobu: jinak zůstávají běžnými českými předložkami a musí řídit správný pád (`k` dativ, `v` lokál nebo akuzativ, `z` genitiv).
 
 ## 3. Musí z toho vzniknout jedna česká věta
 
@@ -54,6 +54,8 @@ Kvazivěta má:
 - právě jeden výskyt plnovýznamového slovesa.
 
 U rozkazu může být podmět nevyjádřený, pokud je z tvaru slovesa jasný.
+
+Všechna slova musí tvořit jednu propojenou syntaktickou analýzu kolem jediného přísudku; vztahy mezi členy nesmějí tvořit kruh. Podmět a přísudek se musí běžně shodovat tam, kde to čeština vyžaduje. Koordinované části pomocí `a` nebo `i` mají stejnou hlavní syntaktickou funkci a jejich skupina jako celek plní jednu roli ve větě.
 
 Povolené hlavní větné vztahy a jejich jednoduché kontrolní testy jsou v kvazitaháku. Jejich běžné významové varianty nemusí být vyjmenované všechny, ale každá musí projít testem své hlavní funkce. Nelze využít jinou konstrukci jen tím, že ji označíš názvem povoleného vztahu.
 
