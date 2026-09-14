@@ -77,7 +77,9 @@ Můžeš použít:
 
 Pro soutěž je rozhodující **náš spravovaný katalog skutečných slov a tvarů**. Pokud je odpovídající soutěžní identita a použitý tvar v katalogu schválený, považujeme jej pro hru za skutečné slovo.
 
-Pokud své kandidátní skutečné slovo v katalogu nemáme, můžeš požádat o přezkoumání. Kvaziautorita jej jazykově ověří a katalog může doplnit nebo opravit. IJP, ASSČ a další rozumné jazykové zdroje mohou sloužit jako podklad pro takové rozhodnutí, ale nejsou samy přímým soutěžním whitelistem.
+Katalog není veřejný seznam slov k procházení. Pokud chceš zjistit, zda už určitý vlastní kandidát máme schválený, musíš nejprve uvést jeho **úplnou morfologickou identitu** podle pravidel a konkrétní použitý tvar. Systém pak pouze potvrdí, zda tuto přesnou kombinaci katalog zná jako schválené skutečné slovo.
+
+Z neúplného zadání katalog nic nenapovídá: nevypisuje možné identity, nenabízí podobná slova ani nedoplňuje morfologickou analýzu. Pokud přesnou kombinaci potvrzenou nemáme, neznamená to samo o sobě zákaz. Kandidát může být předložen k přezkoumání a Kvaziautorita jej jazykově ověří; katalog pak může doplnit nebo opravit. IJP, ASSČ a další rozumné jazykové zdroje mohou sloužit jako podklad pro takové rozhodnutí, ale nejsou samy přímým soutěžním whitelistem.
 
 Katalog se může v čase průběžně měnit. Každá jeho změna nemusí znamenat novou verzi pravidel.
 
@@ -125,7 +127,7 @@ U slovesa je valence součástí slovní obhajoby, ne další strukturovanou mor
 
 Během vyplňování aplikace kontroluje technická znaková pravidla, úplnost povinných polí, veřejně povolené hodnoty a správnost odkazů mezi vloženými slovy. Tím ale větu jazykově neschvaluje.
 
-Status skutečného slova se při posouzení porovnává s naším katalogem. Zda bude úplný katalog veřejně zveřejněn, je samostatná produktová otázka.
+U kandidáta na skutečné slovo může hráč po kompletním vyplnění morfologické identity a použitého tvaru požádat o přesné porovnání s katalogem. Katalog pouze potvrdí shodnou již schválenou kombinaci; z částečných údajů nic nenavrhuje.
 
 ## 8. Autorství a navazování na ostatní
 
