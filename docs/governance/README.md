@@ -1,3 +1,5 @@
-# Governance index
+# Governance – index
 
-See `decision-workflow.md` for process details. See GitHub Issues for current work.
+Detailní proces práce s issues, labely, konsolidací a uzavíráním je pouze v `decision-workflow.md`.
+
+`decisions.md` je historické shrnutí přijatých rozhodnutí. Aktuální práci určuje GitHub Issues a autoritu dokumentů `/docs/README.md`.
