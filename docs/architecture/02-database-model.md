@@ -53,8 +53,8 @@ Databáze pokrývá:
 - `token_analysis_value`
 - `syntax_role`
 - `token_syntax`
-- `coordination_group`
-- `coordination_member`
+- `token_supplement_syntax`
+- `token_coordination_syntax`
 - `analysis_evidence`
 
 ### Validace
@@ -97,7 +97,13 @@ Reprezentuje platnost jedné revize vůči konkrétní verzi pravidel a umožňu
 Reprezentuje uzavřenou hlavní syntaktickou funkci. Odborný významový podtyp není povinným číselníkem a příklady z kvazitaháku se nesmějí změnit v technický whitelist.
 
 ### Syntaktické vztahy
-Logický model musí pro každý token uložit všechny odkazy vyžadované zvolenou hlavní funkcí. Některé funkce vyžadují více než jeden vztah, zejména doplněk vazbu k přísudku i podmětu nebo předmětu a spojka koordinace vazby k oběma souřadným částem. Jediný obecný sloupec pro řídící token proto není úplnou cílovou reprezentací; pracovní SQL návrh se upraví v rámci #25 a #8.
+Pro MVP se používá specializovaný model odpovídající uzavřené syntaxi:
+
+- `token_syntax.head_token_id` ukládá jedno řídící slovo běžného členu; u přísudku je prázdné,
+- `token_supplement_syntax` ukládá pro doplněk povinnou vazbu k přísudku a povinnou vazbu k podmětu nebo předmětu,
+- `token_coordination_syntax` ukládá pro spojku `a` nebo `i` povinné vazby k oběma spojovaným částem.
+
+Specializované tabulky odkazují na příslušný záznam `token_syntax`. Žádnou z těchto povinných vazeb nelze nahradit polem `description` ani jiným volným textem. Obecný graf syntaktických hran se pro MVP nezavádí.
 
 ## Důležité invarianty
 
@@ -110,3 +116,4 @@ Logický model musí pro každý token uložit všechny odkazy vyžadované zvol
 7. každý token podané revize má úplnou deklarovanou identifikaci a všechny pravidly vyžadované syntaktické vztahy uložené strukturovaně.
 8. klasifikace skutečné slovo / kvazislovo se vyhodnocuje nad celou soutěžní identitou, nikoli nad samotným zápisem.
 9. každý zveřejněný morfologický model ukládá přesný vztah mezi základním a použitým tvarem a pro jeden použitý tvar nepřipouští libovolně mnoho identit.
+10. běžný syntaktický člen má nejvýše jedno řídící slovo; doplněk a koordinace mají všechny své dvě povinné vazby ve specializované struktuře.

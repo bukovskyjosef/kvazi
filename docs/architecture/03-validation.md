@@ -36,6 +36,15 @@ Před konečným odesláním může formulář vedle znakové kontroly živě ov
 
 Počet a typ povinných odkazů se odvozuje od zvolené hlavní syntaktické funkce. Živá kontrola nevyžaduje odborný významový podtyp a sama neposuzuje, zda obhajoba skutečně splňuje jazykový rozhodovací test.
 
+Pro MVP strukturální kontrola vyžaduje:
+
+- u běžného závislého členu právě jedno řídící slovo,
+- u přísudku žádné řídící slovo,
+- u doplňku právě jednu vazbu k přísudku a právě jednu vazbu k podmětu nebo předmětu,
+- u koordinace právě dvě různé spojované části.
+
+Volný text nemůže chybějící strukturovanou vazbu nahradit.
+
 Tato kontrola potvrzuje úplnost a formální strukturu deklarace, nikoli její jazykovou správnost. Nesmí se při ní dotazovat interní katalog ani vracet informaci, zda katalog konkrétní slovo, tvar, identitu nebo analýzu zná.
 
 ## Jazyková validace

@@ -234,6 +234,24 @@ CREATE TABLE token_syntax (
     description TEXT
 );
 
+-- Pouze pro syntaktickou funkci doplňku. Obě vazby jsou povinné a
+-- nenahrazují se volným textem v token_syntax.description.
+CREATE TABLE token_supplement_syntax (
+    token_analysis_id BIGINT PRIMARY KEY REFERENCES token_syntax(token_analysis_id) ON DELETE CASCADE,
+    predicate_token_id BIGINT NOT NULL REFERENCES sentence_token(id),
+    nominal_token_id BIGINT NOT NULL REFERENCES sentence_token(id),
+    CHECK (predicate_token_id <> nominal_token_id)
+);
+
+-- Pouze pro spojku a/i se syntaktickou funkcí koordinace.
+-- Dvě spojované části jsou v MVP uloženy přímo, bez obecného grafu hran.
+CREATE TABLE token_coordination_syntax (
+    token_analysis_id BIGINT PRIMARY KEY REFERENCES token_syntax(token_analysis_id) ON DELETE CASCADE,
+    left_member_token_id BIGINT NOT NULL REFERENCES sentence_token(id),
+    right_member_token_id BIGINT NOT NULL REFERENCES sentence_token(id),
+    CHECK (left_member_token_id <> right_member_token_id)
+);
+
 CREATE TABLE validation_run (
     id BIGSERIAL PRIMARY KEY,
     sentence_revision_id BIGINT NOT NULL REFERENCES sentence_revision(id) ON DELETE CASCADE,

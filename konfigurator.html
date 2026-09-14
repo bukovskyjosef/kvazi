@@ -261,7 +261,15 @@ const sel  = ()  => selectedId ? byId(selectedId) : null;
 const idx  = w   => words.indexOf(w);
 
 function newWord(text) {
-  return { id: nextId++, text, sd: null, vzor: null, vid: null, lemma: null, vf: null, headId: null, m: {}, mUser: new Set(), morfoConfirmed: false };
+  return {
+    id: nextId++, text, sd: null, vzor: null, vid: null, lemma: null, vf: null,
+    headId: null,
+    supplementPredicateId: null,
+    supplementNominalId: null,
+    coordinationLeftId: null,
+    coordinationRightId: null,
+    m: {}, mUser: new Set(), morfoConfirmed: false
+  };
 }
 
 // ── INPUT ─────────────────────────────────────────────────────────────────────
@@ -302,7 +310,7 @@ function dfaTr(state, ch) {
 
 function validate() {
   // Returns { seqOk, seqIssues[], podmetOk, podmetMsg, prisudekOk, prisudekMsg,
-  //           wordCount, charCount, errWords: Set<wordIndex> }
+  //           syntaxOk, syntaxIssues[], wordCount, charCount, errWords: Set<wordIndex> }
   const seqIssues = [];
   const errWords  = new Set();
 
@@ -395,6 +403,52 @@ function validate() {
       ? `Více přísudků (${prisudky.length}×) — povoleno právě 1`
       : `[${idx(prisudky[0])+1}] „${prisudky[0].text}"`;
 
+  // Povinné strukturované syntaktické vazby podle zvolené hlavní funkce.
+  const syntaxIssues = [];
+  for (const w of words) {
+    const pos = idx(w) + 1;
+    const label = `[${pos}] „${w.text}"`;
+    if (!w.vf) {
+      syntaxIssues.push(`${label}: chybí větná funkce`);
+      continue;
+    }
+
+    if (w.vf === 'prisudek') {
+      if (w.headId || w.supplementPredicateId || w.supplementNominalId || w.coordinationLeftId || w.coordinationRightId)
+        syntaxIssues.push(`${label}: přísudek je kořen věty a nemá řídící slovo`);
+      continue;
+    }
+
+    if (w.vf === 'doplanek') {
+      const predicate = byId(w.supplementPredicateId);
+      const nominal = byId(w.supplementNominalId);
+      if (!predicate) syntaxIssues.push(`${label}: doplněk nemá vazbu k přísudku`);
+      else if (predicate.vf !== 'prisudek') syntaxIssues.push(`${label}: první vazba doplňku musí mířit na přísudek`);
+      if (!nominal) syntaxIssues.push(`${label}: doplněk nemá vazbu k podmětu nebo předmětu`);
+      else if (nominal.vf !== 'podmet' && nominal.vf !== 'predmet')
+        syntaxIssues.push(`${label}: druhá vazba doplňku musí mířit na podmět nebo předmět`);
+      if (predicate && nominal && predicate.id === nominal.id)
+        syntaxIssues.push(`${label}: obě vazby doplňku musí mířit na různá slova`);
+      continue;
+    }
+
+    if (w.vf === 'koordinace') {
+      const left = byId(w.coordinationLeftId);
+      const right = byId(w.coordinationRightId);
+      if (!left || !right) syntaxIssues.push(`${label}: koordinace vyžaduje dvě spojované části`);
+      else {
+        if (left.id === right.id) syntaxIssues.push(`${label}: koordinace musí spojovat dvě různé části`);
+        if (!left.vf || !right.vf || left.vf !== right.vf)
+          syntaxIssues.push(`${label}: obě části koordinace musí mít stejnou větnou funkci`);
+        if (left.vf === 'podmet' || left.vf === 'prisudek')
+          syntaxIssues.push(`${label}: koordinace více podmětů ani přísudků není dovolena`);
+      }
+      continue;
+    }
+
+    if (!byId(w.headId)) syntaxIssues.push(`${label}: chybí řídící slovo`);
+  }
+
   const wordCount = words.length;
   const charCount = words.reduce((s, w) => s + w.text.length, 0);
 
@@ -402,6 +456,8 @@ function validate() {
     seqOk: seqIssues.length === 0, seqIssues,
     podmetOk, podmetMsg,
     prisudekOk, prisudekMsg,
+    syntaxOk: words.length > 0 && syntaxIssues.length === 0,
+    syntaxIssues,
     wordCount, charCount,
     errWords,
   };
@@ -461,7 +517,11 @@ function renderTokens(errWords = new Set()) {
 
 function delWord(id) {
   words = words.filter(w => w.id !== id);
-  words.forEach(w => { if (w.headId === id) w.headId = null; });
+  words.forEach(w => {
+    for (const key of ['headId','supplementPredicateId','supplementNominalId','coordinationLeftId','coordinationRightId']) {
+      if (w[key] === id) w[key] = null;
+    }
+  });
   if (selectedId === id) selectedId = words.at(-1)?.id ?? null;
   render();
 }
@@ -484,10 +544,17 @@ function renderValidation(v) {
     ? 'K V Q A Á Z I Í Y Ý · délky 3–5 zn. · motiv KVAZI · bez přechodů hranic'
     : null;
 
+  const syntaxDetail = v.syntaxOk
+    ? 'Všechny zvolené funkce mají požadované vazby'
+    : v.syntaxIssues.length === 0
+      ? 'Čeká na zadání slov'
+      : `<ul>${v.syntaxIssues.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`;
+
   document.getElementById('vtable').innerHTML =
     row(v.seqOk   ? 'v-ok' : 'v-warn', v.seqOk   ? '✓' : '⚠', 'Sekvence znaků', seqDetail, seqSub) +
     row(v.podmetOk  ? 'v-ok' : 'v-warn', v.podmetOk  ? '✓' : '⚠', 'Podmět',    esc(v.podmetMsg),   null) +
     row(v.prisudekOk? 'v-ok' : 'v-warn', v.prisudekOk? '✓' : '⚠', 'Přísudek',  esc(v.prisudekMsg), null) +
+    row(v.syntaxOk  ? 'v-ok' : 'v-warn', v.syntaxOk  ? '✓' : '⚠', 'Syntaktické vazby', syntaxDetail, null) +
     row('v-info', '—', 'Počet slov',  String(v.wordCount), null) +
     row('v-info', '—', 'Počet znaků', String(v.charCount), 'Q = 1 znak, KV = 2 znaky');
 }
@@ -514,10 +581,40 @@ function renderConfig() {
       fld('Infinitiv / lemma', `<input type="text" value="${esc(w.lemma||'')}" placeholder="kvazit…" onchange="onF('lemma',this.value)">`);
   }
 
-  const depBadges = words.filter(x => x.headId === w.id).map(x => {
-    const vfl = x.vf ? VETNE_FUNKCE.find(f => f.id === x.vf)?.label : '';
-    return `<span class="dep-badge">[${idx(x)+1}] ${esc(x.text)}${vfl ? ' · ' + esc(vfl) : ''}</span>`;
-  }).join('');
+  const relationSelect = (key, selected, emptyLabel) => `<select onchange="onRelation('${key}',this.value)">
+    <option value="">— ${emptyLabel} —</option>
+    ${others.map(x => `<option value="${x.id}" ${selected===x.id?'selected':''}>[${idx(x)+1}] ${esc(x.text)}</option>`).join('')}
+  </select>`;
+
+  let relationBlock;
+  if (w.vf === 'prisudek') {
+    relationBlock = fld('Syntaktická vazba', '<select disabled><option>Kořen věty – bez řídícího slova</option></select>');
+  } else if (w.vf === 'doplanek') {
+    relationBlock =
+      fld('Závisí na přísudku', relationSelect('supplementPredicateId', w.supplementPredicateId, 'vyberte přísudek')) +
+      fld('Vztahuje se k členu', relationSelect('supplementNominalId', w.supplementNominalId, 'vyberte podmět nebo předmět'));
+  } else if (w.vf === 'koordinace') {
+    relationBlock =
+      fld('První spojovaná část', relationSelect('coordinationLeftId', w.coordinationLeftId, 'vyberte první část')) +
+      fld('Druhá spojovaná část', relationSelect('coordinationRightId', w.coordinationRightId, 'vyberte druhou část'));
+  } else {
+    relationBlock = fld('Závisí na slově', relationSelect('headId', w.headId, 'vyberte řídící slovo'));
+  }
+
+  const relationKinds = [
+    ['headId', 'řídící slovo'],
+    ['supplementPredicateId', 'doplněk → přísudek'],
+    ['supplementNominalId', 'doplněk → jmenný člen'],
+    ['coordinationLeftId', 'koordinace → první část'],
+    ['coordinationRightId', 'koordinace → druhá část'],
+  ];
+  const depBadges = words.flatMap(x => relationKinds
+    .filter(([key]) => x[key] === w.id)
+    .map(([, relationLabel]) => {
+      const vfl = x.vf ? VETNE_FUNKCE.find(f => f.id === x.vf)?.label : '';
+      return `<span class="dep-badge">[${idx(x)+1}] ${esc(x.text)} · ${esc(relationLabel)}${vfl ? ' · ' + esc(vfl) : ''}</span>`;
+    })
+  ).join('');
 
   body.innerHTML = `
     <div class="word-heading">"${esc(w.text)}" <span>slovo ${idx(w)+1} / ${words.length}</span></div>
@@ -525,10 +622,7 @@ function renderConfig() {
       ${fld('Slovní druh', `<select onchange="onSD(this.value)">${oB('— vyberte —')}${os(SLOVNI_DRUHY(), w.sd)}</select>`)}
       ${vzorBlock}
       ${fld('Větná funkce', `<select onchange="onF('vf',this.value)">${oB('— vyberte —')}${os(VETNE_FUNKCE, w.vf)}</select>`)}
-      ${fld('Závisí na slově', `<select onchange="onHead(this.value)">
-        <option value="">— kořen věty / bez závislosti —</option>
-        ${others.map(x => `<option value="${x.id}" ${w.headId===x.id?'selected':''}>[${idx(x)+1}] ${esc(x.text)}</option>`).join('')}
-      </select>`)}
+      ${relationBlock}
     </div>
     ${depBadges ? `<div class="deps-section"><div class="deps-label">Na tomto slově závisí:</div><div class="deps-list">${depBadges}</div></div>` : ''}
   `;
@@ -697,6 +791,13 @@ window.onSD = v => {
 window.onF = (key, v) => {
   const w = sel(); if (!w) return;
   w[key] = v || null;
+  if (key === 'vf') {
+    w.headId = null;
+    w.supplementPredicateId = null;
+    w.supplementNominalId = null;
+    w.coordinationLeftId = null;
+    w.coordinationRightId = null;
+  }
   if (key === 'vzor') { w.m = {}; w.mUser = new Set(); w.morfoConfirmed = false; prefillMorfo(w); renderMorfo(); }
   if (key === 'vid')  { renderMorfo(); }
   const vv = validate();
@@ -705,10 +806,11 @@ window.onF = (key, v) => {
   renderValidation(vv);
 };
 
-window.onHead = v => {
+window.onRelation = (key, v) => {
   const w = sel(); if (!w) return;
-  w.headId = v ? +v : null;
+  w[key] = v ? +v : null;
   renderConfig();
+  renderValidation(validate());
 };
 
 window.onM = (id, key, val) => {
