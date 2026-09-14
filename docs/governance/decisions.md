@@ -1,183 +1,97 @@
-# Přijatá rozhodnutí
+# Rozhodnutí projektu
 
-Tento dokument je stručný decision log. Není náhradou normativních pravidel.
+Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přijata. Detailní diskuse a otevřené varianty zůstávají v GitHub Issues.
 
-## Znakový systém
+## Autorita a governance
 
-- motiv `KVAZI`,
-- `KV` lze nahradit `Q`,
-- `A/Á`,
-- `I/Í/Y/Ý`,
-- `Z` pevné,
-- `Q` je samostatný znak a počítá se jako jeden,
-- velikost písmen se ignoruje, diakritika nikoli,
-- věta smí začínat a končit uvnitř motivu,
-- slovo nesmí překročit hranici motivu.
+- Finální produktová a pravidlová rozhodnutí provádí Josef Bukovský.
+- Technická implementace nesmí sama vytvářet nová soutěžní pravidla.
+- Pokud je pravidlo nejasné a otevřená otázka není rozhodnutá, implementace ji nesmí hardcodovat.
 
-## Délka slov
+## Hranice pravidel, dat a implementace
 
-- běžně 3–5 znaků,
-- výjimky `k,v,z,a,i`,
-- každá jednopísmenná identita nejvýše jednou,
-- `k,v,z` se soutěžně nevokalizují; `ke,ve,ze` se nepoužívají.
+- Normativní pravidla mají vyšší autoritu než architektura, databáze, UI nebo interní katalog.
+- Interní katalog je provozní znalostní báze, nikoli zdroj nových pravidel.
+- Uživatelská deklarace analýzy není sama morfologickou pravdou.
+- Odvozená data musí být znovu vypočitatelná ze zdrojových dat a příslušné verze pravidel/validátoru.
 
-## Syntax
+## Soutěžní řetězec a validace
 
-- jedna jednoduchá hlavní predikační osa,
-- jeden podmět s imperativní výjimkou,
-- jeden přísudek,
-- právě jeden token plnovýznamového slovesa,
-- doplněk není další hlavní predikace,
-- přístavek ne,
-- elipsa obligatorních členů ne,
-- syntax je uzavřená normativním seznamem,
-- uzavřený je seznam hlavních syntaktických vztahů, nikoli vyčerpávající seznam jejich běžných významových podtypů,
-- každý hlavní vztah má v kvazitaháku jednoduchý rozhodovací test a předepsané vazby ke konkrétním tokenům,
-- příklady jsou ilustrativní; jiný běžný podtyp je přípustný, pokud projde stejným testem a nevytvoří jiný hlavní vztah,
-- formulář nevyžaduje odborné pojmenování významového podtypu, ale vyžaduje hlavní funkci, potřebné vazby a ve významově nejasném případě běžnou českou analogii,
-- lexikální rekce substantiv/adjektiv se nepoužívá.
+- Soutěžní aplikace smí před odesláním deterministicky kontrolovat veřejná znaková a strukturální pravidla a úplnost formuláře.
+- Každý běžný token musí celý ležet v jednom motivu; nestačí validita spojeného řetězce bez ohledu na hranice tokenů.
+- Hráč ručně nezadává rozklad věty na motivy.
+- Interní katalog se před odesláním nepoužívá jako veřejný membership oracle.
+- Katalogová kontrola může proběhnout až nad uzamčenou revizí podání a její výsledek je před rozhodnutím neveřejný.
 
-## Morfologie
+## Soutěžní identita a morfologické modely
 
-- kvazislova používají uzavřené soutěžní modely,
-- každý model přesně určuje vztah mezi základním tvarem, morfologickými hodnotami a použitým tvarem; samotná deklarace hráče nestačí,
-- žádný model nesmí pro tentýž použitý tvar připouštět libovolně mnoho základních tvarů a identit,
-- konečný počet různých, jednotlivě ověřitelných analýz téhož zápisu je přípustný,
-- skutečný použitý tvar musí být reálně spisovný a současně spadat do soutěžního modelu,
-- existenci skutečného slova lze doložit pouze slovníkovou částí IJP nebo zveřejněným heslem ASSČ,
-- hledání skutečných slov je pouze ruční; SSJČ, PSJČ, korpusy, jiné slovníky ani internetové výskyty samy o sobě nestačí,
-- nepravidelné/defektivní/nesklonné zvláštnosti mimo modely se nepoužívají,
-- veřejný úplný katalog slov se nezveřejňuje,
-- interní katalog může existovat.
+- Každý soutěžní model musí přesně určit vztah mezi základním tvarem, morfologickými hodnotami a použitým tvarem.
+- Jeden použitý tvar nesmí přes jeden model otevírat libovolně mnoho základních tvarů nebo soutěžních identit; konečný počet jednotlivě ověřitelných analýz je přípustný.
+- Status skutečné slovo / kvazislovo se posuzuje podle celé soutěžní identity, nikoli pouze podle zápisu.
+- Stejný zápis může představovat skutečnou identitu a odlišnou kvaziidentitu, pokud se liší vlastností, která je součástí soutěžní identity.
+- Tutéž doloženou skutečnou identitu nelze pouze deklarací přeznačit na kvazislovo.
 
-## Substantiva
+### Variantní realizace paradigmat
 
-Povolené vzory:
-- pán,
-- muž,
-- předseda,
-- soudce,
-- hrad,
-- stroj,
-- žena,
-- růže,
-- píseň,
-- kost,
-- město,
-- moře,
-- kuře,
-- stavení.
+- Každá morfologická kombinace má v normativním soutěžním modelu výslovně uvedenou jednu nebo více povolených realizací.
+- Existence jiné spisovné varianty mimo normativní tabulku sama o sobě nezakládá její soutěžní přípustnost.
+- Jedna realizace je základní soutěžní forma; další variantní realizace se přidává pouze vědomým rozhodnutím jako součást pravidel, zejména pokud přináší skutečně odlišnou a herně relevantní dosažitelnou možnost.
+- Variantní realizace nevytváří novou soutěžní identitu.
+- Produkční formulář, katalog ani validátor nesmějí automaticky přebírat obecné spisovné dublety, které nejsou uvedeny v normativním soutěžním modelu.
 
-## Adjektiva
+## Syntaxe a formulář
 
-Aktuální modely:
-- mladý,
-- jarní,
-- otcův,
-- matčin.
+- Syntaxe má uzavřený seznam hlavních syntaktických vztahů a pro každý závazný praktický test.
+- Významové podtypy hlavních vztahů nejsou samostatným povinným whitelistem a příklady nejsou vyčerpávající.
+- Formulář u každého tokenu strukturovaně zachytí slovní druh, úplnou morfologickou identifikaci, soutěžní identitu, konkrétní použitý tvar, hlavní syntaktickou funkci, všechny povinné vazby na konkrétní tokeny a požadovanou obhajobu/zdroje.
+- Povinné strukturované údaje nelze nahradit jedním volným textem.
+- U běžného členu se ukládá jedno řídící slovo.
+- Doplněk má samostatnou vazbu k přísudku a k podmětu nebo předmětu.
+- Koordinace má samostatnou vazbu ke dvěma spojovaným částem.
+- Pro MVP se používá specializovaný syntaktický datový model, nikoli obecný graf hran.
 
-Reachability rozhodne, co zůstane v hlavní vrstvě.
+## Morfologický panel formuláře
 
-## Slovesa
+- Celé editovatelné paradigma zůstává součástí formuláře.
+- Buňky mohou být po volbě slova/modelu předvyplněny aktuálním povrchovým tvarem tokenu jako UX zkratka.
+- Předvyplnění není jazykový návrh systému ani tvrzení správnosti.
+- Uživatel hodnoty zkontroluje/upraví a explicitně potvrzuje, že aktuálně vyplněné paradigma je jeho vlastní morfologický návrh.
+- FE před submittem správnost paradigmatu neposuzuje.
+- Potvrzení se musí vztahovat ke konkrétnímu aktuálnímu snapshotu návrhu a po změně potvrzovaných dat se zneplatní.
 
-- uzavřené soutěžní časovací typy,
-- uzavřená sada vidu,
-- uzavřená sada valenčních rámců,
-- konkrétní tabulky jsou TODO kvazitaháku.
+## Skutečná česká slova a zdroje
 
-## Identita
+- Existenci skutečného soutěžního slova lze doložit pouze slovníkovou částí IJP nebo již zveřejněným heslem ASSČ.
+- SSJČ, PSJČ, korpusy, jiné slovníky ani internetové výskyty samy o sobě existenci soutěžního slova neprokazují.
+- Záznam v IJP/ASSČ nenahrazuje požadavek současné spisovnosti konkrétního tvaru ani shodu se soutěžním modelem.
+- Hráč hledá skutečná soutěžní slova pouze ručně; úplný předfiltrovaný seznam kandidátů se nezveřejňuje.
+- Změna této sady zdrojů vyžaduje novou verzi pravidel.
 
-- jednou použitá identita je vyčerpaná,
-- význam ani syntaktická funkce samy identitu nevytvářejí,
-- substantivum: lemma + rod + životnost + vzor,
-- adjektivum: základní tvar + vzor,
-- sloveso: infinitiv + časovací typ + valenční rámec,
-- vid slovesa není součást identity,
-- skutečné slovo musí mít celou deklarovanou soutěžní identitu slučitelnou s morfologií téhož doloženého reálného slova,
-- odpovídá-li deklarace existující reálné identitě, nelze tutéž identitu prohlásit za kvazislovo,
-- stejný zápis nebo základní tvar může být kvazislovem s jinou soutěžní identitou; například reálné `VAZ + mužský neživotný + hrad` a kvazi `VAZ + mužský životný + pán`.
+## MVP scope – již rozhodnuté minimum
 
-## Fiktivní význam
+První veřejné MVP povinně obsahuje:
 
-- povolen,
-- může obhájit jen povolenou syntaktickou konstrukci,
-- nesmí měnit morfologii/identitu/valenci,
-- při významově citlivé syntaxi musí odpovídat běžné české analogii.
+- prezentaci projektu, vysvětlení a pravidla,
+- interaktivní strukturovaný formulář pro podání kvazivěty,
+- veřejný seznam pouze schválených vět,
+- veřejný detail schválené věty včetně obhajoby a morfologické identifikace jednotlivých slov,
+- neveřejné admin rozhraní pro posouzení podání.
 
-## Nástroje a AI
+Čekající a zamítnuté věty nejsou veřejné. Veřejné peer review čekajících podání není součástí MVP.
 
-- soutěžní řešení vytváří člověk vlastní hlavou,
-- pravidlo je technologicky neutrální a posuzuje funkci nástroje,
-- povolena je ruční práce s dovolenými veřejnými zdroji a mechanické ověření konkrétního lidského nápadu,
-- zakázáno je automatické generování, enumerace, hromadné filtrování, skládání, porovnávání a optimalizace kandidátů,
-- ověřovací nástroj nesmí navrhovat alternativu ani být používán k systematickému testování variant,
-- AI smí soutěžícímu vysvětlovat pouze obecnou současnou spisovnou češtinu bez jakéhokoli kvazikontextu,
-- přípustnost obecného dotazu se posuzuje podle předaného obsahu a kontextu, ne podle nepozorovatelné motivace soutěžícího,
-- AI nesmí komunikovat o soutěžním obsahu,
-- správa, vývoj a audit pravidel AI používat mohou,
-- AI může připravovat kandidátní interní data, ale ne je sama schvalovat ani vydávat za lidské soutěžní řešení.
+## Otevřené oblasti
 
-## Platnost a autorita
+Nadále je nutné rozhodnout zejména:
 
-- platné + řádně podané + bez porušení procesu = musí být uznáno,
-- žádné estetické veto nad platným výsledkem,
-- exploit se uzná ve své verzi a případně uzavře v nové,
-- kvaziautorita rozhoduje platnost a procesní porušení.
-
-## Verzování
-
-- normativní balík má verzi,
-- staré výsledky zůstávají historické,
-- mohou být revalidovány vůči nové verzi bez nového podání.
-
-## Dokumentační vrstvy
-
-- Jak hrát,
-- kvazitahák,
-- rozhodcovská specifikace.
-
-## Aplikace
-
-- slova se zadávají jednotlivě v pevném pořadí,
-- uživatel nevkládá mezery,
-- každý token vyžaduje slovní druh, úplnou identifikaci podle zvoleného modelu, soutěžní identitu, větnou funkci a všechny požadované vztahy ke konkrétním dalším tokenům,
-- běžný syntaktický člen má v MVP jedno řídící slovo; přísudek je kořen bez řídícího slova,
-- doplněk má dvě samostatné vazby: k přísudku a k podmětu nebo předmětu,
-- spojka `a` nebo `i` má dvě samostatné vazby k oběma spojovaným částem,
-- povinné syntaktické vazby nelze nahradit volným textem; obecný graf hran se pro MVP nezavádí,
-- obhajoba a zdroje jsou povinné v rozsahu stanoveném pravidly,
-- během editace se živě kontrolují veřejná znaková a strukturální pravidla, úplnost polí, veřejně povolené hodnoty a odkazy mezi tokeny,
-- před odesláním se nekontroluje ani nezobrazuje členství slova nebo analýzy v interním katalogu,
-- katalogová kontrola může proběhnout až nad uzamčeným podáním a její výsledek je před rozhodnutím dostupný pouze adminovi,
-- technická implementace nesmí měnit platnost,
-- morfologický katalog je provozní autorita, nikoli vyšší pravidlo.
-
-## Rozsah prvního veřejného MVP – částečně uzavřeno
-
-- veřejná prezentace projektu, jeho smyslu, vysvětlení a pravidel,
-- interaktivní a vizuálně propracovaný formulář pro strukturované vložení věty,
-- povinné admin rozhraní pro posouzení a schválení podání,
-- čekající a zamítnutá podání nejsou veřejná,
-- veřejný seznam obsahuje pouze schválené věty,
-- veřejný detail schválené věty obsahuje její obhájení a morfologickou identifikaci jednotlivých slov,
-- veřejné peer review čekajících vět není součástí MVP.
-
-Zbývající rozsah, zejména komentáře, přesný rozsah neveřejné katalogové validace po odeslání, autentizace autora a přesný admin security model, zůstává k rozhodnutí v #10 a souvisejících nálezech.
-
-## Multi-agent governance repozitáře
-
-- Josef Bukovský je finální decision owner pro produktová a pravidlová rozhodnutí,
-- nezávislý auditor zakládá samostatná `[AUDIT]` issues a sám nemění normativní výsledek,
-- otevřené produktové otázky jsou `[DECISION]` issues,
-- vývojový agent smí implementovat jen uzavřená rozhodnutí nebo parametrický základ, který výsledek nepředjímá,
-- po rozhodnutí se issue zavírá až po zapracování a kontrole konzistence,
-- `AGENTS.md` a `docs/governance/decision-workflow.md` jsou hlavní procesní instrukce pro další agenty.
-
-## Oddělení dokumentace a implementace
-
-- normativní pravidla určují soutěžní platnost,
-- vysvětlující materiály pravidla pouze interpretují,
-- architektura a DB je implementují,
-- interní katalog je provozní znalostní báze,
-- uživatelská deklarace je tvrzení soutěžícího, nikoli zdroj pravdy,
-- žádný technický constraint, regex, UI nebo katalog nesmí potichu vytvořit nové soutěžní pravidlo.
+- přesná normativní paradigmata substantivních a adjektivních modelů,
+- slovesné časovací typy,
+- valenční rámce a finální sadu vidů,
+- reachability hlavních a hraničních mechanismů,
+- úplné field schema formuláře,
+- reprezentaci předložek a případný fallback formuláře,
+- interní katalog a jeho verzování,
+- semantiku revalidace a historickou provenance,
+- release proces,
+- identitu autora podání,
+- komentáře a jejich případný scope,
+- admin autentizaci a security baseline.
