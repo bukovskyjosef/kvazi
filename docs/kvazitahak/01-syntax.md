@@ -47,7 +47,7 @@ Závislé členy uvnitř podmětové skupiny nejsou dalšími podměty. Koordina
 
 - **Vazba:** odkazuje na přísudek a na konkrétní slot zvoleného valenčního rámce.
 - **Test:** odpovídá jeho pád a role tomuto slotu?
-- **Povinnost:** každý obligatorní slot musí být výslovně realizován; rámec může připustit pouze to, co stanoví normativní valenční tabulka.
+- **Povinnost:** každý obligatorní slot musí být výslovně realizován. Valenční rámec se deklaruje a obhajuje podle `05-valence.md`; nejde o uzavřený whitelist pádových rámců.
 - **Běžná analogie:** `Dítě čte knihu.`
 
 ### Přívlastek shodný
@@ -70,7 +70,7 @@ Neshodný přívlastek není omezen pouze na jeden významový podtyp. Jeho konk
 
 - **Vazba:** odkazuje na přísudek.
 - **Test:** vyjadřuje okolnost děje nebo stavu a nelze je podle zvoleného rámce zařadit jako předmět?
-- **Povinnost:** je volné, pokud normativní valenční rámec výslovně nestanoví odpovídající obligatorní příslovečný slot; takový slot musí být ve větě vyplněn a ve formuláři uveden.
+- **Povinnost:** je volné, pokud deklarovaný valenční rámec výslovně nestanoví odpovídající obligatorní příslovečný slot; takový slot musí být ve větě vyplněn a ve formuláři uveden.
 - **Běžné analogie:** `Přijel večer.` a `Prošel lesem.`
 
 Významové podtypy příslovečného určení se soutěžně neuzavírají do úplného seznamu. Neobvyklý název podtypu sám nic nedokazuje; rozhoduje vazba na přísudek, vztah ke zvolenému valenčnímu rámci a obhajitelná běžná česká konstrukce.
