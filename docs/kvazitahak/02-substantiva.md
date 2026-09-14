@@ -28,6 +28,20 @@ Výsledný model tedy musí umožnit mechanickou kontrolu vztahu:
 
 **Reachability není kritériem existence modelu.** Všechny níže uvedené normativní modely zůstávají součástí pravidel i tehdy, pokud se později ukáže, že některý z nich při aktuálních znakových a motivových omezeních nemá žádný použitelný povrchový tvar. Hráčské materiály takovou případnou slepou cestu nemají předem označovat.
 
+## NORMATIVNÍ: základní odvození kmene
+
+U běžných substantivních modelů se soutěžní kmen odvodí od lemmatu čistě mechanicky podle nominativní koncovky modelu:
+
+- modely s lemmatem zakončeným souhláskou: **kmen = celé lemma**,
+- modely na `-a`: odeber poslední `a`,
+- modely na `-e`: odeber poslední `e`,
+- modely na `-o`: odeber poslední `o`,
+- model `stavení` na `-í`: odeber poslední `í`.
+
+Nominativ singuláru je vždy přímo lemma. Ostatní buňky se standardně tvoří jako `kmen + kanonická koncovka` z normativní tabulky.
+
+Pokud charakter konkrétního modelu vyžaduje další kmenovou podobu, musí ji tento model definovat jako vlastní explicitní deterministické pravidlo včetně přesného určení buněk, ve kterých se použije. Takovou výjimku nevytváří jednotlivé slovo ani hráčova analogie.
+
 ## NORMATIVNÍ: soutěžní vzory
 
 ### Mužský rod
@@ -76,7 +90,7 @@ Pro každý vzor sestavit úplnou tabulku:
 
 - singulár: 1.–7. pád,
 - plurál: 1.–7. pád,
-- přesné mechanické pravidlo kmene,
+- přesné případné modelové odchylky od základního pravidla kmene,
 - právě jednu kanonickou realizaci každé buňky,
 - žádné implicitní lexikální výjimky jednotlivých slov.
 
