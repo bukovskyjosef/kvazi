@@ -82,6 +82,8 @@ Určuje, které morfologické kategorie se používají u kterého slovního dru
 ### `lexeme_identity`
 Jedno lemma může mít více soutěžních identit. Identita proto není uložená přímo v `lexeme`.
 
+Status skutečné slovo / kvazislovo se nesmí odvozovat pouze ze zápisu lemmatu nebo povrchového tvaru. Dvě položky se stejným zápisem mohou představovat doloženou skutečnou identitu a odlišnou kvaziidentitu; katalog je musí umět vést odděleně. Deklaraci shodnou s doloženou skutečnou identitou naopak nelze uložením druhé položky proměnit v kvazislovo.
+
 ### `accepted_word_form`
 Reprezentuje jeden interně schválený konkrétní povrchový tvar. Stejný povrchový řetězec může mít více různých přípustných analýz.
 
@@ -100,3 +102,4 @@ Reprezentuje platnost jedné revize vůči konkrétní verzi pravidel a umožňu
 5. veřejný web neumožní vytěžit úplný interní katalog.
 6. morfologická pravda je oddělena od toho, co autor věty pouze deklaruje.
 7. každý token podané revize má úplnou deklarovanou identifikaci a všechny pravidly vyžadované syntaktické vztahy uložené strukturovaně.
+8. klasifikace skutečné slovo / kvazislovo se vyhodnocuje nad celou soutěžní identitou, nikoli nad samotným zápisem.

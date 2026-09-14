@@ -161,12 +161,19 @@ Znaková pravidla musí splňovat pouze konkrétní tvar použitý ve větě. Le
 
 Existence jiné možné analýzy stejného povrchového tvaru nevadí; rozhodující je jedna úplná a konzistentní deklarovaná analýza.
 
+Shoda zápisu se skutečným českým slovem sama o sobě neurčuje, zda jde o skutečné slovo, nebo kvazislovo. Rozhoduje celá soutěžní identita:
+
+- odpovídá-li deklarovaná identita některému doloženému skutečnému slovu, jde o skutečné slovo a tutéž identitu nelze znovu prohlásit za kvazislovo,
+- neodpovídá-li deklarovaná identita žádnému doloženému skutečnému slovu, může jít o kvazislovo, i když má stejný zápis nebo základní tvar jako skutečné slovo,
+- takové kvazislovo musí samo splnit zvolený soutěžní model; existence stejně zapsaného skutečného slova jeho kvazimorfologii nedokládá.
+
 ## 9. Skutečné české slovo
 
 Skutečné české slovo lze použít pouze tehdy, když:
 
-1. jeho konkrétní použitý tvar je doloženým tvarem současné spisovné češtiny,
-2. tentýž konkrétní tvar současně odpovídá některému povolenému soutěžnímu morfologickému modelu.
+1. jeho základní tvar, slovní druh a všechny vlastnosti tvořící soutěžní identitu odpovídají témuž doloženému skutečnému slovu,
+2. jeho konkrétní použitý tvar je doloženým tvarem tohoto slova v deklarovaných morfologických hodnotách,
+3. tentýž konkrétní tvar současně odpovídá některému povolenému soutěžnímu morfologickému modelu.
 
 Existenci skutečného slova lze soutěžně doložit pouze:
 
@@ -325,6 +332,8 @@ Samo o sobě novou identitu nevytváří zejména:
 - rozdíl velkých/malých písmen.
 
 Skutečné slovo a kvazislovo stejného zápisu mohou být dvě různé identity jen tehdy, pokud se skutečně liší některou vlastností, která je podle těchto pravidel součástí identity.
+
+Příklad: `VAZ` jako substantivum mužského rodu neživotného podle modelu `hrad` je při splnění požadavků oddílu 9 skutečné slovo. Tentýž základní tvar `VAZ` jako substantivum mužského rodu životného podle modelu `pán` je odlišná soutěžní identita a může být kvazislovem. Identitu `VAZ + mužský neživotný + hrad` však nelze podruhé vydávat za kvazislovo ani rozmnožit pouhou změnou pádu, čísla, významu nebo větné funkce.
 
 ## 16. Interpunkce
 

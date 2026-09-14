@@ -82,6 +82,8 @@ Slovo si můžeš vymyslet. Nemusí ani nic konkrétního znamenat.
 
 Musíš mu ale přiřadit některý povolený soutěžní model a používat ho podle něj.
 
+O tom, zda je slovo skutečné, nebo kvazi, nerozhoduje samotný zápis, ale jeho úplná soutěžní identita. U substantiva ji tvoří základní tvar, rod, životnost a vzor. `VAZ` jako mužské neživotné substantivum podle vzoru `hrad` je skutečné slovo. `VAZ` jako mužské životné substantivum podle vzoru `pán` je jiná identita a může být kvazislovem. Tutéž reálnou identitu však nelze znovu označit za kvazislovo.
+
 ## 5. Stejnou soutěžní identitu nepoužiješ dvakrát
 
 Jakmile jednou použiješ konkrétní soutěžní identitu slova, je vyčerpaná.

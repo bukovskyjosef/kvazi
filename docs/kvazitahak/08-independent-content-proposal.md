@@ -376,6 +376,8 @@ Klíčová věta:
 
 > Skutečnost slova nestačí. Konkrétní použitý tvar musí současně projít soutěžním modelem.
 
+Rozhodnuté rozlišení má tahák ukázat i na krátkém příkladu: skutečné `VAZ + mužský neživotný + hrad` nelze podruhé prohlásit za kvazislovo, ale `VAZ + mužský životný + pán` je jiná soutěžní identita a kvazislovem být může. Status tedy neurčuje samotný zápis.
+
 ## 12. Odevzdávací checklist
 
 ### Za celou větu

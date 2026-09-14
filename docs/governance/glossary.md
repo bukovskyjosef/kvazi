@@ -7,7 +7,7 @@
 - **Soutěžní model** – uzavřený normativní morfologický model v kvazitaháku.
 - **Soutěžní identita** – jednotka, kterou lze v jedné kvazivětě použít nejvýše jednou.
 - **Token** – jeden konkrétní výskyt slova ve větě.
-- **Lemma** – základní slovníkový tvar.
+- **Lemma** – základní slovníkový tvar; například `VAZ` je lemma tvarů `VAZU`, `VAZEM` nebo `VAZY`.
 - **Valence** – soutěžně povolený rámec obligatorních doplnění slovesa.
 - **Kvazitahák** – praktický dokument s normativními tabulkami a vysvětlujícími příklady.
 - **Rozhodcovská specifikace** – úplný normativní text pro platnost, spory a hraniční případy.

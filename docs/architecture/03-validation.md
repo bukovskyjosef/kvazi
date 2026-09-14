@@ -44,6 +44,8 @@ Aplikace před konečným odesláním automaticky nerozhoduje jazykovou správno
 
 Po vytvoření interního katalogu může produkční kontrola deterministicky porovnávat deklarovanou analýzu se schválenými katalogovými daty pouze nad konečně odeslanou a uzamčenou revizí.
 
+Porovnává se celá deklarovaná soutěžní identita. Samotná shoda zápisu s reálným slovem nesmí způsobit odmítnutí odlišné platné kvaziidentity; deklaraci shodnou s doloženou reálnou identitou naopak nelze přijmout jako kvazislovo.
+
 Výsledek je před rozhodnutím neveřejný a slouží admin review. Autorovi se nevrací okamžitá odpověď o katalogovém členství jednotlivých položek; dostane až výsledek administrativního posouzení a jeho odůvodnění.
 
 Katalog je podřízen pravidlům. Pokud hráč prokáže chybu nebo neúplnost katalogu, následuje ruční posouzení, případná oprava katalogu a opakovaná validace.

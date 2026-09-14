@@ -85,7 +85,10 @@ Reachability rozhodne, co zůstane v hlavní vrstvě.
 - substantivum: lemma + rod + životnost + vzor,
 - adjektivum: základní tvar + vzor,
 - sloveso: infinitiv + časovací typ + valenční rámec,
-- vid slovesa není součást identity.
+- vid slovesa není součást identity,
+- skutečné slovo musí mít celou deklarovanou soutěžní identitu slučitelnou s morfologií téhož doloženého reálného slova,
+- odpovídá-li deklarace existující reálné identitě, nelze tutéž identitu prohlásit za kvazislovo,
+- stejný zápis nebo základní tvar může být kvazislovem s jinou soutěžní identitou; například reálné `VAZ + mužský neživotný + hrad` a kvazi `VAZ + mužský životný + pán`.
 
 ## Fiktivní význam
 

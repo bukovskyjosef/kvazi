@@ -37,6 +37,15 @@ U dvojic `pán/muž` a `hrad/stroj` se u kvazislova nezkoumá přirozená fonolo
 
 `kuře` podléhá reachability auditu.
 
+## NORMATIVNÍ: skutečné slovo versus kvazislovo
+
+O zařazení nerozhoduje samotný zápis, ale úplná soutěžní identita substantiva: základní tvar, rod, životnost a vzor.
+
+- Odpovídá-li tato celá identita doloženému skutečnému substantivu, musí být použita jako skutečné slovo a nelze ji znovu prohlásit za kvazislovo.
+- Stejný základní tvar může být kvazislovem, pokud se jeho identita liší od každé doložené skutečné identity a splní jiné normativní paradigma.
+
+Příklad: `VAZ + mužský neživotný + hrad` je skutečná identita. `VAZ + mužský životný + pán` je jiná identita a může být kvazislovem.
+
 ## TODO – NORMATIVNÍ PARADIGMATA
 
 Pro každý vzor sestavit úplnou tabulku:
@@ -52,8 +61,9 @@ To, co bude v normativní tabulce, platí. Externí dubleta mimo tabulku se do s
 
 Konkrétní reálný tvar musí:
 
-1. skutečně existovat v současné spisovné češtině,
-2. současně odpovídat jednomu z výše uvedených normativních modelů.
+1. pocházet z téhož doloženého skutečného substantiva, kterému odpovídá deklarovaný základní tvar, rod, životnost a vzor,
+2. skutečně existovat v současné spisovné češtině v deklarovaném pádu a čísle,
+3. současně odpovídat jednomu z výše uvedených normativních modelů.
 
 Existenci slova lze doložit pouze slovníkovou částí IJP nebo zveřejněným heslem ASSČ. Hráč při hledání v těchto zdrojích postupuje pouze ručně.
 

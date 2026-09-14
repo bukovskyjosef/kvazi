@@ -25,6 +25,13 @@ Jeho hlavní cíl:
 
 Kvazitahák nezveřejňuje předfiltrovaný seznam skutečných soutěžních slov. Hráč jejich existenci ověřuje ručně ve slovníkové části IJP nebo mezi zveřejněnými hesly ASSČ; jiné zdroje samy o sobě existenci soutěžního slova neprokazují.
 
+## NORMATIVNÍ: rozlišení skutečného slova a kvazislova
+
+- Rozhoduje celá soutěžní identita, nikoli samotný zápis slova.
+- Odpovídá-li deklarovaná identita některému doloženému skutečnému slovu, jde o skutečné slovo a tutéž identitu nelze prohlásit za kvazislovo.
+- Stejný zápis nebo základní tvar může být kvazislovem, pokud se liší alespoň jednou vlastností tvořící soutěžní identitu od každé doložené skutečné identity a splňuje svůj soutěžní model.
+- Existence stejně zapsaného skutečného slova nedokládá morfologii odlišné kvaziidentity.
+
 ## Normativní role
 
 Kvazitahák je součástí aktuální verze pravidel.
