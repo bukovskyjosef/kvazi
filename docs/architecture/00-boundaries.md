@@ -1,26 +1,33 @@
-# Boundaries between rules, data and implementation
+# Hranice mezi pravidly, daty a implementací
 
-This document defines technical boundaries. It is not a game rule.
+Tento dokument určuje technické hranice projektu. Není pravidlem hry.
 
-## Normative layer
-Competition validity comes from the normative rule documents and explicitly normative parts of the Kvazitahák. Implementation must not change their meaning.
+## Normativní vrstva
 
-## Explanatory layer
-`Jak hrát`, examples and explanatory text help readers understand the game. They do not create new rules.
+Soutěžní platnost určují normativní pravidla a výslovně normativní části kvazitaháku. Implementace jejich význam nemění.
 
-## Technical layer
-Architecture, forms, APIs, database structures, validators, authentication and admin workflows represent accepted rules. They must not settle an unresolved product or language question.
+## Vysvětlující vrstva
 
-## Internal catalog
-The internal catalog is an operational knowledge base below the rules. A conflict between the catalog and the rules is a catalog defect.
+`Jak hrát`, příklady a vysvětlivky pomáhají s pochopením, ale samy nevytvářejí nové pravidlo.
 
-## User declaration
-A submitted analysis is the contestant's claim. It does not by itself create authoritative linguistic truth or expand the catalog.
+## Technická vrstva
 
-## Derived data
-Counts, normalized text, validation results and rankings must be reproducible from source data and the relevant rules/validator provenance.
+Architektura, formuláře, API, databáze, validátory, autentizace a admin workflow reprezentují přijatá rozhodnutí. Neuzavírají samy otevřenou produktovou nebo jazykovou otázku.
 
-## Development gate
-Implementation may proceed only where behavior is already decided or can remain genuinely parameterized. If a product question is unresolved, use the workflow in `/docs/governance/decision-workflow.md` and GitHub Issues instead of inventing a default.
+## Interní katalog
 
-`/db/schema-draft.sql` is a working design artifact, not production migration history.
+Interní katalog je provozní znalostní báze podřízená pravidlům. Rozpor katalogu s pravidly je chyba katalogu.
+
+## Uživatelská deklarace
+
+Odevzdaná analýza je tvrzení soutěžícího. Sama nevytváří autoritativní jazykovou pravdu ani nerozšiřuje katalog.
+
+## Odvozená data
+
+Počty, normalizovaný text, validační výsledky a žebříčky musí být reprodukovatelné ze zdrojových dat a příslušné provenance pravidel a validátoru.
+
+## Vývojový gate
+
+Implementovat lze již rozhodnuté chování nebo technický základ, který skutečně nepředjímá otevřenou otázku. Nevyřešená produktová otázka se řeší podle `/docs/governance/decision-workflow.md` a v GitHub Issues.
+
+`/db/schema-draft.sql` je pracovní návrh, nikoli produkční migrační historie.
