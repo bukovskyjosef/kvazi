@@ -23,7 +23,7 @@ Pouhé označení členu názvem povolené funkce nestačí. Každý člen musí
 
 1. splnit rozhodovací test své hlavní funkce,
 2. uvést všechny touto funkcí vyžadované vazby ke konkrétním slovům věty,
-3. respektovat zvolený valenční rámec, morfologii a ostatní zákazy pravidel.
+3. respektovat valenční obhajobu slovesa, morfologii a ostatní zákazy pravidel.
 
 ## NORMATIVNÍ: rozhodovací testy
 
@@ -45,16 +45,16 @@ Závislé členy uvnitř podmětové skupiny nejsou dalšími podměty. Koordina
 
 ### Předmět
 
-- **Vazba:** odkazuje na přísudek a na konkrétní slot zvoleného valenčního rámce.
-- **Test:** odpovídá jeho pád a role tomuto slotu?
-- **Povinnost:** každý obligatorní slot musí být výslovně realizován. Valenční rámec se deklaruje a obhajuje podle `05-valence.md`; nejde o uzavřený whitelist pádových rámců.
+- **Vazba:** odkazuje na přísudek.
+- **Test:** je jeho vztah k přísudku obhájen valenčním použitím slovesa podle `05-valence.md`?
+- **Povinnost:** všechna obligatorní doplnění, která z obhájeného použití slovesa vyplývají, musí být ve větě výslovně realizována. Valence se obhajuje slovně; nejde o uzavřený whitelist ani strukturovaný seznam slotů.
 - **Běžná analogie:** `Dítě čte knihu.`
 
 ### Přívlastek shodný
 
 - **Vazba:** odkazuje na konkrétní řídící jmenný člen.
 - **Test:** rozvíjí tento člen a shoduje se s ním v kategoriích, v nichž se podle svého modelu shodovat má?
-- **Povinnost:** volný člen; nevyplňuje valenční slot slovesa.
+- **Povinnost:** volný člen; nenahrazuje obligatorní doplnění slovesa.
 - **Běžná analogie:** `malý dům`
 
 ### Přívlastek neshodný
@@ -69,11 +69,11 @@ Neshodný přívlastek není omezen pouze na jeden významový podtyp. Jeho konk
 ### Příslovečné určení
 
 - **Vazba:** odkazuje na přísudek.
-- **Test:** vyjadřuje okolnost děje nebo stavu a nelze je podle zvoleného rámce zařadit jako předmět?
-- **Povinnost:** je volné, pokud deklarovaný valenční rámec výslovně nestanoví odpovídající obligatorní příslovečný slot; takový slot musí být ve větě vyplněn a ve formuláři uveden.
+- **Test:** vyjadřuje okolnost děje nebo stavu a není podle obhájeného valenčního použití slovesa předmětem nebo jiným obligatorním doplněním?
+- **Povinnost:** běžně jde o volný člen; pokud z valenční obhajoby konkrétního použití slovesa plyne, že takové doplnění je obligatorní, musí být ve větě výslovně přítomné.
 - **Běžné analogie:** `Přijel večer.` a `Prošel lesem.`
 
-Významové podtypy příslovečného určení se soutěžně neuzavírají do úplného seznamu. Neobvyklý název podtypu sám nic nedokazuje; rozhoduje vazba na přísudek, vztah ke zvolenému valenčnímu rámci a obhajitelná běžná česká konstrukce.
+Významové podtypy příslovečného určení se soutěžně neuzavírají do úplného seznamu. Neobvyklý název podtypu sám nic nedokazuje; rozhoduje vazba na přísudek, obhájené použití slovesa a běžná česká konstrukce.
 
 ### Doplněk
 
@@ -111,10 +111,10 @@ Pokud syntaktická funkce závisí na fiktivním významu kvazislova:
 - musí splnit jeho rozhodovací test a všechny vyžadované vazby,
 - řešitel uvede běžnou českou analogii se stejnou konstrukcí.
 
-Analogie nemusí být jedním z příkladů uvedených v tomto taháku. Může ukázat jiný běžný významový podtyp, ale nesmí vytvořit nový hlavní syntaktický vztah ani obejít valenci.
+Analogie nemusí být jedním z příkladů uvedených v tomto taháku. Může ukázat jiný běžný významový podtyp, ale nesmí vytvořit nový hlavní syntaktický vztah ani obejít valenční obhajobu.
 
-## Formulář
+## Odevzdaná analýza
 
-U každého slova se ukládá hlavní syntaktická funkce a všechny vazby vyžadované jejím rozhodovacím testem. Povinné vybírání odborného významového podtypu, například konkrétního druhu příslovečného určení, se nevyžaduje.
+U každého slova se uvádí hlavní syntaktická funkce a všechny vazby vyžadované jejím rozhodovacím testem. Povinné vybírání odborného významového podtypu, například konkrétního druhu příslovečného určení, se nevyžaduje.
 
-Je-li vztah významově nejasný nebo závislý na fiktivním významu, formulář vyžádá krátkou obhajobu a běžnou českou analogii.
+U slovesa se valence nedeklaruje jako strukturovaný rámec. Je součástí slovní obhajoby podle `05-valence.md`. Je-li vztah významově nejasný nebo závislý na fiktivním významu, obhajoba uvede také běžnou českou analogii.
