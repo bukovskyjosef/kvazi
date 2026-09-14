@@ -32,7 +32,6 @@ Preferovaný princip: **Keep It Simple**.
 - stručná pravidla,
 - aktuální rekord,
 - poslední schválené věty,
-- čekající věty,
 - vstup k podání.
 
 ### `/pravidla`
@@ -46,11 +45,13 @@ Preferovaný princip: **Keep It Simple**.
 
 ### `/vety`
 - schválené,
-- čekající,
-- historické,
+- historické schválené věty,
 - filtrování podle verze.
 
 ### `/veta/{slug}`
+
+Veřejně je dostupný pouze detail schválené věty. Admin může v neveřejném rozhraní otevřít také čekající podání.
+
 Zobrazí:
 - text věty,
 - skóre,
@@ -79,6 +80,18 @@ Formulář pracuje s jednotlivými slovy:
 Mezery ve výsledném zobrazení generuje aplikace sama.
 
 Po zadání slov následuje strukturovaná analýza slovo po slově. Podle zvoleného slovního druhu se zobrazí relevantní pole.
+
+## MVP schvalovací workflow
+
+Admin rozhraní pro posouzení vět je povinnou součástí prvního veřejného MVP.
+
+1. Odeslaná věta vytvoří konkrétní neměnnou revizi ve stavu čekajícím na posouzení.
+2. Čekající ani zamítnutá věta se nezobrazuje ve veřejném seznamu ani na veřejném detailu.
+3. Admin v neveřejné frontě vidí větu, úplnou deklarovanou analýzu, morfologickou identifikaci jednotlivých slov, obhajobu a zdroje.
+4. Admin může větu schválit, zamítnout nebo vrátit k doplnění; přesná revizní a stavová reprezentace se uzavře v decisions #8 a #10.
+5. Teprve schválená věta se zveřejní v seznamu a na detailu.
+
+Veřejné peer review čekajících vět není součástí MVP.
 
 ## Oddělení tvrzení hráče a systémové pravdy
 
