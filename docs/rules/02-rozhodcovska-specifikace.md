@@ -31,7 +31,11 @@ Každý skutečně zapsaný soutěžní znak má při skórování hodnotu jedno
 
 `Q = 1`, `KV = 2`.
 
-`Q` se vyslovuje `/kv/`.
+`Q` se vyslovuje `/kv/`, ale je samostatným soutěžním písmenem. Není zkratkou, ligaturou ani alternativním pravopisným zápisem dvojice `KV`.
+
+Při určování lemmatu, základního tvaru, morfologie, soutěžní identity, skutečnosti slova a při práci s jazykovými zdroji se `Q` nikdy automaticky nerozvíjí ani nenormalizuje na `KV`.
+
+Shodná výslovnost `Q` a posloupnosti `KV` sama o sobě nezakládá žádnou morfologickou, lexikální ani identitní shodu. Například zápisy `QAZ` a `KVAZ` představují dvě odlišná slova a nelze jim pouze kvůli stejné výslovnosti přiřadit tutéž morfologickou identitu.
 
 ## 3. Motiv
 
@@ -39,10 +43,10 @@ Základní motiv je `KVAZI`.
 
 V každém výskytu lze nezávisle použít:
 
-- `KV → Q`
-- `A → A | Á`
-- `Z → Z`
-- `I → I | Í | Y | Ý`
+- na začátku `KV | Q`,
+- `A | Á`,
+- `Z`,
+- `I | Í | Y | Ý`.
 
 Úplné motivy:
 
@@ -54,6 +58,8 @@ QÁZI  QÁZÍ  QÁZY  QÁZÝ
 ```
 
 Celá věta po spojení slov musí být souvislým úsekem nepřetržité posloupnosti těchto motivů. Začátek a konec smějí ležet uvnitř motivu.
+
+Volba `Q` místo úvodního `KV` je pouze pravidlem tvorby motivu. Nevytváří pravidlo jazykové ekvivalence mezi `Q` a `KV`.
 
 Pravidla nevyžadují ani normativně neurčují konkrétní interní algoritmus rozkladu na motivy.
 
@@ -341,6 +347,8 @@ Samo o sobě novou identitu nevytváří zejména:
 - slovotvorný původ,
 - etymologie,
 - rozdíl velkých/malých písmen.
+
+Rozdíl mezi `Q` a posloupností `KV` není variantním zápisem téže identity. Pokud se dva tvary nebo jejich základní tvary liší `Q` oproti `KV`, jde o skutečný rozdíl v zápisu, který se při morfologické identifikaci zachovává; shodná výslovnost jej nemaže.
 
 Skutečné slovo a kvazislovo stejného zápisu mohou být dvě různé identity jen tehdy, pokud se skutečně liší některou vlastností, která je podle těchto pravidel součástí identity.
 
