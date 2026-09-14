@@ -1,115 +1,62 @@
 # Politika použití nástrojů a AI
 
-> **Status:** normativní pravidlo soutěžního procesu pro soutěžící a oddělená pravidla pro správce projektu.
+> **Status:** normativní pravidlo férového hraní.
 
-## 1. Zásada lidského řešení
+## 1. Hraj fér
 
-Soutěžní řešení vytváří člověk vlastní hlavou.
+Kvazi je hra založená na důvěře. Soutěžní řešení má vzniknout lidskou hlavou.
 
-Přípustnost nástroje se neposuzuje podle jeho názvu, použité technologie ani podle toho, zda využívá AI. Rozhoduje, **co nástroj při řešení dělá**.
+Pravidla práce s nástroji nejsou policejní režim. Projekt nebude sledovat, jak hráč pracuje, nebude vyžadovat logy, screenshoty, historii promptů ani jiné důkazy a nebude zpětně vyšetřovat, zda někdo použil zakázaný nástroj.
 
-Nástroj smí pomáhat s pasivním studiem dovolených zdrojů a s mechanickým ověřením konkrétního lidského nápadu. Nesmí za soutěžícího hledat, vytvářet, doplňovat ani zlepšovat soutěžní kandidáty.
+Odesláním řešení hráč jednoduše říká: **hrál jsem fér a řešení jsem vytvořil v duchu těchto pravidel**.
 
-## 2. Povolené použití nástrojů
+Bez vzájemné důvěry tahle soutěž nedává smysl.
 
-Soutěžící smí zejména:
+## 2. Co je v pořádku
 
-- ručně číst veřejné příručky, knihy a odborné texty pro obecné jazykové poučení a obhajobu jiných jazykových otázek,
-- skutečné soutěžní slovo hledat pouze ručně, a to ve slovníkové části IJP nebo mezi zveřejněnými hesly ASSČ; jen tyto zdroje mohou doložit jeho existenci,
-- ručně v relevantním zdroji vyhledat jiný, člověkem předem zvolený obecný jazykový jev,
-- zapisovat, řadit a formátovat vlastní poznámky,
-- použít kalkulačku nebo jinou mechanickou pomůcku k počítání,
-- ověřit jeden konkrétní, člověkem vytvořený kandidát proti výslovnému pravidlu,
-- použít soutěžní aplikaci k deterministické kontrole zadaného kandidáta v rozsahu, který aplikace výslovně nabízí.
+Hráč může používat běžné pomůcky k učení, orientaci a mechanické kontrole vlastního nápadu. Typicky může:
 
-Ověřovací nástroj smí sdělit, zda zadaný kandidát splňuje kontrolovanou podmínku, a označit konkrétní porušení. Nesmí navrhnout náhradní slovo, tvar, rozdělení, analýzu ani jiné řešení.
+- číst pravidla, slovníky, příručky, knihy a další jazykové zdroje,
+- dělat si vlastní poznámky,
+- počítat nebo si mechanicky kontrolovat znaková a jiná jednoduchá pravidla,
+- použít soutěžní aplikaci k tomu, k čemu je veřejně určená,
+- požádat AI, aby vysvětlila pravidlo hry nebo obecný jazykový pojem.
 
-Opakované nebo dávkové ověřování systematicky vytvářené řady variant za účelem nalezení řešení se nepovažuje za ověřování konkrétního lidského nápadu, ale za zakázané automatické hledání.
+AI tedy může pomoci **pochopit hru**. Může například vysvětlit, co je lemma, valence nebo doplněk, nebo přeformulovat nejasný odstavec pravidel jednodušší češtinou.
 
-## 3. Zakázané automatické řešení
+## 3. Co už není fér
 
-Bez ohledu na použitou technologii je zakázáno nechat nástroj:
+Nástroj nemá řešit Kvazi místo hráče.
 
-- generovat nebo doplňovat kandidátní slova, tvary, věty či analýzy,
-- enumerovat možné kandidáty nebo jejich kombinace,
-- automaticky navrhovat hranice slov, motivů, syntaktické vazby nebo soutěžní identity,
-- hromadně filtrovat, prohledávat, stahovat nebo zpracovávat slovníky či jiné jazykové zdroje podle omezení kvaziproblému,
-- kandidáty řadit, skórovat, porovnávat nebo optimalizovat,
-- automaticky skládat části řešení,
-- dávkově či iterativně testovat kandidáty s cílem objevit platné řešení,
-- vytěžovat neveřejný katalog nebo validátor jako vyhledávací oracle.
+Není fér nechat AI, skript, solver, crawler, makro nebo jiný automatický postup:
 
-Zakázané je zejména použití generátoru, brute-force programu, crawleru, vlastního skriptu, tabulkového makra, SAT/constraint solveru nebo jiného automatického postupu k činnostem uvedeným výše.
+- hledat nebo generovat kandidátní slova či věty,
+- navrhovat rozdělení slov, morfologickou nebo syntaktickou analýzu konkrétního soutěžního případu,
+- opravovat nebo vylepšovat konkrétní hráčovo řešení,
+- hromadně prohledávat nebo filtrovat kandidáty podle omezení Kvazi,
+- skládat, porovnávat, skórovat nebo optimalizovat možné varianty,
+- dávkově testovat velké množství možností s cílem najít platné nebo lepší řešení.
 
-## 4. Zvláštní pravidlo pro AI
+Jednoduchá hranice je:
 
-AI smí soutěžícímu vysvětlovat pouze **obecná pravidla současné spisovné češtiny**, pokud jí soutěžící neposkytne žádný obsah ani omezení kvaziproblému a nežádá aplikaci odpovědi na soutěžní případ.
+> **AI ti smí vysvětlit hru. Nesmí ji za tebe hrát.**
 
-Přípustnost obecného dotazu se posuzuje podle jeho předaného obsahu a kontextu, nikoli podle nepozorovatelného vnitřního důvodu, proč se soutěžící ptá.
+Stejně tak ostatní nástroje mohou mechanicky zkontrolovat konkrétní lidský nápad, ale nemají kandidáty samy hledat.
 
-Příklady obecně přípustných dotazů:
+## 4. Soutěžní aplikace
 
-- Co je lemma?
-- Co je valence slovesa?
-- Co je doplněk?
-- Jaký je rozdíl mezi pádem a skloňovacím vzorem?
-- Co je shodný přívlastek?
+Soutěžní aplikace může dělat deterministické kontroly, které jsou součástí její veřejné funkce. Nemá hráči navrhovat lepší slovo, jiný tvar, jinou syntaktickou vazbu ani lepší řešení.
 
-AI nesmí být použita ke komunikaci o jakémkoli obsahu přímo souvisejícím s kvaziproblémem nebo soutěží.
+Interní katalogy a rozhodcovské nástroje mohou sloužit ke správě soutěže a posuzování odeslaných řešení. Nejsou vyhledávačem kandidátů pro hráče.
 
-Zakázáno je zejména předkládat AI nebo s ní konzultovat:
+## 5. Vývoj a správa projektu
 
-- pravidla kvaziproblému,
-- kvazitahák,
-- soutěžní návody,
-- existující, připravované nebo hypotetické kvazivěty,
-- kandidátní slova a tvary,
-- soutěžní identity,
-- soutěžní abecedu nebo motivy,
-- soutěžní omezení,
-- databáze, katalogy, validační data nebo výsledky,
-- morfologické či syntaktické analýzy soutěžních případů,
-- strategie,
-- hledání kandidátů,
-- optimalizaci,
-- posouzení platnosti nebo opravu řešení.
+Tato omezení jsou pravidlem pro soutěžní řešení, ne zákazem používat moderní nástroje při vývoji projektu.
 
-Zákaz platí i tehdy, pokud soutěžící neukáže celou větu a snaží se získat soutěžně specifickou informaci nepřímo.
+AI, skripty a další automatizace lze používat při návrhu a auditu pravidel, vývoji aplikace, testování, správě dat nebo přípravě interních podkladů. Takto vzniklý obsah se ale nesmí vydávat za lidské soutěžní řešení.
 
-> **AI smí soutěžícímu vysvětlovat češtinu bez kvazikontextu. Nesmí s ním komunikovat o kvaziproblému.**
+## 6. Důvěra místo kontroly
 
-## 5. Soutěžní aplikace a validátor
+Projekt nebude vytvářet disciplinární proces pro dokazování použití AI nebo jiných nástrojů. Nebudeme porovnávat kvalitu řešení s tím, co „mohl člověk zvládnout“, ani vést vyšetřování způsobu jeho vzniku.
 
-Deterministický validátor soutěžní aplikace je povolenou ověřovací pomůckou. Smí kontrolovat pouze zadaný kandidát v rozsahu své zveřejněné funkce.
-
-Validátor nesmí:
-
-- generovat nebo doporučovat alternativy,
-- měnit hráčovo rozdělení na slova,
-- automaticky hledat lepší řešení,
-- poskytovat rozhraní určené k dávkovému testování kandidátů,
-- vytvářet skryté soutěžní pravidlo nad rámec normativního balíku.
-
-Před konečným odesláním smí veřejný formulář živě kontrolovat znaková pravidla, úplnost povinných polí, příslušnost zvolených hodnot k veřejným seznamům pravidel a strukturální správnost odkazů mezi tokeny.
-
-Nesmí přitom dotazovat interní katalog ani vracet informaci, zda katalog konkrétní slovo, tvar, identitu nebo analýzu zná. Katalogová kontrola smí proběhnout až nad konečně odeslanou a uzamčenou revizí; její výsledek je před rozhodnutím dostupný pouze v neveřejném admin review.
-
-## 6. Vývoj a správa projektu
-
-Zákazy pro soutěžící se nevztahují na:
-
-- návrh a audit pravidel,
-- vývoj webu a aplikace,
-- návrh databáze,
-- správu projektu,
-- obecnou analýzu herního systému,
-- testování validátoru,
-- přípravu kandidátních dat interního morfologického katalogu.
-
-Takto vytvořený obsah se nesmí vydávat za lidské soutěžní řešení.
-
-AI ani jiný automatický proces nesmí učinit svá data normativní soutěžní pravdou. Pokud připraví kandidátní data interního katalogu, musí před jejich přijetím do schválené části katalogu proběhnout požadovaná kontrola a explicitní schválení.
-
-## 7. Porušení
-
-Použití nástroje nebo AI v rozporu s těmito pravidly je porušením soutěžního procesu a může vést k vyřazení podání i tehdy, pokud by samotná věta byla jinak jazykově platná.
+Pokud někdo vědomě obejde tato pravidla, nevzniká tím zajímavější rekord — jen přestává hrát hru, kterou hrají ostatní.
