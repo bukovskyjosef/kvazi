@@ -1,5 +1,5 @@
-# Application index
+# Aplikační část
 
-Start with `/AGENTS.md` and `/docs/architecture/00-boundaries.md`. Use `/docs/README.md` for document authority and GitHub Issues for current work.
+Vstupní kontext pro vývoj je v `/AGENTS.md` a `/docs/architecture/00-boundaries.md`. Autoritu dokumentů popisuje `/docs/README.md`; aktuální práce je v GitHub Issues.
 
-The current implementation stack is PHP 8.x, PostgreSQL, HTML5, CSS and vanilla JavaScript.
+Stack: PHP 8.x, PostgreSQL, HTML5, CSS a vanilla JavaScript.
