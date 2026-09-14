@@ -1,61 +1,48 @@
-# Komentáře, magic link a administrace
+# Uživatelské účty, komentáře a administrace
 
-## Komentáře bez klasického účtu
+## Uživatelské účty
 
-Na stránce konkrétní věty uživatel zadá e-mail. Na něj přijde jednorázový magic link platný 10 minut. Po ověření může publikovat anonymní komentář pod stabilním pseudonymem odvozeným od e-mailové identity.
+Pro MVP se používá lehká klasická registrace uživatele.
 
-## E-mailová identita
+Povinné údaje:
+- `username` – globálně unikátní a veřejně používaný pro atribuci,
+- `email` – globálně unikátní a neveřejný,
+- heslo – aplikace ukládá pouze bezpečný jednosměrný password hash, nikdy plaintext heslo.
 
-Doporučení:
+Soutěžní podání se váže na stabilní interní `user_id` autora.
 
-```text
-normalized_email
- -> HMAC-SHA256(email, SERVER_SECRET)
- -> email_hmac
-```
+Magic-link přihlašování se pro MVP nepoužívá.
 
-Veřejný pseudonym může mít tvar `Kvazista-7F4A92`.
+## Přihlášení a zapomenuté heslo
 
-Stejný e-mail má vždy stejnou anonymní identitu a pseudonym. Běžný e-mail se nemá veřejně zobrazovat.
+Uživatel se přihlašuje klasicky svými přihlašovacími údaji.
 
-## Magic link
+Aplikace musí podporovat zapomenuté heslo:
 
-- kryptograficky náhodný token,
-- platnost 10 minut,
-- jednorázový,
-- databáze ukládá pouze hash tokenu.
+1. uživatel zadá registrovaný e-mail,
+2. systém vytvoří kryptograficky náhodný, časově omezený a jednorázový resetovací token,
+3. na e-mail odešle odkaz pro změnu hesla,
+4. databáze neukládá reset token v otevřené podobě,
+5. po úspěšné změně hesla se token zneplatní.
 
-Samotný GET odkazu token nespotřebuje. Spotřebování proběhne až při odeslání komentáře.
+Resetovací odkaz není magic-link login; slouží pouze ke změně hesla.
 
-Doporučený POST flow v jedné DB transakci:
+Konkrétní algoritmus password hashování, parametry session/cookies, délka a expirace reset tokenu, rate limiting a další bezpečnostní ochrany patří do implementační security baseline a musí být uzavřeny před produkčním nasazením.
 
-1. ověřit token,
-2. ověřit expiraci,
-3. ověřit, že nebyl použit,
-4. ověřit denní limit,
-5. vložit komentář,
-6. označit token jako použitý.
+## Komentáře
 
-## Limit komentářů
+Produktový scope komentářů ještě není uzavřen. Starší návrh anonymních komentářů přes magic link se nepovažuje za platný auth směr.
 
-Výchozí pravidlo:
+Pokud komentáře v MVP zůstanou, musí být jejich identita a oprávnění navrženy nad aktuálním modelem registrovaných uživatelů, nikoli nad HMAC pseudonymem odvozeným z e-mailu.
 
-> **1 komentář z jedné e-mailové identity za kalendářní den globálně přes celý web.**
+## Moderace komentářů
 
-## Rate limiting magic linků
-
-Doporučení:
-- nejvýše 3 žádosti na e-mail za hodinu,
-- rozumný limit také na zdroj požadavků.
-
-## Moderace
-
-Komentář může mít stav:
+Pokud budou komentáře součástí produktu, mohou používat například stavy:
 - `VISIBLE`,
 - `HIDDEN`,
 - `DELETED`.
 
-Admin může komentář skrýt, obnovit nebo odstranit a přidat interní poznámku.
+Přesný scope, limity a retenční pravidla komentářů budou rozhodnuty samostatně.
 
 ## Admin
 
@@ -63,7 +50,7 @@ KISS rozhraní:
 
 ### Dashboard
 - čekající věty,
-- nové komentáře,
+- případné nové komentáře,
 - schválené věty,
 - námitky proti katalogu.
 
@@ -81,6 +68,8 @@ KISS rozhraní:
 - odmítnout,
 - deaktivovat,
 - připojit zdroj.
+
+Přesná reprezentace admin oprávnění a vztah admina k běžnému uživatelskému účtu zůstává otevřená.
 
 ## Audit administrace
 
