@@ -106,6 +106,9 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - Aplikace musí podporovat zapomenuté heslo prostřednictvím časově omezeného jednorázového resetovacího odkazu/tokenu zaslaného na registrovaný e-mail.
 - Reset hesla není magic-link přihlášení a slouží pouze ke změně hesla.
 - Konkrétní bezpečnostní parametry password hashování, session/cookies, reset tokenů, rate limitingu a dalších ochran jsou součástí implementační security baseline.
+- Administrátor je běžný uživatel se stejnou autentizační identitou jako ostatní uživatelé a serverově vynucenou rolí `ADMIN`; pro MVP stačí role `USER` a `ADMIN`.
+- Samostatný `admin_user` se nepoužívá. Admin roli nelze získat veřejnou registrací ani měnit z klientského UI.
+- Každý administrační endpoint musí roli `ADMIN` ověřit na backendu a citlivé administrátorské zásahy se auditují proti adminovu `user_id`.
 
 ## MVP scope – již rozhodnuté minimum
 
@@ -131,4 +134,4 @@ Nadále je nutné rozhodnout zejména:
 - semantiku revalidace a historickou provenance,
 - release proces,
 - komentáře a jejich případný scope,
-- admin autentizaci/role a security baseline.
+- implementační security baseline autentizace a administrace.
