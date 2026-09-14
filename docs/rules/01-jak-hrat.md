@@ -25,7 +25,7 @@ Vznikají tedy například `KVAZI`, `KVÁZÝ`, `QAZÍ`, `QÁZY` a další povole
 
 `Q` se vyslovuje jako `/kv/`, ale je to **samostatné soutěžní písmeno**, nikoli zkratka nebo alternativní zápis dvojice `KV`.
 
-To znamená, že například `QAZ` a `KVAZ` jsou dvě různě zapsaná slova. Při určování lemmatu, morfologie, soutěžní identity i při dokazování skutečného českého slova se `Q` nikdy automaticky nerozvíjí na `KV`. Stejná výslovnost sama o sobě neznamená stejnou morfologickou identitu.
+To znamená, že například `QAZ` a `KVAZ` jsou dvě různě zapsaná slova. Při určování lemmatu, morfologie, soutěžní identity i při posuzování skutečného českého slova se `Q` nikdy automaticky nerozvíjí na `KV`. Stejná výslovnost sama o sobě neznamená stejnou morfologickou identitu.
 
 ## 2. Z motivů řežeš slova
 
@@ -74,21 +74,21 @@ Povolena jsou:
 Můžeš použít:
 
 ### Skutečné české slovo
-Jeho použitý tvar musí být současně:
 
-1. skutečným spisovným českým tvarem,
-2. tvarem odpovídajícím některému soutěžnímu modelu z kvazitaháku.
+Pro soutěž je rozhodující **náš spravovaný katalog skutečných slov a tvarů**. Pokud je odpovídající soutěžní identita a použitý tvar v katalogu schválený, považujeme jej pro hru za skutečné slovo.
 
-Skutečné slovo smíš hledat pouze ručně ve slovníkové části **IJP** nebo mezi zveřejněnými hesly **ASSČ**. Jen tyto dva zdroje mohou doložit jeho existenci; **SSJČ**, **PSJČ**, korpusy ani běžný web samy o sobě nestačí.
+Pokud své kandidátní skutečné slovo v katalogu nemáme, můžeš požádat o přezkoumání. Kvaziautorita jej jazykově ověří a katalog může doplnit nebo opravit. IJP, ASSČ a další rozumné jazykové zdroje mohou sloužit jako podklad pro takové rozhodnutí, ale nejsou samy přímým soutěžním whitelistem.
 
-Zvláštní nepravidelné tvary mimo soutěžní modely se nepoužívají.
+Katalog se může v čase průběžně měnit. Každá jeho změna nemusí znamenat novou verzi pravidel.
+
+I schválené skutečné slovo musí svým konkrétním tvarem odpovídat některému soutěžnímu morfologickému modelu. Zvláštní nepravidelné tvary mimo soutěžní modely se nepoužívají.
 
 ### Kvazislovo
 Slovo si můžeš vymyslet. Nemusí ani nic konkrétního znamenat.
 
 Musíš mu ale přiřadit některý povolený soutěžní model a používat ho podle něj.
 
-O tom, zda je slovo skutečné, nebo kvazi, nerozhoduje samotný zápis, ale jeho úplná soutěžní identita. U substantiva ji tvoří základní tvar, rod, životnost a vzor. `VAZ` jako mužské neživotné substantivum podle vzoru `hrad` je skutečné slovo. `VAZ` jako mužské životné substantivum podle vzoru `pán` je jiná identita a může být kvazislovem. Tutéž reálnou identitu však nelze znovu označit za kvazislovo.
+O tom, zda je slovo skutečné, nebo kvazi, nerozhoduje samotný zápis, ale jeho úplná soutěžní identita. Je-li konkrétní identita a použitý tvar v katalogu skutečných slov schválený, jde pro soutěž o skutečné slovo a tutéž identitu nelze znovu prohlásit za kvazislovo. Jiná morfologická identita stejného zápisu může být kvazislovem, pokud sama splní zvolený soutěžní model.
 
 ## 5. Stejnou soutěžní identitu nepoužiješ dvakrát
 
@@ -123,9 +123,9 @@ Při odevzdání se každé slovo popíše ve strukturovaném formuláři:
 
 U slovesa je valence součástí slovní obhajoby, ne další strukturovanou morfologickou identitou.
 
-Během vyplňování aplikace kontroluje technická znaková pravidla, úplnost povinných polí, veřejně povolené hodnoty a správnost odkazů mezi vloženými slovy. Tím ale větu jazykově neschvaluje a před odesláním neprozradí, zda interní katalog konkrétní slovo nebo analýzu zná.
+Během vyplňování aplikace kontroluje technická znaková pravidla, úplnost povinných polí, veřejně povolené hodnoty a správnost odkazů mezi vloženými slovy. Tím ale větu jazykově neschvaluje.
 
-Jazyková a případná katalogová kontrola následuje až po uzamčení podání v neveřejném admin review.
+Status skutečného slova se při posouzení porovnává s naším katalogem. Zda bude úplný katalog veřejně zveřejněn, je samostatná produktová otázka.
 
 ## 8. Nástroje a AI
 
