@@ -23,13 +23,26 @@ Hráč nezadává rozklad na motivy.
 
 Interní implementace může použít regulární výraz, konečný automat, parser nebo jiný deterministický postup. Implementace není sama pravidlem hry; musí být ekvivalentní slovnímu normativnímu popisu.
 
+## Živá strukturální validace formuláře
+
+Před konečným odesláním může formulář vedle znakové kontroly živě ověřovat pouze zveřejněnou strukturu podání:
+
+- zda jsou vyplněna všechna povinná pole,
+- zda zvolené hodnoty patří do veřejných seznamů aktuální verze pravidel,
+- zda syntaktické odkazy míří na existující tokeny téhož návrhu,
+- zda je vložen požadovaný počet strukturovaných vztahů a podkladů.
+
+Tato kontrola potvrzuje úplnost a formální strukturu deklarace, nikoli její jazykovou správnost. Nesmí se při ní dotazovat interní katalog ani vracet informaci, zda katalog konkrétní slovo, tvar, identitu nebo analýzu zná.
+
 ## Jazyková validace
 
-Dokud není schválen interní morfologický katalog, aplikace automaticky nerozhoduje morfologii, skloňování, časování, valenci, syntaxi ani významovou obhajobu.
+Aplikace před konečným odesláním automaticky nerozhoduje jazykovou správnost deklarované morfologie, skloňování, časování, valence, syntaxe ani významové obhajoby. Kontrola, že deklarovaná hodnota patří do veřejného seznamu nebo že povinné pole není prázdné, není jazykovým schválením.
 
 ## Budoucí morfologická validace
 
-Po vytvoření interního katalogu může produkční kontrola deterministicky porovnávat deklarovanou analýzu se schválenými katalogovými daty.
+Po vytvoření interního katalogu může produkční kontrola deterministicky porovnávat deklarovanou analýzu se schválenými katalogovými daty pouze nad konečně odeslanou a uzamčenou revizí.
+
+Výsledek je před rozhodnutím neveřejný a slouží admin review. Autorovi se nevrací okamžitá odpověď o katalogovém členství jednotlivých položek; dostane až výsledek administrativního posouzení a jeho odůvodnění.
 
 Katalog je podřízen pravidlům. Pokud hráč prokáže chybu nebo neúplnost katalogu, následuje ruční posouzení, případná oprava katalogu a opakovaná validace.
 

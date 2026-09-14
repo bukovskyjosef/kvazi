@@ -111,7 +111,9 @@ Při odevzdání se každé slovo popíše ve strukturovaném formuláři:
 - jeho vztah nebo vztahy ke konkrétním dalším slovům věty,
 - požadovanou obhajobu a zdroje.
 
-Aplikace sama zkontroluje technická znaková omezení. Jazykové rozhodnutí ale musí být obhajitelné podle pravidel.
+Během vyplňování aplikace kontroluje technická znaková pravidla, úplnost povinných polí, veřejně povolené hodnoty a správnost odkazů mezi vloženými slovy. Tím ale větu jazykově neschvaluje a před odesláním neprozradí, zda interní katalog konkrétní slovo nebo analýzu zná.
+
+Jazyková a případná katalogová kontrola následuje až po uzamčení podání v neveřejném admin review.
 
 ## 8. Nástroje a AI
 

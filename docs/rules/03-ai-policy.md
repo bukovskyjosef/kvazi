@@ -90,7 +90,9 @@ Validátor nesmí:
 - poskytovat rozhraní určené k dávkovému testování kandidátů,
 - vytvářet skryté soutěžní pravidlo nad rámec normativního balíku.
 
-Přesný rozsah kontrol a okamžik případné katalogové kontroly stanoví technická specifikace a příslušná verze pravidel.
+Před konečným odesláním smí veřejný formulář živě kontrolovat znaková pravidla, úplnost povinných polí, příslušnost zvolených hodnot k veřejným seznamům pravidel a strukturální správnost odkazů mezi tokeny.
+
+Nesmí přitom dotazovat interní katalog ani vracet informaci, zda katalog konkrétní slovo, tvar, identitu nebo analýzu zná. Katalogová kontrola smí proběhnout až nad konečně odeslanou a uzamčenou revizí; její výsledek je před rozhodnutím dostupný pouze v neveřejném admin review.
 
 ## 6. Vývoj a správa projektu
 

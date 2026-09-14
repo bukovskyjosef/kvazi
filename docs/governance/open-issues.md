@@ -21,7 +21,7 @@ Výstup reachability auditu má rozlišit:
 - **#5** `[DECISION] Navrhnout úplný morfologický formulář a soutěžní identitu`
 - **#6** `[DECISION] Navrhnout interní morfologický katalog a námitkový proces`
 
-Veřejný kompletní katalog slov se nezveřejňuje. Interní katalog může sloužit deterministické validaci, ale je podřízen pravidlům a musí být opravitelný přes námitkový proces.
+Veřejný kompletní katalog slov se nezveřejňuje. Veřejný formulář před odesláním kontroluje pouze zveřejněná znaková a strukturální pravidla; členství v interním katalogu ověřuje až uzamčené podání pro neveřejné admin review. Interní katalog je podřízen pravidlům a musí být opravitelný přes námitkový proces.
 
 ## P2 – validace, architektura a DB
 

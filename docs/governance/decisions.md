@@ -132,6 +132,9 @@ Reachability rozhodne, co zůstane v hlavní vrstvě.
 - uživatel nevkládá mezery,
 - každý token vyžaduje slovní druh, úplnou identifikaci podle zvoleného modelu, soutěžní identitu, větnou funkci a všechny požadované vztahy ke konkrétním dalším tokenům,
 - obhajoba a zdroje jsou povinné v rozsahu stanoveném pravidly,
+- během editace se živě kontrolují veřejná znaková a strukturální pravidla, úplnost polí, veřejně povolené hodnoty a odkazy mezi tokeny,
+- před odesláním se nekontroluje ani nezobrazuje členství slova nebo analýzy v interním katalogu,
+- katalogová kontrola může proběhnout až nad uzamčeným podáním a její výsledek je před rozhodnutím dostupný pouze adminovi,
 - technická implementace nesmí měnit platnost,
 - morfologický katalog je provozní autorita, nikoli vyšší pravidlo.
 
@@ -145,7 +148,7 @@ Reachability rozhodne, co zůstane v hlavní vrstvě.
 - veřejný detail schválené věty obsahuje její obhájení a morfologickou identifikaci jednotlivých slov,
 - veřejné peer review čekajících vět není součástí MVP.
 
-Zbývající rozsah, zejména komentáře, automatická morfologická validace, autentizace autora a přesný admin security model, zůstává k rozhodnutí v #10 a souvisejících nálezech.
+Zbývající rozsah, zejména komentáře, přesný rozsah neveřejné katalogové validace po odeslání, autentizace autora a přesný admin security model, zůstává k rozhodnutí v #10 a souvisejících nálezech.
 
 ## Multi-agent governance repozitáře
 

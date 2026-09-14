@@ -24,6 +24,8 @@ Interní katalog je provozní zdroj pro deterministickou validaci, nikoli vyšš
 
 Existenci skutečného soutěžního slova lze doložit pouze slovníkovou částí IJP nebo zveřejněným heslem ASSČ. Změna této sady zdrojů je změnou soutěžního pravidla a vyžaduje novou verzi.
 
+Veřejný formulář ani API před konečným odesláním nesdělují, zda interní katalog konkrétní slovo, tvar, identitu nebo analýzu zná. Katalogová kontrola může proběhnout až nad uzamčenou revizí a její výsledek je před rozhodnutím dostupný pouze adminovi. Autor obdrží až výsledek administrativního posouzení a jeho odůvodnění.
+
 Veřejný úplný seznam přípustných českých slov a tvarů se nezveřejňuje.
 
 ## Kvaziautorita
