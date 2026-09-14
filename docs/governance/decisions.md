@@ -44,19 +44,33 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - Soutěžní sada slovesných časovacích typů bude minimální a odvozená z reachability auditu.
 - Samostatný časovací typ se zařadí pouze tehdy, pokud přináší alespoň jednu novou soutěžně dosažitelnou morfologickou možnost, kterou nelze reprezentovat již existujícím soutěžním typem.
 - Typy se nepřebírají jen proto, že v obecné češtině představují odlišné slovesné vzory nebo třídy.
-- `V-AT` a `V-IT` jsou výchozí kandidáti pro audit, nikoli automaticky schválené finální typy.
+- Reachability audit nesmí být omezen pracovním názvem typu a musí prověřit relevantní rodiny nad základy typu `VAZ-`, `KVAZ-` i `Q-`/`QAZ-`; pracovní kandidáti zahrnují minimálně `V-AT`, `V-IT`, `KV-AT`, `KV-IT`, `Q-AT`, `Q-IT`.
 - Každý kandidátní typ musí zachovat konečný a rozhodnutelný počet soutěžních identit pro konkrétní použitý tvar.
+
+### Vid a valence sloves
+
+- Povolené hodnoty vidu jsou `nedokonavý`, `dokonavý`, `obouvidový`.
+- Vid sám o sobě nevytváří soutěžní identitu.
+- Valence kvazislovesa není omezena malým normativním whitelistem rámců.
+- Hráč musí deklarovaný valenční rámec doložit konkrétním současným českým slovesem se stejnou valencí.
+- Modelové sloveso pro valenci nemusí být stejné jako model časování.
 
 ## Syntaxe a formulář
 
 - Syntaxe má uzavřený seznam hlavních syntaktických vztahů a pro každý závazný praktický test.
 - Významové podtypy hlavních vztahů nejsou samostatným povinným whitelistem a příklady nejsou vyčerpávající.
-- Formulář u každého tokenu strukturovaně zachytí slovní druh, úplnou morfologickou identifikaci, soutěžní identitu, konkrétní použitý tvar, hlavní syntaktickou funkci, všechny povinné vazby na konkrétní tokeny a požadovanou obhajobu/zdroje.
+- Formulář u každého slova strukturovaně zachytí slovní druh, úplnou morfologickou identifikaci, soutěžní identitu, konkrétní použitý tvar, hlavní syntaktickou funkci, všechny povinné vazby na konkrétní výskyty slov a požadovanou obhajobu/zdroje.
+- Token je technický identifikátor konkrétního výskytu slova v podání; jazykové vlastnosti, včetně větné funkce, náležejí slovu v daném výskytu, nikoli tokenu jako technickému objektu.
+- U `k/v/z` má předložka technickou roli s povinnou vazbou na řízené jmenné slovo; hlavní větnou funkci nese jmenné slovo/skupina, nikoli předložka.
 - Povinné strukturované údaje nelze nahradit jedním volným textem.
 - U běžného členu se ukládá jedno řídící slovo.
 - Doplněk má samostatnou vazbu k přísudku a k podmětu nebo předmětu.
 - Koordinace má samostatnou vazbu ke dvěma spojovaným částem.
 - Pro MVP se používá specializovaný syntaktický datový model, nikoli obecný graf hran.
+- Typ věty hráč explicitně deklaruje jako oznamovací, tázací nebo rozkazovací.
+- Typ věty má přímý validační dopad na závěrečnou interpunkci: oznamovací `.`; tázací `?`; rozkazovací `!`.
+- U rozkazovací věty může být podmět pravidelně nevyjádřený pouze v dovoleném imperativu; ostatní věty vyžadují explicitní podmět podle pravidel.
+- Pokud pravidly přípustný případ formulář neumí zachytit, aplikace pouze viditelně informuje hráče o možnosti kontaktovat rozhodčího e-mailem; pro MVP nevzniká zvláštní fallback workflow ani stav podání.
 
 ## Morfologický panel formuláře
 
@@ -67,6 +81,13 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - FE před submittem správnost paradigmatu neposuzuje.
 - Potvrzení se musí vztahovat ke konkrétnímu aktuálnímu snapshotu návrhu a po změně potvrzovaných dat se zneplatní.
 
+## Reachability
+
+- Mechanismus se nesmí označit za nedosažitelný jen proto, že nebyl nalezen příklad, že jeho lemma obsahuje nepovolený znak nebo že typický tvar není použitelný.
+- Dosažitelnost se posuzuje podle konkrétního použitelného povrchového tvaru; lemma a jiné tvary paradigmatu mohou obsahovat jiné znaky.
+- Prokazatelně nedosažitelný je mechanismus teprve tehdy, když úplný normativní model dovoluje dokázat, že žádná jeho povolená realizace nemůže vytvořit soutěžně použitelný tvar.
+- Neprokázané/hraniční mechanismy se nesmějí předčasně zakázat; prokazatelně nedosažitelné mechanismy lze odstranit z aktivního taháku a produkčního UI.
+
 ## Skutečná česká slova a zdroje
 
 - Existenci skutečného soutěžního slova lze doložit pouze slovníkovou částí IJP nebo již zveřejněným heslem ASSČ.
@@ -75,11 +96,23 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - Hráč hledá skutečná soutěžní slova pouze ručně; úplný předfiltrovaný seznam kandidátů se nezveřejňuje.
 - Změna této sady zdrojů vyžaduje novou verzi pravidel.
 
+## Uživatelské účty a autorství podání
+
+- Pro MVP se používá lehká klasická registrace uživatele, nikoli magic-link přihlášení.
+- Uživatel při registraci uvádí povinný globálně unikátní `username`, povinný globálně unikátní e-mail a heslo.
+- E-mail je neveřejný; veřejná atribuce autora používá `username`.
+- Heslo se nikdy neukládá v plaintextu, pouze jako bezpečný jednosměrný password hash.
+- Soutěžní podání se váže na stabilní interní `user_id` autora.
+- Aplikace musí podporovat zapomenuté heslo prostřednictvím časově omezeného jednorázového resetovacího odkazu/tokenu zaslaného na registrovaný e-mail.
+- Reset hesla není magic-link přihlášení a slouží pouze ke změně hesla.
+- Konkrétní bezpečnostní parametry password hashování, session/cookies, reset tokenů, rate limitingu a dalších ochran jsou součástí implementační security baseline.
+
 ## MVP scope – již rozhodnuté minimum
 
 První veřejné MVP povinně obsahuje:
 
 - prezentaci projektu, vysvětlení a pravidla,
+- lehkou registraci/přihlášení uživatele a reset zapomenutého hesla,
 - interaktivní strukturovaný formulář pro podání kvazivěty,
 - veřejný seznam pouze schválených vět,
 - veřejný detail schválené věty včetně obhajoby a morfologické identifikace jednotlivých slov,
@@ -93,13 +126,9 @@ Nadále je nutné rozhodnout zejména:
 
 - přesná normativní paradigmata substantivních a adjektivních modelů,
 - konkrétní finální slovesné časovací typy po reachability auditu,
-- valenční rámce a finální sadu vidů,
-- reachability hlavních a hraničních mechanismů,
 - úplné field schema formuláře,
-- reprezentaci předložek a případný fallback formuláře,
 - interní katalog a jeho verzování,
 - semantiku revalidace a historickou provenance,
 - release proces,
-- identitu autora podání,
 - komentáře a jejich případný scope,
-- admin autentizaci a security baseline.
+- admin autentizaci/role a security baseline.
