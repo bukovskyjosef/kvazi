@@ -17,6 +17,10 @@ Pro každý soutěžní model normativní tabulka přesně určí:
 
 Co v normativním modelu výslovně uvedeno není, nelze do něj převzít jen proto, že taková varianta existuje v obecné češtině. Hráč si soutěžní kmen ani další alternaci nevytváří volně; musí plynout z pravidla konkrétního modelu.
 
+**Soutěžní kmen je vždy odvozen deterministicky z lemmatu a zvoleného modelu. Hráč jej nevolí ani neobhajuje vlastní analogií.** Pokud model používá více kmenových podob, jejich vznik a použití musí být mechanicky popsány přímo v modelu.
+
+Každá morfologická buňka má standardně **jednu kanonickou realizaci**. Další realizace je přípustná pouze tehdy, když ji normativní tabulka výslovně uvádí jako další povolenou variantu. Obecná česká dubleta se sama do soutěžního modelu nepřenáší.
+
 Výsledný model tedy musí umožnit mechanickou kontrolu vztahu:
 
 `lemma + model + morfologické hodnoty → konečná sada povolených tvarů`.
