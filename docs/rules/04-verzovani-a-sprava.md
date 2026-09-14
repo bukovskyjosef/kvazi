@@ -48,7 +48,13 @@ Pro soutěžní status **skutečného slova** je autoritou ručně spravovaný k
 
 Projekt tím vědomě upřednostňuje jednoduchou správu recesní hry před úplnou historickou reprodukovatelností každého externího jazykového stavu.
 
-Zda bude úplný katalog veřejně a taxativně zveřejněn, je samostatné otevřené produktové rozhodnutí (#72).
+### Zpřístupnění katalogu hráči
+
+Katalog se veřejně nezveřejňuje jako taxativní nebo procházetelný seznam a neposkytuje prefixové hledání, autocomplete, podobné položky ani jiný způsob objevování kandidátů.
+
+Hráč může požádat pouze o kontrolu **vlastního kompletního návrhu**. Před kontrolou musí uvést úplnou morfologickou identitu podle příslušného soutěžního modelu a konkrétní použitý tvar. Katalog pak vrátí pouze informaci, zda tato přesná kombinace již je schválena jako skutečné slovo.
+
+Částečné údaje se proti katalogu nevyhodnocují způsobem, který by hráči napovídal možnou identitu nebo jiný kandidát. Není-li přesná kombinace potvrzena, neznamená to samo o sobě zamítnutí; hráč ji může předložit k ručnímu posouzení a případnému doplnění katalogu.
 
 ## Interní morfologický katalog
 Interní morfologický katalog je provozní znalostní báze a paměť předchozích morfologických posouzení, nikoli vyšší autorita než pravidla. Je vyhodnocován ve vztahu ke konkrétní `rules_version`.
