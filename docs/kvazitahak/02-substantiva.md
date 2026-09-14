@@ -72,8 +72,39 @@ U dvojic `pán/muž` a `hrad/stroj` se u kvazislova nezkoumá přirozená fonolo
 |---|---|
 | město | `-o` |
 | moře | `-e` |
-| kuře | `-e`, rozšířený kmen podle normativního modelu |
+| kuře | `-e`, rozšířené kmeny podle normativního modelu |
 | stavení | `-í` |
+
+## NORMATIVNÍ: paradigma modelu `kuře`
+
+Model `kuře` je explicitní modelová výjimka z obecného jednokmenného pravidla. Jeho charakteristické rozšířené kmeny jsou součástí samotného soutěžního modelu, nikoli obecnou českou alternací.
+
+Je-li lemma ve tvaru `S+e`, model deterministicky používá tyto tři podoby:
+
+- základ `S`,
+- singulárový rozšířený kmen `S+et`,
+- plurálový rozšířený kmen `S+at`.
+
+Hráč mezi nimi nevolí. Použití je určeno tabulkou:
+
+| Číslo | Pád | Kanonický tvar |
+|---|---:|---|
+| sg | 1. | `S+e` |
+| sg | 2. | `S+ete` |
+| sg | 3. | `S+eti` |
+| sg | 4. | `S+e` |
+| sg | 5. | `S+e` |
+| sg | 6. | `S+eti` |
+| sg | 7. | `S+etem` |
+| pl | 1. | `S+ata` |
+| pl | 2. | `S+at` |
+| pl | 3. | `S+atům` |
+| pl | 4. | `S+ata` |
+| pl | 5. | `S+ata` |
+| pl | 6. | `S+atech` |
+| pl | 7. | `S+aty` |
+
+Tato tabulka je úplná pro první rules verzi; žádná další dubleta nebo lexikální alternace modelu `kuře` se nepřenáší.
 
 ## NORMATIVNÍ: skutečné slovo versus kvazislovo
 
@@ -86,7 +117,7 @@ Příklad: `VAZ + mužský neživotný + hrad` a `VAZ + mužský životný + pá
 
 ## TODO – NORMATIVNÍ PARADIGMATA
 
-Pro každý vzor sestavit úplnou tabulku:
+Pro každý dosud nezmrazený vzor sestavit úplnou tabulku:
 
 - singulár: 1.–7. pád,
 - plurál: 1.–7. pád,
