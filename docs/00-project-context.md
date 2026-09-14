@@ -14,6 +14,8 @@ Proto se systém postupně posouvá od otevřeného „použij cokoli, co existu
 
 Pasivní zdroje jako slovníky, příručky, knihy a odborné texty mohou pomáhat s obecnou češtinou a dokazováním.
 
+Pravidlo je technologicky neutrální: žádný nástroj nesmí automaticky generovat, enumerovat, hromadně filtrovat, skládat nebo optimalizovat soutěžní kandidáty. Nástroj smí mechanicky ověřit konkrétní lidský nápad, aniž by navrhoval alternativu.
+
 Soutěžní aplikace má mechanicky kontrolovat jen to, co lze deterministicky ověřit. Budoucí interní morfologický katalog může umožnit širší deterministickou validaci, ale nesmí být vyšší autoritou než pravidla.
 
 ## Veřejnost vs. rozhodčí

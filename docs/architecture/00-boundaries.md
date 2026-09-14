@@ -9,7 +9,7 @@ Určují, co je soutěžně platné.
 Patří sem:
 - rozhodcovská specifikace,
 - normativní části kvazitaháku,
-- AI policy,
+- politika použití nástrojů a AI,
 - verzování a procesní pravidla.
 
 Implementace je nesmí měnit.

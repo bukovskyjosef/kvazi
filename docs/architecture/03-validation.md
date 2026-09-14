@@ -36,3 +36,5 @@ Katalog je podřízen pravidlům. Pokud hráč prokáže chybu nebo neúplnost k
 ## Bez generování řešení
 
 Validátor nesmí navrhovat jiné slovo, jiný tvar, jiné rozdělení slov ani jiné kandidátní řešení. Smí pouze vyhodnotit zadané řešení v rozsahu svých deterministických kontrol.
+
+Rozhraní nesmí být navrženo pro dávkové nebo automatizované testování kandidátů ani pro vytěžování interního katalogu. Systematické iterativní zkoušení variant za účelem nalezení řešení není povoleným ověřením konkrétního lidského nápadu.

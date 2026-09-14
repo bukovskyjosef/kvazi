@@ -92,12 +92,18 @@ Reachability rozhodne, co zůstane v hlavní vrstvě.
 - nesmí měnit morfologii/identitu/valenci,
 - při významově citlivé syntaxi musí odpovídat běžné české analogii.
 
-## AI
+## Nástroje a AI
 
-- soutěžící smí AI jen na obecnou současnou spisovnou češtinu,
+- soutěžní řešení vytváří člověk vlastní hlavou,
+- pravidlo je technologicky neutrální a posuzuje funkci nástroje,
+- povolena je ruční práce s dovolenými veřejnými zdroji a mechanické ověření konkrétního lidského nápadu,
+- zakázáno je automatické generování, enumerace, hromadné filtrování, skládání, porovnávání a optimalizace kandidátů,
+- ověřovací nástroj nesmí navrhovat alternativu ani být používán k systematickému testování variant,
+- AI smí soutěžícímu vysvětlovat pouze obecnou současnou spisovnou češtinu bez jakéhokoli kvazikontextu,
+- přípustnost obecného dotazu se posuzuje podle předaného obsahu a kontextu, ne podle nepozorovatelné motivace soutěžícího,
 - AI nesmí komunikovat o soutěžním obsahu,
 - správa, vývoj a audit pravidel AI používat mohou,
-- AI může připravovat kandidátní interní data, ale ne je sama schvalovat.
+- AI může připravovat kandidátní interní data, ale ne je sama schvalovat ani vydávat za lidské soutěžní řešení.
 
 ## Platnost a autorita
 

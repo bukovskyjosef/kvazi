@@ -358,14 +358,17 @@ Náhodný internetový výskyt sám o sobě nestačí.
 
 U kvazislova se nedokládá existence slova, ale pravidlo/model, o který se opírá.
 
-## 19. AI
+## 19. Nástroje a AI
 
 Úplná politika je v `03-ai-policy.md`.
 
 Základ:
 
-- soutěžící smí AI používat k obecným otázkám o současné spisovné češtině,
-- nesmí s AI komunikovat o jakémkoli obsahu přímo spojeném s kvaziproblémem nebo soutěží.
+- soutěžní řešení vytváří člověk vlastní hlavou,
+- soutěžící smí ručně pracovat s dovolenými zdroji a mechanicky ověřit konkrétní vlastní nápad,
+- žádný nástroj nesmí soutěžní kandidáty automaticky generovat, enumerovat, hromadně filtrovat, skládat, porovnávat ani optimalizovat,
+- AI smí soutěžícímu vysvětlovat pouze obecnou současnou spisovnou češtinu bez kvazikontextu,
+- soutěžící nesmí s AI komunikovat o jakémkoli obsahu přímo spojeném s kvaziproblémem nebo soutěží.
 
 ## 20. Platnost, uznání a kvaziautorita
 

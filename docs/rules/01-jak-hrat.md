@@ -109,13 +109,19 @@ Při odevzdání se každé slovo popíše ve strukturovaném formuláři:
 
 Aplikace sama zkontroluje technická znaková omezení. Jazykové rozhodnutí ale musí být obhajitelné podle pravidel.
 
-## 8. AI
+## 8. Nástroje a AI
 
-AI smíš používat k vysvětlování **obecné češtiny** – třeba co je lemma, pád nebo doplněk.
+Řešení musíš vytvořit vlastní hlavou.
 
-Nesmíš s ní ale řešit nic, co se přímo týká kvaziproblému: pravidla hry, kvazitahák, existující či plánovanou kvazivětu, kandidátní slova, strategii ani kontrolu řešení.
+Smíš ručně pracovat s dovolenými veřejnými slovníky a příručkami a mechanicky ověřit konkrétní vlastní nápad.
 
-> **AI smí vysvětlovat češtinu. Nesmí s tebou řešit kvaziproblém.**
+Žádný nástroj ale nesmí kandidáty automaticky generovat, hromadně hledat nebo filtrovat, skládat, porovnávat ani optimalizovat. To platí pro skripty, solvery, crawlery, makra i jiné technologie.
+
+AI smíš používat pouze k vysvětlování **obecné češtiny** – třeba co je lemma, pád nebo doplněk – aniž jí ukážeš cokoli z kvaziproblému.
+
+Nesmíš s ní řešit pravidla hry, kvazitahák, existující či plánovanou kvazivětu, kandidátní slova, strategii ani kontrolu řešení.
+
+> **Technika smí ověřit konkrétní lidský nápad. Nesmí jej hledat ani vytvořit. AI navíc nesmí dostat žádný kvazikontext.**
 
 ## 9. Co když najdeš díru v pravidlech?
 

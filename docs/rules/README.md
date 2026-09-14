@@ -9,7 +9,7 @@ Je to záměrně stručná a srozumitelná vrstva. Pokud by byla v rozporu s nor
 ## Normativní dokumenty
 
 - `02-rozhodcovska-specifikace.md` – hlavní jazyková a soutěžní pravidla
-- `03-ai-policy.md` – pravidla použití AI
+- `03-ai-policy.md` – pravidla použití nástrojů a AI
 - `04-verzovani-a-sprava.md` – verze, revalidace a správa soutěže
 - normativní části `../kvazitahak/`
 
