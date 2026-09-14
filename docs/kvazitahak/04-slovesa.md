@@ -8,11 +8,19 @@ Každé kvazisloveso musí mít:
 
 1. jeden soutěžní časovací typ,
 2. jeden povolený vid,
-3. jeden deklarovaný valenční rámec.
+3. valenční obhajobu konkrétního použití podle `05-valence.md`.
 
-Časovací typ se nevybírá z libovolných externích českých sloves. Valence se deklaruje samostatně a její obhajoba se řídí `05-valence.md`: deklarovaný rámec se dokládá konkrétním současným českým slovesem se stejnou valencí. Otevřená zůstává přesná strukturovaná reprezentace rámce, slotů a evidence ve formuláři/datovém modelu.
+Časovací typ se nevybírá z libovolných externích českých sloves.
+
+Valence se neposuzuje jako další morfologický model ani jako součást soutěžní identity slovesa. Hráč ji obhajuje volným textem pro konkrétní použití slovesa ve větě. Obhajoba musí být dostatečná k posouzení, zda jsou všechna obligatorní doplnění vyplývající z daného použití ve větě skutečně realizována.
 
 Zvolený časovací typ musí přesně určovat vztah mezi infinitivem, případným kmenem, deklarovanými morfologickými hodnotami a použitým tvarem. Nesmí připustit, aby se tentýž použitý tvar odvozoval z libovolně mnoha infinitivů a soutěžních identit.
+
+Morfologickou soutěžní identitu slovesa tvoří:
+
+`infinitiv + soutěžní časovací typ`
+
+Vid ani valence samy o sobě novou soutěžní identitu nevytvářejí.
 
 ## NORMATIVNÍ princip výběru časovacích typů
 
@@ -24,7 +32,7 @@ Rozdíl mezi dvěma českými slovesnými vzory nebo třídami sám o sobě nest
 
 Pracovní označení kandidátů nesmí předem zúžit množinu zkoumaných základů. Reachability audit musí prověřit minimálně relevantní rodiny nad základy typu `VAZ-`, `KVAZ-` i `Q-`/`QAZ-`; pracovní kandidáti zahrnují přinejmenším `V-AT`, `V-IT`, `KV-AT`, `KV-IT`, `Q-AT`, `Q-IT`.
 
-Tyto pracovní kandidáty lze následně sloučit, pokud se ukáže, že z hlediska soutěžně dosažitelných možností nepřinášejí nic odlišného.
+Tyto pracovní kandidáty lze následně sloučit, pokud se ukáže, že z hlediska soutěžně dosažitelných možností nepřinášejí nic odlišného. Samotná výslovnost `Q` jako `/kv/` však není důvodem ke sloučení `Q` a `KV` v morfologii.
 
 Každý kandidátní typ musí být před zařazením ověřen z hlediska:
 
@@ -61,7 +69,7 @@ Povolené hodnoty vidu jsou:
 
 Vid sám o sobě nevytváří novou soutěžní identitu.
 
-FE před odesláním neposuzuje jazykovou správnost deklarovaného vidu; jde o součást hráčovy analýzy, která podléhá následnému posouzení.
+Deklarovaný vid je součástí hráčovy jazykové analýzy a podléhá následnému posouzení.
 
 ## Jeden token
 
