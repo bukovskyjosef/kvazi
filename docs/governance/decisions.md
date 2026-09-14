@@ -124,3 +124,21 @@ Reachability rozhodne, co zůstane v hlavní vrstvě.
 - uživatel nevkládá mezery,
 - technická implementace nesmí měnit platnost,
 - morfologický katalog je provozní autorita, nikoli vyšší pravidlo.
+
+## Multi-agent governance repozitáře
+
+- Josef Bukovský je finální decision owner pro produktová a pravidlová rozhodnutí,
+- nezávislý auditor zakládá samostatná `[AUDIT]` issues a sám nemění normativní výsledek,
+- otevřené produktové otázky jsou `[DECISION]` issues,
+- vývojový agent smí implementovat jen uzavřená rozhodnutí nebo parametrický základ, který výsledek nepředjímá,
+- po rozhodnutí se issue zavírá až po zapracování a kontrole konzistence,
+- `AGENTS.md` a `docs/governance/decision-workflow.md` jsou hlavní procesní instrukce pro další agenty.
+
+## Oddělení dokumentace a implementace
+
+- normativní pravidla určují soutěžní platnost,
+- vysvětlující materiály pravidla pouze interpretují,
+- architektura a DB je implementují,
+- interní katalog je provozní znalostní báze,
+- uživatelská deklarace je tvrzení soutěžícího, nikoli zdroj pravdy,
+- žádný technický constraint, regex, UI nebo katalog nesmí potichu vytvořit nové soutěžní pravidlo.
