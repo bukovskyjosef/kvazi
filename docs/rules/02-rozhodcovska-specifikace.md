@@ -199,8 +199,13 @@ Konkrétní paradigmata a povolené hodnoty jsou normativně uvedeny v kvazitah�
 Obecně:
 
 - model přebírá své normativní paradigma,
+- model přesně určuje vztah mezi základním tvarem, deklarovanými morfologickými hodnotami a konkrétním použitým tvarem,
+- samotná deklarace hráče bez odvození použitého tvaru podle zvoleného modelu nestačí,
+- model nesmí umožňovat odvození téhož konkrétního použitého tvaru z libovolně mnoha základních tvarů a soutěžních identit,
 - varianty výslovně povolené v normativní tabulce nezakládají novou identitu,
 - lexikální nebo nepravidelné odchylky mimo model se nepřenášejí.
+
+Tento požadavek nepřikazuje jedinou možnou analýzu povrchového tvaru. Konečný počet různých analýz, které jsou jednotlivě přesně doložitelné normativními modely, je přípustný.
 
 ## 11. Substantiva
 

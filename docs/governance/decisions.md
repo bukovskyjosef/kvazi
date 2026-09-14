@@ -36,6 +36,9 @@ Tento dokument je stručný decision log. Není náhradou normativních pravidel
 ## Morfologie
 
 - kvazislova používají uzavřené soutěžní modely,
+- každý model přesně určuje vztah mezi základním tvarem, morfologickými hodnotami a použitým tvarem; samotná deklarace hráče nestačí,
+- žádný model nesmí pro tentýž použitý tvar připouštět libovolně mnoho základních tvarů a identit,
+- konečný počet různých, jednotlivě ověřitelných analýz téhož zápisu je přípustný,
 - skutečný použitý tvar musí být reálně spisovný a současně spadat do soutěžního modelu,
 - existenci skutečného slova lze doložit pouze slovníkovou částí IJP nebo zveřejněným heslem ASSČ,
 - hledání skutečných slov je pouze ruční; SSJČ, PSJČ, korpusy, jiné slovníky ani internetové výskyty samy o sobě nestačí,

@@ -103,3 +103,4 @@ Reprezentuje platnost jedné revize vůči konkrétní verzi pravidel a umožňu
 6. morfologická pravda je oddělena od toho, co autor věty pouze deklaruje.
 7. každý token podané revize má úplnou deklarovanou identifikaci a všechny pravidly vyžadované syntaktické vztahy uložené strukturovaně.
 8. klasifikace skutečné slovo / kvazislovo se vyhodnocuje nad celou soutěžní identitou, nikoli nad samotným zápisem.
+9. každý zveřejněný morfologický model ukládá přesný vztah mezi základním a použitým tvarem a pro jeden použitý tvar nepřipouští libovolně mnoho identit.

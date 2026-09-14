@@ -111,6 +111,8 @@ Každý model proto musí definovat jedno z následujícího:
 
 Bez tohoto údaje nelze přesně vytvořit tabulky pro typy jako `píseň` a `kuře` ani spolehlivě uložit analýzu do katalogu.
 
+Závazné kritérium pro všechny výsledné modely je navíc toto: jeden konkrétní použitý tvar nesmí být možné odvodit z libovolně mnoha základních tvarů a soutěžních identit. Konečná morfologická víceznačnost nevadí, pokud lze každou analýzu samostatně ověřit z normativních dat.
+
 ## 4. Navržený obsah substantivních karet
 
 ### 4.1 Hlavní sada

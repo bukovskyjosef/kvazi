@@ -42,6 +42,12 @@ Příklady, komentáře a vysvětlivky jsou didaktické a samy o sobě pravidla 
 
 `TODO` není normativní default. Znamená neuzavřené rozhodnutí.
 
+## NORMATIVNÍ: požadavek na každý soutěžní model
+
+Každý zveřejněný model musí přesně určit, jak se ze základního tvaru a deklarovaných morfologických hodnot vytvoří konkrétní použitý tvar. Samotné tvrzení hráče nestačí.
+
+Model nesmí pro jeden konkrétní použitý tvar připouštět libovolně mnoho základních tvarů a soutěžních identit. Může připouštět konečný počet různých, přesně ověřitelných analýz.
+
 ## Struktura
 
 - `00-audit-brief.md` – samostatné zadání pro audit taháku
