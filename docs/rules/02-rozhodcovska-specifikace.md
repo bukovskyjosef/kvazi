@@ -261,15 +261,17 @@ Kvazisloveso:
 
 - používá jeden z uzavřených soutěžních časovacích typů v kvazitaháku,
 - volí vid z uzavřené soutěžní sady,
-- volí právě jeden valenční rámec z uzavřené soutěžní sady.
+- deklaruje právě jeden valenční rámec.
+
+Valenční rámec není omezen malým normativním whitelistem pádových rámců. Hráč jej jednoznačně popíše, ve větě výslovně realizuje všechny obligatorní sloty a doloží jej konkrétním současným českým slovesem, které používá stejný valenční rámec.
+
+Modelové sloveso pro valenci nemusí být stejné jako model pro časování nebo jiné morfologické vlastnosti.
 
 Časování se neposuzuje analogií s libovolným českým slovesem.
 
-Valence se nepřebírá z libovolného českého valenčního slovníku.
-
 Vid se nedokládá libovolným externím modelovým slovesem.
 
-Přesné časovací typy, povolené vidy a valenční rámce jsou `TODO` normativního kvazitaháku.
+Přesné časovací typy zůstávají `TODO` normativního kvazitaháku. Princip vidu a valence je již rozhodnutý; otevřená zůstává jejich technická reprezentace tam, kde ji řeší formulář a datový model.
 
 ## 14. Fiktivní význam
 
@@ -392,17 +394,9 @@ Pro jiné jazykové otázky mohou být relevantní zejména:
 
 U kvazislova se nedokládá existence slova, ale pravidlo/model, o který se opírá.
 
-## 19. Nástroje a AI
+## 19. Nástroje
 
-Úplná politika je v `03-ai-policy.md`.
-
-Základ:
-
-- soutěžní řešení vytváří člověk vlastní hlavou,
-- soutěžící smí ručně pracovat s dovolenými zdroji a mechanicky ověřit konkrétní vlastní nápad,
-- žádný nástroj nesmí soutěžní kandidáty automaticky generovat, enumerovat, hromadně filtrovat, skládat, porovnávat ani optimalizovat,
-- AI smí soutěžícímu vysvětlovat pouze obecnou současnou spisovnou češtinu bez kvazikontextu,
-- soutěžící nesmí s AI komunikovat o jakémkoli obsahu přímo spojeném s kvaziproblémem nebo soutěží.
+Úplná normativní politika používání nástrojů je v `03-ai-policy.md`. Tento dokument ji neduplikuje.
 
 ## 20. Platnost, uznání a kvaziautorita
 
