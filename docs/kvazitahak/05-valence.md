@@ -1,54 +1,55 @@
 # Kvazitahák – valence
 
-> **Status:** princip valence je rozhodnutý; otevřená zůstává přesná technická reprezentace ve formuláři a datovém modelu.
+> **Status:** normativní princip je rozhodnutý. Valence je slovní obhajoba konkrétního použití slovesa, nikoli samostatný strukturovaný soutěžní model.
 
 ## NORMATIVNÍ princip
 
-Kvazisloveso deklaruje právě jeden valenční rámec.
+Valence **není součástí morfologické ani soutěžní identity slovesa**.
 
-Valenční rámec není omezen předem danou malou soutěžní sadou typu `ACC`, `DAT`, `GEN`, `INS` apod. Hráč může navrhnout relativně volný rámec, pokud jej jednoznačně popíše a obhájí v rámci současné spisovné češtiny.
+U slovesa se valence nezapisuje jako kanonický kód, seznam strukturovaných slotů ani výběr z uzavřené tabulky rámců. Hráč ji popíše volným textem v rozsahu potřebném k obhajobě konkrétní věty.
 
-Deklarovaný rámec musí být doložen konkrétním současným českým slovesem, které používá stejný valenční rámec. Modelové sloveso pro valenci nemusí být stejné jako model pro časování nebo jiné morfologické vlastnosti.
+Valenční obhajoba musí být dostatečně konkrétní, aby z ní bylo zřejmé:
 
-Každý obligatorní slot deklarovaného rámce musí být ve větě výslovně realizován.
+- jaké doplnění nebo doplnění zvolené použití slovesa vyžaduje,
+- která výslovně přítomná slova nebo části kvazivěty tato doplnění realizují,
+- o jaké konkrétní současné české sloveso a jeho použití se obhajoba opírá.
 
-Valence nesmí obejít jiné syntaktické nebo morfologické pravidlo soutěže.
+Modelové české sloveso pro valenci nemusí být stejné jako případný jazykový podklad pro časování nebo jiné morfologické vlastnosti.
 
-V jedné kvazivětě je právě jeden token plnovýznamového slovesa. Odevzdaný návrh valence ani celé kvazisloveso se samotným podáním automaticky nestávají globálně schváleným kvazislovem ani závaznou položkou lexikonu.
+Všechna obligatorní doplnění, která z obhájeného valenčního použití vyplývají, musí být v kvazivětě výslovně realizována. Valenční obhajoba nesmí obejít jiné syntaktické nebo morfologické pravidlo soutěže.
 
-## Formulář a validace
+## Co se z valence neodvozuje
 
-Frontend před odesláním neposuzuje jazykovou správnost valence ani správnost analogie s modelovým slovesem.
+Různý způsob slovního popisu valence nevytváří novou soutěžní identitu slovesa.
 
-Kontroluje pouze veřejně deterministické věci, zejména:
+Valence zejména:
 
-- že je valenční rámec vyplněn v požadované struktuře,
-- že je uvedeno modelové české sloveso pro obhajobu rámce,
-- že odkazy na obligatorní členy míří na existující tokeny stejného podání,
-- že jsou vyplněny údaje nutné pro následné posouzení.
+- není součástí klíče morfologické identity,
+- nevytváří další identitu stejného slovesa,
+- nepřidává nový morfologický model,
+- neomezuje hráče na předem připravený seznam pádových rámců.
 
-Jazyková správnost a obhajitelnost valenčního rámce se posuzují až při review.
+Morfologická identita slovesa se určuje podle pravidel pro slovesa nezávisle na valenční obhajobě.
 
-## UX předvolby
+## Posouzení
 
-Formulář může nabídnout běžné rámce jako nenormativní zkratky, například:
+Valence se automaticky jazykově nevaliduje a pravidla nevyžadují její převod do strukturovaného valenčního modelu.
 
-- bez obligatorního předmětu,
-- `ACC`,
-- `DAT`,
-- `GEN`,
-- `INS`,
-- `DAT + ACC`.
+Je však normativní součástí obhajoby konkrétní věty. Při jazykovém review může být řešení zamítnuto zejména tehdy, pokud:
 
-Takový seznam není normativní whitelist a musí existovat možnost zapsat i jiný obhajitelný rámec.
+- uvedená česká analogie neobhajuje deklarované použití slovesa,
+- z obhájeného použití vyplývá obligatorní doplnění, které ve větě chybí,
+- valenční vysvětlení pouze přejmenovává jinou nepovolenou syntaktickou konstrukci,
+- obhajoba jinak odporuje současné spisovné češtině nebo výslovným pravidlům soutěže.
 
-## Otevřená technická práce
+Rozhodčí tedy posuzuje jazykovou přesvědčivost konkrétní obhajoby, nikoli shodu s předem vytvořeným interním seznamem rámců.
 
-Zbývá dořešit zejména:
+## Hráčská forma
 
-- strukturovanou reprezentaci obecnějšího rámce,
-- reprezentaci obligatorních slotů a jejich vazeb na tokeny,
-- podobu evidence modelového slovesa a doplňujících podkladů,
-- konkrétní UX předvolby.
+Pro hráče stačí jedno pole / jedna souvislá obhajoba typu **„Valence a její obhajoba“**. Není nutné používat odborný kód typu `DAT + ACC`, pokud hráč tutéž informaci jednoznačně vysvětlí běžným jazykem.
 
-Aktuální stav této práce se vždy zjišťuje z GitHub Issues.
+Příklad formy vysvětlení není normativní šablonou:
+
+> Sloveso zde používám obdobně jako české „…“ ve významu „…“. Vyžaduje …; v této větě tuto roli plní slovo … .
+
+Konkrétní formulace může být jiná. Rozhodující je obsah obhajoby, nikoli její zápis.
