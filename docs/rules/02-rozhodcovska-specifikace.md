@@ -1,6 +1,6 @@
 # Rozhodcovská specifikace
 
-> **Status:** hlavní normativní dokument. Společně s výslovně normativními částmi kvazitaháku určuje platnost řešení. Morfologický freeze ještě blokují otevřené #1, #2 a #74; technická implementace nesmí jejich mezery sama doplnit.
+> **Status:** hlavní normativní dokument. Společně s výslovně normativními částmi kvazitaháku určuje platnost řešení. Morfologický freeze ještě blokují otevřené #1 a #2; technická implementace nesmí jejich mezery sama doplnit.
 
 ## 1. Hierarchie
 
@@ -153,7 +153,18 @@ Zakázány jsou:
 
 Nová kvazizájmena nelze vytvářet.
 
-Přesný normativní způsob deklarace a ověřování skutečných zájmen je poslední samostatný freeze bod #74. Do jeho uzavření nesmí technická implementace sama vymyslet zájmenný model ani zájmena skrýt kvůli reachability.
+### Skutečná zájmena
+
+Zájmena jsou zvláštní `real-word-only` kategorie. Nemají produktivní soutěžní morfologický model, podle kterého by bylo možné vytvářet nová kvazizájmena.
+
+Hráč u zájmena deklaruje alespoň:
+
+- konkrétní použitý tvar,
+- zájmenný lexém / lemma,
+- slovní druh `zájmeno`,
+- morfologické vlastnosti konkrétního použitého tvaru v rozsahu relevantním pro daný lexém, zejména pád, číslo, rod nebo osobu tam, kde je daná kategorie použitelná.
+
+Platnost deklarace ověřuje katalog skutečných slov podle oddílu 9. Reachability není důvod zájmena nebo jejich konkrétní lexémy skrývat z pravidel či UI.
 
 ## 8. Kvazislovo
 
@@ -177,6 +188,8 @@ Shoda zápisu se skutečným českým slovem sama o sobě neurčuje, zda jde o s
 - není-li deklarovaná identita/tvar v katalogu jako skutečné slovo schválená, může být při splnění ostatních pravidel posuzována jako kvazislovo,
 - kvazislovo musí samo splnit zvolený soutěžní model; pouhá existence stejně zapsaného českého slova mimo katalog jeho kvazimorfologii nedokládá.
 
+Výjimkou z posledních dvou bodů jsou zájmena: nová kvazizájmena se nevytvářejí, takže zájmenný kandidát musí obstát jako skutečné zájmeno podle oddílu 7 a katalogu.
+
 ## 9. Skutečné české slovo a katalog
 
 Pro soutěžní status skutečného slova je autoritou **spravovaný katalog skutečných slov a tvarů**.
@@ -187,6 +200,12 @@ U kategorií řízených soutěžním morfologickým modelem lze skutečné slov
 2. jeho konkrétní použitý tvar je v katalogu schválený pro tuto identitu a deklarované morfologické hodnoty,
 3. tentýž konkrétní tvar současně odpovídá povolenému soutěžnímu morfologickému modelu.
 
+### Zvláštní režim skutečných zájmen
+
+U zájmena katalog ověřuje konkrétní skutečný zájmenný lexém / lemma, jeho použitý tvar a deklarované morfologické vlastnosti. Zájmeno nemusí současně procházet produktivním soutěžním morfologickým modelem, protože takový model pro zájmena neexistuje.
+
+Nepravidelnost, defektivnost nebo jiná lexikální zvláštnost skutečného zájmena sama o sobě nebrání použití, pokud katalog potvrzuje konkrétní lexém a konkrétní použitý tvar s jeho vlastnostmi. Toto pravidlo nelze zobecnit na tvorbu nových zájmen ani na jiné slovní druhy.
+
 Není-li kandidátní skutečné slovo v katalogu schválené, řešitel může požádat kvaziautoritu o přezkoumání. Po jazykovém ověření lze katalog doplnit nebo opravit.
 
 Při správě katalogu může kvaziautorita vycházet zejména z IJP, ASSČ, dalších jazykových příruček, mluvnic a relevantních odborných zdrojů. Tyto zdroje však samy nejsou přímým soutěžním whitelistem hráče; rozhodující je přijatý stav katalogu.
@@ -195,7 +214,7 @@ Katalog je záměrně průběžně spravovatelný. Jeho jednotlivé opravy nebo 
 
 Katalog není veřejně procházetelný. Hráč může nechat ověřit pouze **hotový vlastní návrh**: úplnou morfologickou identitu a konkrétní použitý tvar. Exact-match kontrola smí pouze potvrdit, že tato přesná kombinace je již schválená; nesmí z částečných údajů nabízet možné identity, autocomplete, podobná slova ani alternativní analýzy. Nepotvrzený exact match neznamená zamítnutí a hráč může kandidát normálně předložit k review.
 
-Nepravidelné, defektivní, nesklonné nebo jinak atypické vlastnosti, které nespadají do příslušného soutěžního modelu, se nepoužívají ani tehdy, když dané české slovo v katalogu existuje. Zvláštní pravidlo skutečných zájmen se uzavírá v #74.
+U kategorií řízených produktivním soutěžním modelem se nepravidelné, defektivní, nesklonné nebo jinak atypické vlastnosti mimo tento model nepoužívají ani tehdy, když dané české slovo v katalogu existuje. Zájmena se řídí zvláštním režimem výše.
 
 ## 10. Morfologické modely
 
@@ -215,6 +234,8 @@ Pro jeden použitý tvar nesmí model připouštět libovolně mnoho základníc
 Existence jiné spisovné varianty mimo normativní tabulku sama soutěžní přípustnost nezakládá. Variantní realizace sama nevytváří novou soutěžní identitu.
 
 **Reachability není součást definice modelu.** Normativně povolený model nebo větev zůstává v pravidlech i tehdy, pokud žádná jeho realizace nemůže projít aktuálním znakovým/motivovým systémem.
+
+Zájmena nejsou produktivní kategorií podle tohoto oddílu; jejich zvláštní `real-word-only` režim je v oddílech 7 a 9.
 
 ## 11. Substantiva
 
@@ -320,7 +341,9 @@ Rod, pád, číslo, stupeň a syntaktická funkce novou identitu nevytvářejí.
 Vid ani valence novou identitu nevytvářejí.
 
 ### Zájmeno
-Finální identita skutečného zájmena je předmětem #74. Do jeho uzavření nesmí implementace zvolit vlastní pravidlo.
+Soutěžní identitu tvoří konkrétní zájmenný lexém / lemma.
+
+Pád, číslo, rod, osoba a jiné morfologické vlastnosti konkrétního použitého tvaru samy novou soutěžní identitu nevytvářejí. Tentýž zájmenný lexém proto nelze v jedné větě znovu použít jen v jiné morfologické podobě.
 
 ### Funkční jednopísmenná slova
 `k`, `v`, `z`, `a`, `i` jsou jednotlivé soutěžní identity; každou lze použít nejvýše jednou.
@@ -345,7 +368,7 @@ Závěrečné znaménko není soutěžním znakem a nepočítá se do délky.
 
 Stačí jedna úplná a interně konzistentní analýza. Řešitel nemusí dokazovat, že jiná možná analýza neexistuje.
 
-Odevzdání musí obsahovat úplná data vyžadovaná aktuálními modely a field schematem #5, včetně plné morfologické deklarace a případných obhajob. U slovesa je navíc povinná slovní valenční obhajoba podle oddílu 13.
+Odevzdání musí obsahovat úplná data vyžadovaná aktuálními modely a field schematem #5, včetně plné morfologické deklarace a případných obhajob. U slovesa je navíc povinná slovní valenční obhajoba podle oddílu 13. U zájmena se místo soutěžního morfologického modelu uvádí zájmenný lexém / lemma a relevantní vlastnosti konkrétního použitého tvaru podle oddílů 7 a 9.
 
 Konkrétní UI ani datový model nesmí měnit jazykovou platnost.
 
@@ -359,7 +382,7 @@ V seznamu schválených vět se zveřejňuje zejména:
 - počet soutěžních znaků,
 - autor / spoluautoři.
 
-V detailu lze u jednotlivých slov zveřejnit lehký jazykový rozbor: použitý tvar, skutečné slovo / kvazislovo, slovní druh, lemma, soutěžní model, základní vlastnosti konkrétního použitého tvaru a syntaktickou roli / jednoduché vazby.
+V detailu lze u jednotlivých slov zveřejnit lehký jazykový rozbor: použitý tvar, skutečné slovo / kvazislovo, slovní druh, lemma, soutěžní model tam, kde jej daná kategorie používá, základní vlastnosti konkrétního použitého tvaru a syntaktickou roli / jednoduché vazby.
 
 Kompletní paradigma, úplná morfologická obhajoba, interní review, důkazní podklady a katalogové interní stavy zůstávají neveřejné.
 
