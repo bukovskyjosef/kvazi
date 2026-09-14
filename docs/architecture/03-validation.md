@@ -14,12 +14,14 @@ Aplikace může deterministicky kontrolovat:
 - délku běžného slova,
 - jednopísmenné výjimky,
 - pořadí tokenů,
-- zda spojení slov tvoří přípustný souvislý úsek motivů,
+- zda lze celou větu umístit do souvislé posloupnosti přípustných motivů tak, aby každý jednotlivý token celý ležel uvnitř jediného motivu a žádný token nepřekročil jeho vnitřní hranici,
 - počet slov,
 - počet písmen,
 - závěrečnou interpunkci.
 
 Hráč nezadává rozklad na motivy.
+
+Pouhá validita spojeného řetězce bez zohlednění hranic tokenů nestačí. Testovací sada musí obsahovat pozitivní i negativní případy, které odliší přípustné rozdělení slov od tokenu překračujícího jinak platnou hranici motivu.
 
 Interní implementace může použít regulární výraz, konečný automat, parser nebo jiný deterministický postup. Implementace není sama pravidlem hry; musí být ekvivalentní slovnímu normativnímu popisu.
 
