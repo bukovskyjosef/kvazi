@@ -91,3 +91,59 @@ Pokud pravidla dovolují případ, který veřejný formulář neumí reprezento
 Technické/resource limity formuláře jsou nenormativní a nesmějí vytvořit skrytý maximální počet slov.
 
 ### Reachability — aktuální rozhodnutí #4
+
+Reachability je analytická informace, nikoli normativní filtr. Normativně povolený model, morfologická větev nebo jiný mechanismus zůstává součástí pravidel i tehdy, pokud se ukáže prakticky nebo prokazatelně nedosažitelný. UI ani hráčský tahák jej nesmějí skrýt jen kvůli reachability a hráčské materiály nemají známé slepé cesty předem prozrazovat.
+
+## Skutečná slova, katalog a zveřejnění
+
+### Spravovaný katalog skutečných slov — rozhodnutí #68
+
+- Pro status skutečného soutěžního slova je autoritou vlastní spravovaný katalog projektu.
+- Externí slovníky a jazykové příručky slouží jako důkazní podklady pro správu katalogu, nikoli jako přímý soutěžní whitelist hráče.
+- Katalog lze průběžně opravovat a rozšiřovat bez nové `rules_version`.
+- Historicky schválené řešení se kvůli pozdější katalogové opravě bez dalšího zpětně neruší.
+
+### Zveřejnění katalogu — rozhodnutí #72
+
+- Katalog není veřejně procházetelný ani exportovatelný seznam kandidátů.
+- Hráč může ověřit pouze hotový vlastní návrh: úplnou morfologickou identitu a konkrétní použitý tvar.
+- Exact-match kontrola pouze potvrdí, že přesně tato kombinace už je schválena.
+- Z částečných údajů se nenabízejí možné identity, autocomplete, podobná slova, alternativní analýzy ani jiné nápovědy.
+- Nepotvrzený exact match neznamená zamítnutí; kandidát lze předložit k review.
+
+### Skutečná zájmena — rozhodnutí #74
+
+- Zájmena jsou zvláštní `real-word-only` kategorie; nová kvazizájmena se nevytvářejí a neexistuje pro ně produktivní soutěžní morfologický model.
+- Soutěžní identitu tvoří konkrétní zájmenný lexém / lemma.
+- Pád, číslo, rod, osoba a další relevantní morfologické vlastnosti konkrétního použitého tvaru samy novou identitu nevytvářejí.
+- Katalog potvrzuje konkrétní skutečný lexém, použitý tvar a deklarované morfologické vlastnosti.
+- Nepravidelnost nebo defektivnost skutečného zájmena sama nevadí, protože se z ní nevytváří produktivní model pro nová slova.
+- Reachability není filtr zájmenné kategorie ani její viditelnosti v UI.
+
+### Veřejný detail schváleného řešení — rozhodnutí #73
+
+Veřejně se zobrazuje lehký, srozumitelný rozbor, nikoli úplný rozhodcovský spis.
+
+U výsledku se zveřejňuje zejména věta, počet slov, počet soutěžních znaků a autor / spoluautoři. V detailu jednotlivého slova lze zveřejnit použitý tvar, skutečné slovo / kvazislovo, slovní druh, lemma, soutěžní model, základní vlastnosti použitého tvaru a hlavní syntaktickou roli / jednoduché vazby.
+
+Kompletní paradigma, úplná morfologická obhajoba, detailní důkazní podklady, interní katalogové stavy a úplný admin/judge review zůstávají neveřejné.
+
+## Nástroje, AI, férovost a autorství
+
+### Fair-play režim nástrojů — rozhodnutí #71
+
+- Základní hranice je: **AI smí vysvětlit hru; nesmí ji za hráče hrát.**
+- AI může vysvětlovat pravidla Kvazi, obecné české pojmy a přeformulovat nejasný text pravidla.
+- AI nesmí řešit konkrétní soutěžní případ, navrhovat kandidátní slova, konkrétní morfologii nebo syntaxi, generovat/opravovat konkrétní větu, vyhledávat kandidáty ani optimalizovat konkrétní řešení.
+- Ne-AI deterministický nástroj smí mechanicky ověřit konkrétní lidský návrh, nesmí však za hráče kandidáty generovat, prohledávat nebo optimalizovat.
+- Dodržování stojí na důvěře; projekt nevyžaduje logy, screenshoty, historii promptů, pracovní deníky ani jiný dohledový důkaz.
+- Projekt nevede disciplinární nebo forenzní řízení o tom, jak hráč řešení hledal.
+
+### Autorství a spolupráce — rozhodnutí #69
+
+- Kvazi je otevřený kumulativní problém.
+- Zveřejněné schválené řešení, jednotlivé kvazislovo, konstrukci nebo jiný zveřejněný nápad smí kdokoli použít, upravit nebo rozvíjet.
+- Na jednotlivé herní nápady se nezavádí výlučné vlastnictví.
+- Lidé smějí řešení konzultovat a tvořit společně; jedno podání může mít více spoluautorů bez procentuálních podílů.
+- Přesné duplicitní řešení je dovoleno; při shodném primárním i sekundárním skóre jde o společný rekord a pořadí podání nerozhoduje.
+- Pravidla nevyšetřují nezávislé znovuobjevení oproti převzetí zveřejněného nápadu.
