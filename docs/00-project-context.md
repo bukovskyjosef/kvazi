@@ -10,6 +10,14 @@ Proto se systém postupně posouvá od otevřeného „použij cokoli, co existu
 
 Projekt je recesní a herní. Pravidla mají být dost přesná pro férové hraní, ale cílem není vytvářet jazykově-právní systém s absolutní reprodukovatelností každého externího zdroje a rozhodnutí.
 
+## Princip objevování a slepých cest
+
+Pravidla popisují povolený herní prostor podle morfologické, syntaktické a jiné vnitřní logiky hry. **Reachability není normativní filtr.** Morfologický model, tvarová větev nebo jiný mechanismus se neodstraňuje, neskrývá ani nezakazuje jen proto, že podle aktuální analýzy zřejmě nebo prokazatelně nevede k použitelnému soutěžnímu povrchovému tvaru.
+
+Je záměrně přípustné, aby pravidla obsahovala i slepé cesty. Hráč má mít možnost sám zkoumat, kombinovat a zjistit, že určitá pravidlově povolená cesta v konkrétním znakovém systému nikam nevede. Toto bádání a objevování neúspěšných cest je součástí hry a jejího vzdělávacího rozměru.
+
+Interní reachability analýza může pomáhat autorovi pravidel a vývojářům chápat herní prostor, testovat implementaci nebo hledat nečekané důsledky. Nesmí však sama rozhodovat, které jinak normativně povolené modely nebo mechanismy hráči dostanou k dispozici. Hráčské materiály nemají známé slepé cesty označovat ani předem prozrazovat, pokud to není nutné k vysvětlení samotného pravidla.
+
 ## Manifest férovosti a důvěry
 
 Kvazi dává smysl jen tehdy, pokud si hráči navzájem věří, že řešení opravdu hledají v duchu hry.
