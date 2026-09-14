@@ -153,6 +153,27 @@ Magic-link login se pro MVP nepoužívá. Zapomenuté heslo se řeší časově 
 
 Komentáře nejsou součástí MVP. Neimplementují se komentářové identity, magic linky, moderace komentářů ani jejich privacy/retention lifecycle. Případné budoucí komentáře budou nové produktové rozhodnutí.
 
+## Veřejnost a autorství
+
+### Otevřený kumulativní problém — rozhodnutí #69
+
+- Zveřejněné schválené řešení je legitimní společná znalost hry.
+- Kdokoli je smí použít, upravit, prodloužit nebo převzít jednotlivé kvazislovo, morfologický nápad, syntaktickou konstrukci či jinou část řešení.
+- Jednotlivé herní nápady nejsou pro účely soutěže výhradním vlastnictvím autora původního podání.
+- Na jednom podání může spolupracovat více lidí a mohou být uvedeni jako spoluautoři; podíl zásluh se nevyčísluje.
+- Autory konkrétního podání jsou osoby uvedené u tohoto podání; navázání na starší řešení samo nepřenáší jeho autorství na řešení nové.
+- Přesně shodné řešení může podat více lidí; při shodném skóre jde o společný rekord a pořadí podání nerozhoduje.
+- Projekt nezkoumá, zda byl zveřejněný herní nápad později převzat nebo nezávisle znovu objeven.
+
+### Veřejný detail schválené věty — rozhodnutí #73
+
+- Výsledkový přehled ukazuje zejména samotnou schválenou větu, počet slov, počet soutěžních znaků a autora nebo spoluautory.
+- Detail věty je srozumitelný jazykový rozbor, nikoli úplný validační spis.
+- U jednotlivých slov se veřejně ukazuje zejména použitý tvar, skutečné/kvazislovo, slovní druh, lemma nebo základní tvar, soutěžní vzor/model, základní morfologické vlastnosti konkrétního použitého tvaru a hlavní syntaktická role; podle potřeby lze ukázat i jednoduchou vazbu na další slovo.
+- Veřejně se standardně nezobrazuje celé paradigma, úplná morfologická obhajoba, detailní zdrojové podklady, interní katalogové stavy ani úplný záznam review.
+- Neveřejná úplná evidence zůstává k dispozici kvaziautoritě pro posouzení, audit a případné námitky.
+- Omezený veřejný detail nijak neomezuje právo ostatních na zveřejněnou větu navazovat podle #69.
+
 ## Katalogy
 
 ### Katalog skutečných slov — rozhodnutí #68
@@ -229,8 +250,8 @@ První veřejné MVP povinně obsahuje:
 - immutable submission revisions,
 - katalog skutečných slov a minimální interní učící se morfologický katalog,
 - neveřejné admin review,
-- veřejný seznam pouze schválených vět,
-- veřejný detail schválené věty včetně obhajoby a morfologické identifikace jednotlivých slov,
+- veřejný seznam pouze schválených vět se skóre a autorstvím,
+- veřejný detail schválené věty s lehkým jazykovým rozborem podle #73, nikoli s úplným paradigmatem a validačním spisem,
 - základní historii verzí pravidel a podání.
 
 Čekající a zamítnuté věty nejsou veřejné. Veřejné peer review ani komentáře nejsou součástí MVP.
