@@ -1,5 +1,7 @@
-# Governance – index
+# Governance
 
-Detailní proces práce s issues, labely, konsolidací a uzavíráním je pouze v `decision-workflow.md`.
+Detailní rozhodovací proces je pouze v `decision-workflow.md`.
 
-`decisions.md` je historické shrnutí přijatých rozhodnutí. Aktuální práci určuje GitHub Issues a autoritu dokumentů `/docs/README.md`.
+`decisions.md` je historický přehled stabilních rozhodnutí. Není živým backlogem ani normativním zdrojem pravidel.
+
+Aktuální práce se zjišťuje pouze z GitHub Issues. Autoritu dokumentů určuje `/docs/README.md`.
