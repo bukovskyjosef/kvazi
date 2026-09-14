@@ -5,7 +5,6 @@ Tento adresář definuje způsob, jakým má nezávislý auditor posoudit repozi
 ## Cíl auditu
 
 Audit nemá potvrdit záměr autora. Má aktivně hledat:
-
 - vnitřní rozpory,
 - nedořečené nebo skryté podmínky,
 - exploity,
@@ -36,10 +35,9 @@ Posuď zejména:
 
 ### C. Governance
 - decision ownership,
-- verzování,
-- revalidace,
+- issue workflow a labely,
+- verzování a revalidace,
 - interní katalog,
-- proces námitek,
 - oddělení platnosti a implementace.
 
 ### D. Architektura a DB
@@ -68,13 +66,18 @@ Posuď, zda dokumentace dostatečně odděluje:
 
 ## Forma výstupu
 
-Každý samostatný nález založ jako vlastní GitHub Issue s prefixem `[AUDIT]`.
+**Každý samostatný akční nález musí existovat jako GitHub Issue. GitHub Issues jsou jediný auditní backlog.**
+
+Nové auditní issue:
+- použije prefix `[AUDIT]` pro čitelnost,
+- dostane alespoň jeden smysluplný label; výchozí template používá `question`,
+- pokud jde o čistý implementační defect vůči již rozhodnutému chování, použij `bug`,
+- pokud je hlavním výstupem změna dokumentace/specifikace, lze přidat `documentation`,
+- nesmí zůstat bez labelu.
 
 Doporučená struktura issue:
 
 ```markdown
-# Shrnutí
-
 ## Závažnost
 critical / high / medium / low / editorial
 
@@ -84,7 +87,7 @@ critical / high / medium / low / editorial
 ## Nález
 Konkrétní problém.
 
-## Proč je to problém
+## Dopad
 Dopad na hratelnost, férovost, konzistenci, implementaci nebo bezpečnost.
 
 ## Varianta A
@@ -93,38 +96,46 @@ Výhody / nevýhody.
 ## Varianta B
 Výhody / nevýhody.
 
-## Varianta C
-Výhody / nevýhody.
-
 ## Doporučení auditora
-Jedna preferovaná varianta a argumentace.
+Preferovaná varianta a argumentace.
 
 ## Závislosti
-Která otevřená decision issues nebo jiné artefakty nález ovlivňuje.
+Související issues a artefakty.
 ```
 
 Není nutné uměle vytvářet tři varianty, pokud jsou rozumné jen jedna či dvě.
 
+## Konsolidace nálezů
+
+Audit nemá udržovat desítky dílčích issues, pokud popisují jednu implementační oblast.
+
+Pokud se nález překrývá s existujícím master issue:
+1. přenes do master issue relevantní požadavek a akceptační kritérium,
+2. zanech vazbu mezi issues,
+3. původní issue označ `duplicate` a zavři.
+
+Nikdy nezavírej nález jen proto, aby byl backlog menší; jeho podstata musí být nejprve zachycena jinde.
+
 ## Co auditor nesmí udělat
 
 - Neměň normativní soubory jen proto, že doporučuješ jiné řešení.
-- Nezavírej `[DECISION]` issues.
+- Neuzavírej produktovou/pravidlovou otázku bez rozhodnutí Josefa.
 - Neinterpretuj TODO jako rozhodnutí.
 - Nedoplňuj chybějící produktové rozhodnutí vlastním předpokladem.
 - Nevytvářej implementaci jako náhradu za neuzavřenou specifikaci.
+- Nevytvářej textový soubor sloužící jako paralelní backlog auditních nálezů.
 
 ## Co je žádoucí
 
 Auditor může:
-- přidat auditní poznámky do `docs/audit/`,
-- založit nové `[AUDIT]` issues,
-- komentovat existující decision issues,
+- přidat auditní zprávu nebo metodickou poznámku do `docs/audit/`, pokud nejde o backlog,
+- zakládat a komentovat GitHub Issues,
 - navrhovat zjednodušení,
-- navrhovat spojení nebo rozdělení artefaktů,
-- upozornit, že některé současné decision issue je špatně položené.
+- navrhovat spojení nebo rozdělení issues,
+- upozornit, že existující issue je špatně položené nebo špatně označené.
 
 ## Hlavní red-team otázka
 
 > Dokáže znalost nějakého neobvyklého lingvistického, technického nebo databázového detailu dát hráči nebo implementaci možnost, kterou základní hráč z dokumentace nemohl rozumně předvídat?
 
-Pokud ano, je to kandidát na auditní nález.
+Pokud ano, je to kandidát na auditní nález a má být zachycen v GitHub Issue.
