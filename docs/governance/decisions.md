@@ -125,6 +125,18 @@ Reachability rozhodne, co zůstane v hlavní vrstvě.
 - technická implementace nesmí měnit platnost,
 - morfologický katalog je provozní autorita, nikoli vyšší pravidlo.
 
+## Rozsah prvního veřejného MVP – částečně uzavřeno
+
+- veřejná prezentace projektu, jeho smyslu, vysvětlení a pravidel,
+- interaktivní a vizuálně propracovaný formulář pro strukturované vložení věty,
+- povinné admin rozhraní pro posouzení a schválení podání,
+- čekající a zamítnutá podání nejsou veřejná,
+- veřejný seznam obsahuje pouze schválené věty,
+- veřejný detail schválené věty obsahuje její obhájení a morfologickou identifikaci jednotlivých slov,
+- veřejné peer review čekajících vět není součástí MVP.
+
+Zbývající rozsah, zejména komentáře, automatická morfologická validace, autentizace autora a přesný admin security model, zůstává k rozhodnutí v #10 a souvisejících nálezech.
+
 ## Multi-agent governance repozitáře
 
 - Josef Bukovský je finální decision owner pro produktová a pravidlová rozhodnutí,
