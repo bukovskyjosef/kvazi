@@ -6,8 +6,8 @@ export const partsOfSpeech = { noun: 'Podstatné jméno', adjective: 'Přídavn�
 export const functions = { subject: 'Podmět', predicate: 'Přísudek', object: 'Předmět', agreeingAttribute: 'Přívlastek shodný', attribute: 'Přívlastek neshodný', adverbial: 'Příslovečné určení', supplement: 'Doplněk', coordination: 'Spojení souřadných částí' };
 export const relationShapes = { predicate: [], subject: ['head'], object: ['head'], adverbial: ['head'], agreeingAttribute: ['head'], attribute: ['head'], supplement: ['predicate', 'nominal'], coordination: ['left', 'right'], preposition: ['nominal'] };
 export const genders = { masculineAnimate: 'Mužský životný', masculineInanimate: 'Mužský neživotný', feminine: 'Ženský', neuter: 'Střední' };
-const cases = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [String(i + 1), `${i + 1}. pád`]));
-const numbers = { singular: 'Jednotné', plural: 'Množné' };
+export const cases = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [String(i + 1), `${i + 1}. pád`]));
+export const numbers = { singular: 'Jednotné', plural: 'Množné' };
 const field = (path, label, options) => ({ path, label, options });
 const nominalFields = [field('form.case', 'Pád použitého tvaru', cases), field('form.number', 'Číslo použitého tvaru', numbers)];
 // Editable base grids, without endings or variant claims. Completeness of the

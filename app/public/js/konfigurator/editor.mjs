@@ -1,6 +1,7 @@
 import { createDraft, mutateDraft, nfc } from './state.mjs';
 import { deriveValidationState, previewDraft, validateTokenSequence } from './validation.mjs';
 import { renderSentence, renderTokens, renderEditor, renderValidation } from './view.mjs';
+import { toggleMode, buttonLabel } from './terms.mjs';
 
 let draft = createDraft(), selectedId = null;
 let composing = false;
@@ -18,6 +19,8 @@ function render() {
     element(focusId).focus({ preventScroll: true });
     if (selection) element(focusId).setSelectionRange(...selection);
   }
+  const termBtn = element('termToggle');
+  if (termBtn) termBtn.textContent = buttonLabel();
   const summary = `${state.wordCount} slov. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologické návrhy ${state.morphologyOk ? 'potvrzeny' : 'nepotvrzeny'}. ${state.submitReady ? 'Připraveno k odeslání; backend není zapojen.' : 'Zatím není připraveno k odeslání.'}`;
   if (element('liveStatus').textContent !== summary) element('liveStatus').textContent = summary;
 }
@@ -34,28 +37,59 @@ function updateField(target) {
     dispatch({ type: target.dataset.scope === 'sentence' ? 'sentence' : target.dataset.path === 'surface' ? 'surface' : 'field', id: selectedId, path: target.dataset.path, value });
   }
 }
+document.addEventListener('focusin', e => {
+  if (e.target.classList.contains('mf-pre') && e.target.dataset.cell) {
+    dispatch({ type: 'cell', id: selectedId, key: e.target.dataset.cell, value: e.target.value });
+  }
+});
 document.addEventListener('compositionstart', () => { composing = true; });
 document.addEventListener('compositionend', e => { composing = false; updateField(e.target); });
 document.addEventListener('input', e => {
   if (!composing && e.target.type !== 'checkbox' && e.target.tagName !== 'SELECT') updateField(e.target);
 });
 document.addEventListener('change', e => {
-  if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') updateField(e.target);
+  if (e.target.type === 'checkbox' || e.target.type === 'radio' || e.target.tagName === 'SELECT') updateField(e.target);
 });
-element('newSurface').addEventListener('input', e => {
-  const result = validateTokenSequence([{ id: 'input', surface: nfc(e.target.value) }]);
-  element('inputStatus').textContent = e.target.value ? result.issues.map(i => i.message).join(' ') : '';
-});
-element('insertForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const surface = nfc(element('newSurface').value);
+function insertWord(surface) {
   if (!surface) return;
   const [side, anchor] = element('insertPlace').value.split(':');
   selectedId = `t${draft.nextId}`;
-  dispatch({ type: 'insert', surface, side, anchor });
-  element('newSurface').value = '';
-  element('inputStatus').textContent = '';
-  element('word-surface').focus();
+  dispatch({ type: 'insert', surface: nfc(surface), side, anchor });
+  // Continue typing in order at the chosen insertion point.
+  if (anchor) element('insertPlace').value = `after:${selectedId}`;
+}
+function consumeInput(commitLast = false) {
+  const input = element('newSurface');
+  const parts = nfc(input.value).split(/\s+/u);
+  const remainder = commitLast ? '' : parts.pop();
+  for (const surface of parts.filter(Boolean)) insertWord(surface);
+  input.value = remainder;
+  const result = validateTokenSequence([{ id: 'input', surface: remainder }]);
+  element('inputStatus').textContent = remainder ? result.issues.map(i => i.message).join(' ') : '';
+}
+function deleteWord(id) {
+  const index = draft.tokens.findIndex(w => w.id === id);
+  if (selectedId === id) selectedId = draft.tokens[index + 1]?.id || draft.tokens[index - 1]?.id || null;
+  dispatch({ type: 'delete', id });
+}
+element('newSurface').addEventListener('input', () => {
+  if (!composing) consumeInput();
+});
+element('newSurface').addEventListener('compositionend', () => consumeInput());
+element('newSurface').addEventListener('keydown', e => {
+  if (composing || e.isComposing) return;
+  if (e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    consumeInput(true);
+  } else if (e.key === 'Backspace' && !e.currentTarget.value && draft.tokens.length) {
+    e.preventDefault();
+    if (!e.repeat) deleteWord(draft.tokens.at(-1).id);
+  }
+});
+element('insertForm').addEventListener('submit', e => {
+  e.preventDefault();
+  consumeInput(true);
+  element('newSurface').focus();
 });
 document.addEventListener('click', e => {
   const button = e.target.closest('button[data-action]');
@@ -65,15 +99,17 @@ document.addEventListener('click', e => {
   else if (action === 'before' || action === 'after') {
     element('insertPlace').value = `${action}:${selectedId}`;
     element('newSurface').focus();
-  } else if (action === 'delete') {
-    const id = selectedId, index = draft.tokens.findIndex(w => w.id === id);
-    selectedId = draft.tokens[index + 1]?.id || draft.tokens[index - 1]?.id || null;
-    dispatch({ type: 'delete', id });
-    (element('word-surface') || element('newSurface')).focus();
+  } else if (action === 'delete' || action === 'delete-chip') {
+    deleteWord(button.dataset.id || selectedId);
+    (action === 'delete-chip' ? element('newSurface') : element('word-surface') || element('newSurface')).focus();
   } else {
     dispatch({ type: action, id: selectedId });
     element('editor').querySelector(`[data-action="${action}"]`)?.focus();
   }
+});
+element('termToggle').addEventListener('click', () => {
+  toggleMode();
+  render();
 });
 element('previewButton').addEventListener('click', () => {
   // Synchronous fresh derivation, even if a caller bypassed the normal render.

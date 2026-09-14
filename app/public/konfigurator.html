@@ -7,7 +7,16 @@
 <link rel="stylesheet" href="css/konfigurator.css">
 </head>
 <body>
-<header><h1>Konfigurátor kvazivěty</h1><p>Nejdelší kvazivěta · prototyp</p></header>
+<header>
+  <div class="header-brand">
+    <h1>Konfigurátor kvazivěty</h1>
+    <p>Nejdelší kvazivěta · prototyp</p>
+  </div>
+  <nav class="header-nav">
+    <button id="termToggle" type="button" class="lang-btn">Přepnout do češtiny</button>
+    <a href="/" class="lang-btn">← Úvod</a>
+  </nav>
+</header>
 <main class="container">
   <p class="notice">Tento prototyp nic neodesílá ani neukládá po zavření stránky. Kontroluje znaky a strukturu údajů, nikoli jazykovou správnost. Pokud pravidly dovolený případ formulář neumí zaznamenat, můžete kontaktovat rozhodčího e-mailem. Kontaktní adresa zatím v prototypu není zveřejněna.</p>
   <section class="card" aria-labelledby="sentenceHeading">
@@ -15,14 +24,13 @@
     <h2 id="sentenceHeading" class="card-header">Zadání věty</h2>
     <div class="card-body">
       <div id="sentenceFields"></div>
-      <div id="tokens" aria-label="Slova věty"></div>
       <form id="insertForm">
-        <div class="config-grid">
-          <div class="fld"><label for="newSurface">Nové slovo (bez mezer)</label><input id="newSurface" type="text" autocomplete="off" spellcheck="false" required aria-describedby="inputStatus"></div>
-          <div class="fld"><label for="insertPlace">Kam vložit</label><select id="insertPlace"></select></div>
+        <div class="sentence-entry">
+          <div id="tokens" aria-label="Slova věty"></div>
+          <input id="newSurface" class="word-input" type="text" autocomplete="off" spellcheck="false" aria-describedby="inputStatus" placeholder="Pište slova…">
         </div>
+        <select id="insertPlace" hidden></select>
         <p id="inputStatus" role="status"></p>
-        <button type="submit">Vložit slovo</button>
       </form>
     </div>
   </section>

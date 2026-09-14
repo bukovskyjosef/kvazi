@@ -3,7 +3,7 @@ import { getModel, getPath, setPath, isFunctional, publicSchema, wordFields } fr
 export const nfc = value => String(value).normalize('NFC');
 export const folded = value => nfc(value).toLowerCase();
 export function createDraft() {
-  return { sentenceType: '', implicitSubject: false, meaning: '', defense: '', tokens: [], nextId: 1 };
+  return { sentenceType: 'declarative', implicitSubject: false, meaning: '', defense: '', tokens: [], nextId: 1 };
 }
 export function createToken(id, surface) {
   const w = { id, surface: nfc(surface), lemma: '', pos: '', model: '', identity: {}, form: {}, lexicalStatus: '', role: '', relations: {}, valency: { modelVerb: '', declaration: null }, evidence: { source: '', reference: '', morphology: '', needsAnalogy: false, explanation: '', analogy: '' }, morphology: { cells: {}, prefilled: [], confirmation: null } };
@@ -73,6 +73,12 @@ export function mutateDraft(current, action, schema = publicSchema) {
       w.identity = structuredClone(getModel(w, schema)?.identity || {});
       w.form = {};
       w.morphology = { cells: {}, prefilled: [], confirmation: null };
+      if (action.value) {
+        for (const cell of getModel(w, schema)?.cells || []) {
+          w.morphology.cells[cell.id] = w.surface;
+          w.morphology.prefilled.push(cell.id);
+        }
+      }
     }
   } else if (action.type === 'cell') {
     w.morphology.cells[action.key] = nfc(action.value);
@@ -86,6 +92,7 @@ export function mutateDraft(current, action, schema = publicSchema) {
     }
   } else if (action.type === 'confirm') {
     w.morphology.confirmation = canConfirm(w, schema) ? morphologySnapshot(w, schema) : null;
+    if (w.morphology.confirmation) w.morphology.prefilled = [];
   }
   for (const t of draft.tokens) {
     if (t.morphology.confirmation !== morphologySnapshot(t, schema)) t.morphology.confirmation = null;

@@ -9,6 +9,7 @@ Doporučené pořadí čtení:
 3. `02-database-model.md`
 4. `03-validation.md`
 5. `04-comments-auth-admin.md`
-6. `/db/schema-draft.sql`
+6. `05-konfigurator-ux.md` – UX a funkční specifikace konfigurátoru
+7. `/db/schema-draft.sql`
 
 Autoritu dokumentů určuje `/docs/README.md`. Aktuální závislosti a otevřená práce se zjišťují z GitHub Issues, ne z tohoto README.
