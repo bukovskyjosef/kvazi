@@ -127,7 +127,19 @@ Během vyplňování aplikace kontroluje technická znaková pravidla, úplnost 
 
 Status skutečného slova se při posouzení porovnává s naším katalogem. Zda bude úplný katalog veřejně zveřejněn, je samostatná produktová otázka.
 
-## 8. Nástroje a AI
+## 8. Autorství a navazování na ostatní
+
+Kvazi je otevřený kumulativní problém. Jakmile je schválené řešení zveřejněno, kdokoli na ně smí navazovat, upravovat je, prodlužovat je nebo z něj převzít jednotlivá slova či konstrukční nápady.
+
+Nikdo si pro účely hry nevlastní jednotlivé kvazislovo, morfologický nápad, syntaktickou konstrukci ani část zveřejněné věty.
+
+Na jednom podání může spolupracovat více lidí a mohou být uvedeni jako spoluautoři. Není potřeba určovat procenta zásluh.
+
+Autory konkrétního podání jsou osoby uvedené u tohoto podání. Převzetí nebo rozvinutí staršího zveřejněného řešení samo o sobě nepřenáší autorství původního podání na nové.
+
+Přesně shodné řešení může odevzdat více lidí. Pokud má stejné skóre jako existující rekord, jde o společný rekord; pořadí podání nerozhoduje.
+
+## 9. Nástroje a AI
 
 Řešení musíš vytvořit vlastní hlavou.
 
@@ -141,7 +153,7 @@ Nesmíš s ní řešit pravidla hry, kvazitahák, existující či plánovanou k
 
 > **Technika smí ověřit konkrétní lidský nápad. Nesmí jej hledat ani vytvořit. AI navíc nesmí dostat žádný kvazikontext.**
 
-## 9. Co když najdeš díru v pravidlech?
+## 10. Co když najdeš díru v pravidlech?
 
 Pokud je tvoje řešení podle aktuální verze opravdu platné a dodržel jsi soutěžní proces, musí být uznáno.
 
