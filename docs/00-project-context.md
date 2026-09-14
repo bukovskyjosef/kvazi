@@ -26,7 +26,7 @@ Pasivní zdroje jako slovníky, příručky, knihy a odborné texty mohou pomáh
 
 O tom, zda se konkrétní identita a tvar pro soutěž považují za skutečné slovo, rozhoduje náš spravovaný katalog skutečných slov. Pokud kandidát v katalogu chybí, lze požádat o přezkoumání; při správě katalogu může kvaziautorita využívat IJP, ASSČ i další relevantní jazykové zdroje. Katalog lze průběžně doplňovat a opravovat.
 
-Zda bude úplný katalog skutečných slov veřejně zveřejněn, je samostatná otevřená produktová otázka.
+Katalog není veřejným seznamem k procházení. Hráč může nechat ověřit až svůj vlastní hotový návrh: musí uvést úplnou morfologickou identitu slova a konkrétní použitý tvar. Pokud tato přesná kombinace v katalogu již je schválená jako skutečné slovo, systém to potvrdí. Z neúplného zadání katalog nic nenapovídá, nevypisuje možné identity ani nenabízí alternativy. Pokud přesná kombinace potvrzená není, může ji hráč normálně předložit k posouzení.
 
 Pravidlo práce s nástroji je jednoduché: nástroj může pomoci studovat, počítat nebo mechanicky ověřit konkrétní lidský nápad. Nesmí za hráče automaticky hledat, generovat, skládat nebo optimalizovat soutěžní kandidáty.
 
