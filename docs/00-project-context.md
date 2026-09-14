@@ -10,17 +10,25 @@ Proto se systém postupně posouvá od otevřeného „použij cokoli, co existu
 
 Projekt je recesní a herní. Pravidla mají být dost přesná pro férové hraní, ale cílem není vytvářet jazykově-právní systém s absolutní reprodukovatelností každého externího zdroje a rozhodnutí.
 
+## Manifest férovosti a důvěry
+
+Kvazi dává smysl jen tehdy, pokud si hráči navzájem věří, že řešení opravdu hledají v duchu hry.
+
+Nechceme z recesní soutěže dělat policejní ani forenzní systém. Nebudeme sledovat historii práce hráčů, vyžadovat logy, screenshoty nebo záznamy promptů ani vyšetřovat, zda někdo použil zakázaný nástroj. Pravidla práce s nástroji jsou čestná dohoda, ne technicky vynucovaný režim.
+
+Kdo chce podvádět, pravděpodobně si cestu najde. Tím ale neporáží ostatní hráče — pouze přestává hrát tutéž hru. Proto dáváme přednost důvěře, hravosti a recesi před dohledem a dokazováním.
+
 ## Princip práce člověka a techniky
 
 Člověk má vymýšlet soutěžní řešení vlastní hlavou.
 
-Pasivní zdroje jako slovníky, příručky, knihy a odborné texty mohou pomáhat s obecnou češtinou a dokazováním.
+Pasivní zdroje jako slovníky, příručky, knihy a odborné texty mohou pomáhat s obecnou češtinou a dokazováním. AI může pomoci vysvětlit pravidla hry nebo obecnou češtinu, ale nemá za hráče hledat, navrhovat, opravovat ani optimalizovat konkrétní soutěžní řešení.
 
 O tom, zda se konkrétní identita a tvar pro soutěž považují za skutečné slovo, rozhoduje náš spravovaný katalog skutečných slov. Pokud kandidát v katalogu chybí, lze požádat o přezkoumání; při správě katalogu může kvaziautorita využívat IJP, ASSČ i další relevantní jazykové zdroje. Katalog lze průběžně doplňovat a opravovat.
 
 Zda bude úplný katalog skutečných slov veřejně zveřejněn, je samostatná otevřená produktová otázka.
 
-Pravidlo práce s nástroji je technologicky neutrální: žádný nástroj nesmí automaticky generovat, enumerovat, hromadně filtrovat, skládat nebo optimalizovat soutěžní kandidáty. Nástroj smí mechanicky ověřit konkrétní lidský nápad, aniž by navrhoval alternativu.
+Pravidlo práce s nástroji je jednoduché: nástroj může pomoci studovat, počítat nebo mechanicky ověřit konkrétní lidský nápad. Nesmí za hráče automaticky hledat, generovat, skládat nebo optimalizovat soutěžní kandidáty.
 
 Soutěžní aplikace má mechanicky kontrolovat jen to, co lze deterministicky ověřit. Učící se morfologický katalog může šetřit opakované posuzování, ale nesmí vytvářet nové jazykové pravidlo.
 
