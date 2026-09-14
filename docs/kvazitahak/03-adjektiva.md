@@ -2,6 +2,16 @@
 
 > **Status:** základní modely známe; nutné doplnit přesná normativní paradigmata.
 
+## NORMATIVNÍ: obecný princip
+
+Adjektivní soutěžní model je stejně jako substantivní model **uzavřený herní morfologický model**.
+
+- soutěžní kmen a případné další kmenové podoby se odvozují deterministicky ze základního tvaru a zvoleného modelu,
+- hráč si kmen ani alternaci nevolí a neobhajuje ji vlastní analogií,
+- každá morfologická buňka má standardně jednu kanonickou realizaci,
+- další realizace je povolena pouze tehdy, když ji normativní tabulka výslovně uvede,
+- české dublety, nepravidelnosti a lexikální výjimky mimo normativní model se automaticky nepřenášejí.
+
 ## NORMATIVNÍ: aktuálně definované modely
 
 - `mladý`
