@@ -11,12 +11,13 @@ Repozitář projektu **Nejdelší kvazivěta**.
 ### Pro audit
 - `AGENTS.md`
 - `docs/audit/README.md`
-- GitHub issue #11
+- GitHub Issues
 
 ### Pro vývoj
 - `AGENTS.md`
 - `docs/architecture/00-boundaries.md`
 - `app/README.md`
+- GitHub Issues
 
 ## Normativní zdroje
 
@@ -46,30 +47,24 @@ docs/
   history/
 ```
 
-## Rozhodování a otevřené body
+## Řízení práce přes GitHub Issues
 
 Finální produktová a pravidlová rozhodnutí provádí Josef Bukovský.
 
-Používané prefixy GitHub Issues:
-- `[DECISION]` – otevřená volba
-- `[AUDIT]` – auditní nález
-- `[IMPLEMENTATION]` – technický úkol
-- `[META]` – procesní práce
+**GitHub Issues jsou jediný aktuální backlog projektu.** README ani jiný Markdown soubor neudržuje ruční seznam otevřených úkolů.
 
-Podrobný postup: `docs/governance/decision-workflow.md`.
+Aktuální práci je nutné získávat přímo z Issues podle stavu a labelů. Každé issue musí mít alespoň jeden smysluplný label.
 
-Aktuální rozhodovací backlog:
-- #1 kvazitahák
-- #2 slovesné časovací typy
-- #3 valenční rámce a vid
-- #4 reachability audit
-- #5 morfologický formulář
-- #6 interní morfologický katalog
-- #7 znakový validátor
-- #8 architektura a DB model
-- #9 release proces
-- #10 scope MVP
-- #11 nezávislý audit repozitáře
+Základní labely:
+- `question` – otevřená pravidlová, produktová, specifikační nebo auditní otázka,
+- `enhancement` – plánovaná implementace nebo feature,
+- `bug` – chyba vůči přijatému chování,
+- `documentation` – pravidla/specifikace/dokumentace,
+- `duplicate` – práce absorbovaná do jiného master issue.
+
+Prefixy názvů (`[SPEC]`, `[DECISION]`, `[AUDIT]`, `[IMPLEMENTATION]`, `[FEATURE]`, `[META]`) jsou pouze pomocné pro čitelnost.
+
+Podrobný proces: `docs/governance/decision-workflow.md`.
 
 ## Dokumentační vrstvy pro hráče
 
