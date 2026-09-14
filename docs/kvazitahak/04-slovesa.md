@@ -1,6 +1,6 @@
 # Kvazitahák – slovesa
 
-> **Status:** architektura pravidla a princip výběru typů jsou rozhodnuté; konkrétní typy ještě nejsou uzavřeny.
+> **Status:** architektura pravidla, princip výběru typů a sada vidů jsou rozhodnuté; konkrétní časovací typy ještě nejsou uzavřeny.
 
 ## NORMATIVNÍ princip
 
@@ -8,9 +8,9 @@ Každé kvazisloveso musí mít:
 
 1. jeden soutěžní časovací typ,
 2. jeden povolený vid,
-3. jeden soutěžní valenční rámec.
+3. jeden deklarovaný valenční rámec.
 
-Časovací typ, vid ani valence se nevybírají z libovolných externích českých sloves.
+Časovací typ se nevybírá z libovolných externích českých sloves. Valence se deklaruje samostatně; její přesný způsob obhajoby a strukturovaného zápisu je řešen v navazujícím rozhodnutí.
 
 Zvolený časovací typ musí přesně určovat vztah mezi infinitivem, případným kmenem, deklarovanými morfologickými hodnotami a použitým tvarem. Nesmí připustit, aby se tentýž použitý tvar odvozoval z libovolně mnoha infinitivů a soutěžních identit.
 
@@ -22,7 +22,9 @@ Samostatný časovací typ se zařadí pouze tehdy, pokud přináší alespoň j
 
 Rozdíl mezi dvěma českými slovesnými vzory nebo třídami sám o sobě nestačí k vytvoření dvou soutěžních typů, pokud jejich soutěžně dosažitelné možnosti nejsou odlišné.
 
-Pracovní typy `V-AT` a `V-IT` jsou výchozími kandidáty pro reachability audit, nikoli automaticky schválenými finálními typy.
+Pracovní označení kandidátů nesmí předem zúžit množinu zkoumaných základů. Reachability audit musí prověřit minimálně relevantní rodiny nad základy typu `VAZ-`, `KVAZ-` i `Q-`/`QAZ-`; pracovní kandidáti zahrnují přinejmenším `V-AT`, `V-IT`, `KV-AT`, `KV-IT`, `Q-AT`, `Q-IT`.
+
+Tyto pracovní kandidáty lze následně sloučit, pokud se ukáže, že z hlediska soutěžně dosažitelných možností nepřinášejí nic odlišného.
 
 Každý kandidátní typ musí být před zařazením ověřen z hlediska:
 
@@ -49,17 +51,17 @@ Součástí kontroly každého navrženého typu je ověření, že pro jeden ko
 
 Cíl není popsat kompletní českou konjugaci, ale vytvořit férovou a veřejně srozumitelnou soutěžní sadu.
 
-## TODO – vid
+## NORMATIVNÍ vid
 
-Uzavřít normativní množinu povolených hodnot.
-
-Předběžně se uvažuje zejména:
+Povolené hodnoty vidu jsou:
 
 - nedokonavý,
 - dokonavý,
-- případně obouvidový pouze pokud bude vědomě schválen.
+- obouvidový.
 
 Vid sám o sobě nevytváří novou soutěžní identitu.
+
+FE před odesláním neposuzuje jazykovou správnost deklarovaného vidu; jde o součást hráčovy analýzy, která podléhá následnému posouzení.
 
 ## Jeden token
 
