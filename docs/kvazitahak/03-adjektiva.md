@@ -1,6 +1,6 @@
 # Kvazitahák – adjektiva
 
-> **Status:** základní modely známe; nutné doplnit přesná paradigmata a reachability.
+> **Status:** základní modely známe; nutné doplnit přesná normativní paradigmata.
 
 ## NORMATIVNÍ: aktuálně definované modely
 
@@ -8,6 +8,8 @@
 - `jarní`
 - `otcův`
 - `matčin`
+
+Reachability není kritériem existence ani zveřejnění modelu. Normativně povolený adjektivní model zůstává hráči k dispozici i tehdy, pokud se podle aktuálních znakových a motivových omezení ukáže jako prakticky nebo úplně nedosažitelný. Hráčské materiály nemají takovou slepou cestu předem prozrazovat.
 
 ## Podmínky
 
@@ -24,15 +26,15 @@ Základové substantivum nemusí být ve větě použito a nemusí samo mít sou
 
 ## Stupňování
 
-Stupňování bylo koncepčně povoleno, ale podléhá reachability auditu.
+Stupňování je koncepčně povolený morfologický mechanismus. Jeho přesné normativní realizace musí být uzavřeny v paradigmatu; jejich případná nedosažitelnost není důvodem mechanismus z pravidel odstranit nebo skrýt.
 
 Jiný stupeň sám o sobě nevytváří novou soutěžní identitu.
 
 ## Krátké tvary
 
-Krátké / jmenné tvary podléhají reachability auditu.
+Krátké / jmenné tvary se posuzují podle normativního adjektivního modelu. Jejich případná nedosažitelnost není důvodem je z pravidel odstraňovat.
 
-Novému kvaziadjektivu nelze svévolně vytvořit neproduktivní nebo nepravidelný krátký tvar.
+Novému kvaziadjektivu nelze svévolně vytvořit neproduktivní nebo nepravidelný krátký tvar. Přesně povolené krátké realizace musí být výslovně součástí normativního modelu.
 
 ## Substantivizace
 
@@ -40,8 +42,9 @@ Substantivně použité adjektivum zůstává pro soutěž morfologicky adjektiv
 
 ## TODO
 
-- přesná normativní paradigmata,
-- reachability `otcův/matčin`,
-- reachability stupňování,
-- reachability krátkých tvarů,
-- rozhodnutí, které z těchto větví budou v hlavním taháku a které jen v hraničním dodatku.
+- přesná normativní paradigmata modelů `mladý`, `jarní`, `otcův`, `matčin`,
+- přesná pravidla pravidelného stupňování v rámci soutěžních modelů,
+- přesné vymezení normativně povolených krátkých / jmenných tvarů,
+- mechanická pravidla tvorby kmene a případných alternací.
+
+Interní reachability analýza může sloužit ke kontrole a poznání herního prostoru, ale nesmí rozhodovat, které z výše normativně přijatých možností se hráči zobrazí nebo nabídnou.
