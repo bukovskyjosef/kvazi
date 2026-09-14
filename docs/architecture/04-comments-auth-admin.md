@@ -46,6 +46,13 @@ Přesný scope, limity a retenční pravidla komentářů budou rozhodnuty samos
 
 ## Admin
 
+Administrátor je běžný registrovaný uživatel se stejnou autentizační identitou jako ostatní uživatelé. Pro MVP se používají dvě role:
+
+- `USER`,
+- `ADMIN`.
+
+Samostatný typ nebo tabulka `admin_user` se nepoužívá. Admin roli nelze získat veřejnou registrací ani měnit z klientského UI. Každý administrační endpoint musí oprávnění `ADMIN` ověřit server-side.
+
 KISS rozhraní:
 
 ### Dashboard
@@ -69,14 +76,16 @@ KISS rozhraní:
 - deaktivovat,
 - připojit zdroj.
 
-Přesná reprezentace admin oprávnění a vztah admina k běžnému uživatelskému účtu zůstává otevřená.
+Stejný uživatelský účet může být současně hráčem i administrátorem. Rozdíl je pouze v autorizaci.
 
 ## Audit administrace
 
 Důležité administrátorské zásahy se auditují minimálně údaji:
-- admin,
+- admin `user_id`,
 - akce,
 - typ entity,
 - ID entity,
 - stav před/po změně,
 - čas.
+
+Konkrétní bezpečnostní baseline administrace – session management, CSRF ochrana, throttling/lockout, bezpečné cookie atributy a recovery proces – zůstává implementačním security požadavkem před produkčním nasazením.
