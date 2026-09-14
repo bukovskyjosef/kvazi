@@ -8,9 +8,9 @@ Adjektivní soutěžní model je stejně jako substantivní model **uzavřený h
 
 - soutěžní kmen a případné další kmenové podoby se odvozují deterministicky ze základního tvaru a zvoleného modelu,
 - hráč si kmen ani alternaci nevolí a neobhajuje ji vlastní analogií,
-- každá morfologická buňka má standardně jednu kanonickou realizaci,
-- další realizace je povolena pouze tehdy, když ji normativní tabulka výslovně uvede,
-- české dublety, nepravidelnosti a lexikální výjimky mimo normativní model se automaticky nepřenášejí,
+- v první zmrazené rules verzi má každá morfologická buňka právě jednu kanonickou realizaci,
+- morfologické dublety se v této verzi nepovolují ani tehdy, když jsou v obecné češtině standardní; další realizaci lze zavést až explicitní změnou budoucí verze pravidel,
+- české nepravidelnosti a lexikální výjimky mimo normativní model se automaticky nepřenášejí,
 - obecné české hláskové alternace se nepoužívají automaticky; změna kmene nebo hlásky je dovolena pouze tehdy, pokud ji konkrétní adjektivní model výslovně a deterministicky stanoví.
 
 ## NORMATIVNÍ: aktuálně definované modely
@@ -56,6 +56,7 @@ Substantivně použité adjektivum zůstává pro soutěž morfologicky adjektiv
 - přesná normativní paradigmata modelů `mladý`, `jarní`, `otcův`, `matčin`,
 - přesná pravidla pravidelného stupňování v rámci soutěžních modelů,
 - přesné vymezení normativně povolených krátkých / jmenných tvarů,
-- mechanická pravidla tvorby kmene a případných explicitně modelových alternací.
+- mechanická pravidla tvorby kmene a případných explicitně modelových alternací,
+- právě jedna kanonická realizace každé normativní buňky.
 
 Interní reachability analýza může sloužit ke kontrole a poznání herního prostoru, ale nesmí rozhodovat, které z výše normativně přijatých možností se hráči zobrazí nebo nabídnou.
