@@ -1,99 +1,164 @@
-# Decision workflow
+# Issue workflow a rozhodování
 
 ## Princip
 
 Josef Bukovský je jediný vlastník finálních produktových a pravidlových rozhodnutí.
+
+**GitHub Issues jsou jediný autoritativní backlog projektu.** Dokumentace neudržuje paralelní seznam otevřených bodů, jejich stavů ani priorit.
 
 Agenti mohou:
 - hledat problémy,
 - připravovat varianty,
 - argumentovat,
 - navrhovat text změny,
-- upozorňovat na závislosti.
+- upozorňovat na závislosti,
+- konsolidovat dílčí issues do master issue, pokud se neztratí jejich požadavky.
 
 Agenti nesmějí považovat vlastní doporučení za přijaté rozhodnutí.
 
-## Typy issues
+## Povinná evidence v GitHub Issues
 
-### `[DECISION]`
-Otevřený problém, který vyžaduje rozhodnutí Josefa.
+Každá samostatná práce, která má přežít aktuální chat nebo pracovní session, musí mít issue. To platí pro:
+- otevřenou pravidlovou/specifikační otázku,
+- produktové rozhodnutí,
+- auditní nález,
+- implementační úkol nebo feature,
+- bug,
+- bezpečnostní/provozní práci,
+- významný procesní/meta úkol.
 
-Issue má obsahovat:
-- kontext,
-- přesně položenou otázku,
-- varianty nebo alespoň prostor pro jejich doplnění,
-- dopady,
-- závislosti.
+Dokument může obsahovat `TODO` jako lokální poznámku, ale pokud TODO představuje samostatně plánovanou práci nebo blokuje další vývoj, musí existovat odpovídající issue.
 
-### `[AUDIT]`
-Nezávislý nález auditora.
+## Labely
 
-Nález není automaticky změnou pravidel. Nejprve se prodiskutuje a případně se převede na rozhodnutí.
+Každé issue musí mít alespoň jeden smysluplný label.
 
-### `[IMPLEMENTATION]`
-Technický úkol, jehož produktové předpoklady už jsou uzavřené.
+### `question`
+Použij pro otevřenou pravidlovou, produktovou nebo specifikační otázku a pro auditní nález, který ještě vyžaduje rozhodnutí/dispozici.
 
-Pokud vývojář zjistí, že technický úkol vyžaduje nové produktové rozhodnutí, musí:
-1. zastavit danou spornou část,
-2. založit nebo odkázat `[DECISION]` issue,
-3. nepřekrýt problém vlastním implicitním řešením.
+### `enhancement`
+Použij pro plánovanou implementaci, feature, technické rozšíření nebo master implementační úkol.
 
-### `[META]`
-Proces, repozitář, release workflow nebo jiné podpůrné téma.
+### `bug`
+Použij pro rozpor implementace, dat nebo konfigurace s již přijatým chováním.
 
-## Životní cyklus rozhodnutí
+### `documentation`
+Použij, pokud je hlavním výstupem změna pravidel, specifikace nebo dokumentace. Často se kombinuje s `question` u otevřených SPEC témat.
 
-1. **Problem discovered**
-2. **Issue opened**
-3. **Options prepared**
-4. **Discussion**
-5. **Josef decides**
-6. **Decision recorded**
-7. **Affected artifacts updated**
-8. **Consistency checked**
-9. **Issue closed**
+### `duplicate`
+Použij, pokud je issue absorbované do jiného master issue. Před uzavřením musí být jeho relevantní požadavky, akceptační kritéria nebo rozhodnutí skutečně přeneseny do cílového issue.
 
-Issue se nemá zavřít už v kroku 5. Zavře se až po kroku 8.
+Další labely lze přidat, pokud projekt později potřebuje jemnější třídění. Issue bez labelu je považované za governance chybu.
 
-## Co znamená „Josef decides“
+## Prefixy názvů
+
+Prefixy jsou pouze sekundární pomůcka pro čitelnost:
+- `[SPEC]` – otevřená specifikační práce,
+- `[DECISION]` – explicitní produktová/pravidlová volba,
+- `[AUDIT]` – nezávislý nález,
+- `[IMPLEMENTATION]` – technická realizace,
+- `[FEATURE]` – uživatelská funkce,
+- `[META]` – proces/repozitář/release workflow.
+
+Prefix nenahrazuje label a sám neurčuje stav práce.
+
+## Minimální obsah issue
+
+Issue má podle typu obsahovat přiměřeně:
+- kontext a problém/cíl,
+- dotčené artefakty,
+- dopad,
+- závislosti na jiných issues,
+- varianty a jejich výhody/nevýhody, pokud je potřeba rozhodnutí,
+- doporučení agenta/auditora, pokud relevantní,
+- akceptační kritéria pro implementační práci,
+- finální rozhodnutí nebo důvod uzavření.
+
+## Životní cyklus
+
+1. **Problem/work discovered**
+2. **Existující issue nalezeno nebo nové issue otevřeno**
+3. **Labely a závislosti doplněny**
+4. **Varianty / plán připraveny**
+5. **Diskuse**
+6. **Josef rozhodne**, pokud je třeba produktová/pravidlová volba
+7. **Výsledek zapsán do issue**
+8. **Dotčené artefakty aktualizovány**
+9. **Konzistence a akceptační kritéria zkontrolovány**
+10. **Issue zavřeno se správným důvodem**
+
+Issue se nemá zavřít už v okamžiku rozhodnutí. Zavře se až po konzistentním zapracování nebo po explicitním rozhodnutí, že se práce nebude realizovat.
+
+## Rozhodnutí vzniklé mimo GitHub
 
 Přijaté rozhodnutí může vzniknout:
 - přímo v GitHub issue,
 - v chatu s agentem,
 - jiným explicitním způsobem.
 
-Pokud vznikne mimo GitHub, agent, který rozhodnutí zapracovává, musí jeho výsledek stručně zapsat do příslušného issue nebo do `decisions.md` tak, aby další agent nepotřeboval předchozí chatový kontext.
+Pokud vznikne mimo GitHub, agent musí do příslušného issue zapsat stručný a úplný výsledek tak, aby další agent nepotřeboval původní chatový kontext.
 
-## Decision log
+Výsledné pravidlo se následně promítne do normativního source of truth. GitHub issue uchovává historii problému a rozhodnutí; normativní dokument uchovává aktuálně platné pravidlo.
 
-`docs/governance/decisions.md` obsahuje stabilní shrnutí významných přijatých rozhodnutí.
+## Dokumentace nesmí být backlog
 
-Nemá kopírovat všechny diskuse. Má umožnit novému agentovi rychle zjistit:
-- co je už rozhodnuté,
-- co bylo překonáno pozdějším rozhodnutím,
-- jaký princip dnes platí.
+Dokumentace smí:
+- popisovat stabilní pravidla, architekturu a proces,
+- odkazovat na konkrétní issue jako na závislost nebo historii,
+- obsahovat historické shrnutí.
+
+Dokumentace nesmí:
+- vést ručně aktualizovaný seznam otevřených issues,
+- duplikovat jejich `open/closed` stav,
+- používat vlastní priority/stavy paralelně ke GitHub Issues,
+- nahrazovat issue textovým TODO seznamem.
+
+Při potřebě zjistit aktuální práci se vždy dotazuje GitHub Issues.
+
+## Konsolidace a master issues
+
+Pokud audit nebo vývoj vytvoří mnoho úzce souvisejících dílčích issues, je vhodné je konsolidovat:
+
+1. vyber nebo založ master issue,
+2. přenes do něj všechny stále relevantní požadavky a akceptační kritéria,
+3. v původním issue zanech vazbu na master,
+4. původní issue označ `duplicate` a zavři,
+5. master issue zůstává otevřené do skutečného dokončení celé oblasti.
+
+Konsolidace nesmí sloužit k tichému zahození nálezu.
 
 ## Konflikty mezi artefakty
 
 Při nalezení rozporu:
-1. neměň oba dokumenty podle vlastního odhadu,
-2. zjisti, zda existuje přijaté rozhodnutí,
-3. pokud ano, oprav odvozený artefakt,
-4. pokud ne, založ `[AUDIT]` nebo `[DECISION]` issue.
+1. zjisti, zda existuje issue nebo explicitní přijaté rozhodnutí,
+2. pokud je výsledek rozhodnutý, oprav odvozený artefakt,
+3. pokud rozhodnutý není, založ nebo aktualizuj issue,
+4. nevytvářej vlastní produktové pravidlo jen kvůli konzistenci implementace.
 
-## Definice hotového rozhodnutí
+## Definice hotového issue
 
-Decision issue je hotové, když:
-- otázka má explicitní odpověď,
-- jsou upraveny všechny dotčené normativní dokumenty,
-- jsou upraveny relevantní odvozené technické návrhy,
-- není znám rozpor s ostatním source of truth,
-- je jasné, zda změna vyžaduje novou verzi pravidel.
+Issue je hotové, když podle svého typu:
+- má jasný výsledek,
+- jsou splněna akceptační kritéria,
+- jsou aktualizovány dotčené normativní/technické artefakty,
+- nejsou známy neřešené rozpory,
+- případné navazující práce mají vlastní issues,
+- je jasný důvod uzavření (`completed`, `not planned`, `duplicate`).
 
 ## Vývojový gate
 
-Do implementace funkcionality závislé na otevřeném decision issue se nemá jít, pokud nelze bezpečně vytvořit technický základ bez předjímání výsledku.
+Do implementace funkcionality závislé na otevřeném `question`/SPEC issue se nemá jít, pokud nelze bezpečně vytvořit technický základ bez předjímání výsledku.
 
 Příklad:
 - lze připravit obecný framework formuláře,
-- nelze natvrdo implementovat finální slovesné typy, dokud nejsou schválené.
+- nelze natvrdo implementovat finální slovesné typy, dokud nejsou specifikovány.
+
+## Praktické GitHub filtry
+
+Aktuální backlog se získává například přes:
+- `is:issue is:open` – vše otevřené,
+- `is:issue is:open label:question` – otevřené otázky/specifikace,
+- `is:issue is:open label:enhancement` – plánovaná implementace/features,
+- `is:issue is:open label:bug` – chyby,
+- `is:issue is:open label:documentation` – otevřená dokumentační/specifikační práce,
+- `is:issue no:label` – governance chyba, kterou je třeba opravit.
