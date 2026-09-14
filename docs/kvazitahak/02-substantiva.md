@@ -21,6 +21,8 @@ Výsledný model tedy musí umožnit mechanickou kontrolu vztahu:
 
 `lemma + model + morfologické hodnoty → konečná sada povolených tvarů`.
 
+**Reachability není kritériem existence modelu.** Všechny níže uvedené normativní modely zůstávají součástí pravidel i tehdy, pokud se později ukáže, že některý z nich při aktuálních znakových a motivových omezeních nemá žádný použitelný povrchový tvar. Hráčské materiály takovou případnou slepou cestu nemají předem označovat.
+
 ## NORMATIVNÍ: soutěžní vzory
 
 ### Mužský rod
@@ -54,8 +56,6 @@ U dvojic `pán/muž` a `hrad/stroj` se u kvazislova nezkoumá přirozená fonolo
 | kuře | `-e`, rozšířený kmen podle normativního modelu |
 | stavení | `-í` |
 
-`kuře` podléhá reachability auditu.
-
 ## NORMATIVNÍ: skutečné slovo versus kvazislovo
 
 O zařazení nerozhoduje samotný zápis, ale úplná soutěžní identita substantiva: základní tvar, rod, životnost a vzor.
@@ -76,6 +76,8 @@ Pro každý vzor sestavit úplnou tabulku:
 - žádné implicitní lexikální výjimky jednotlivých slov.
 
 To, co bude v normativní tabulce, platí. Externí dubleta nebo alternace mimo tabulku se do soutěžního modelu nepřenáší.
+
+Při rozhodování, zda do tabulky výslovně přidat další standardní variantu, se reachability nepoužívá jako důvod pro její přijetí ani odmítnutí. Varianta se posuzuje jako součást zvoleného morfologického modelu a musí být přijata explicitně.
 
 ## Skutečná slova
 
