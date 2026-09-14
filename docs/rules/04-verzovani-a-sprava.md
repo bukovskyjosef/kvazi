@@ -67,6 +67,19 @@ Schválení dosud neznámé identity vytváří znalost použitelnou pro další
 
 Katalogové rozhodnutí má uchovat dostatečnou auditní stopu, aby bylo zřejmé, co bylo rozhodnuto a proč; projekt však z této evidence nedělá samostatný formální jazykový právní systém.
 
+## Autorství, spolupráce a navazování
+
+Kvazi je otevřený kumulativní problém. Zveřejněné schválené řešení se stává legitimní součástí společné znalosti hry.
+
+- Na zveřejněné řešení lze navázat, upravit je nebo je prodloužit.
+- Lze převzít jednotlivé slovo, kvazislovo, morfologický nápad, syntaktickou konstrukci nebo jinou část zveřejněného řešení.
+- Jednotlivé herní nápady nejsou předmětem výhradního soutěžního vlastnictví.
+- Na jednom podání může spolupracovat více lidí a mohou být uvedeni jako spoluautoři; podíl zásluh se nevyčísluje.
+- Autory konkrétního podání jsou osoby uvedené u tohoto podání. Převzetí staršího zveřejněného řešení samo o sobě nepřenáší autorství původního podání na nové.
+- Přesně shodné řešení může podat více autorů. Při shodném skóre jde o společný rekord a pořadí podání nerozhoduje.
+
+Projekt nezkoumá, zda byl zveřejněný herní nápad později znovu objeven nezávisle nebo převzat. Smyslem soutěže je posouvat nejdelší známou platnou kvazivětu, nikoli forenzně určovat původ každého dílčího nápadu.
+
 ## Technická specifikace a omezení aplikace
 Technická specifikace, databázový model ani UI nesmějí změnit jazykovou platnost řešení.
 
