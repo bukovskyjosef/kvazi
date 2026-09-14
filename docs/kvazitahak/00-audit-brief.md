@@ -15,11 +15,13 @@ Nemá být úplnou mluvnicí ani seznamem hotových soutěžních slov.
 4. **Hratelnost** – je text srozumitelný člověku se školní znalostí češtiny?
 5. **Výhoda expertů** – dává znalost neobvyklého jevu mimo tahák soutěžní výhodu?
 6. **Příklady** – nevytvářejí příklady zbytečný seznam konkrétních použitelných tahů?
-7. **Reachability** – jsou mechanismy v hlavní části skutečně použitelné v aktuálním znakovém systému?
+7. **Slepé cesty** – nefiltruje nebo neoznačuje tahák normativně povolené modely podle jejich reachability? Známá nedosažitelnost nemá být hráči předem prozrazena jen proto, že ji auditor zjistil.
 8. **Konzistence** – odpovídají normativní tabulky rozhodcovské specifikaci?
 9. **Datová reprezentace** – lze každou normativní volbu přirozeně uložit ve strukturovaném formuláři a DB?
 
-Hraniční nebo málo pravděpodobné mechanismy mají být odděleny v `06-hranicni-pravidla.md`.
+Interní reachability analýza je užitečný auditní nástroj pro pochopení herního prostoru a odhalování důsledků pravidel. **Není však kritériem pro odstranění, skrytí ani přesun normativně povoleného modelu.**
+
+Hraniční nebo výjimečné mechanismy mohou být odděleny v `06-hranicni-pravidla.md` podle složitosti a struktury pravidla, nikoli podle toho, zda auditor našel použitelný soutěžní tvar.
 
 ## Výstup
 Každý samostatný problém založ jako vlastní GitHub Issue s prefixem `[AUDIT]` a uveď:
