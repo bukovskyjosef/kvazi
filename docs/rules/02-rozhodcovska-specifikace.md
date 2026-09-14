@@ -11,7 +11,7 @@ Při posuzování platí v tomto pořadí:
 3. současná spisovná čeština ve věcech, které soutěžní systém výslovně neupravuje,
 4. konečný výklad kvaziautority v nejasném nebo sporném případě.
 
-Technická implementace, formulář ani interní katalog nejsou vyšší autoritou než pravidla.
+Technická implementace ani formulář nejsou vyšší autoritou než pravidla. Spravovaný katalog skutečných slov má pouze zvláštní autoritativní roli vymezenou v oddílu 9.
 
 ## 2. Soutěžní abeceda
 
@@ -177,34 +177,31 @@ Znaková pravidla musí splňovat pouze konkrétní tvar použitý ve větě. Le
 
 Existence jiné možné analýzy stejného povrchového tvaru nevadí; rozhodující je jedna úplná a konzistentní deklarovaná analýza.
 
-Shoda zápisu se skutečným českým slovem sama o sobě neurčuje, zda jde o skutečné slovo, nebo kvazislovo. Rozhoduje celá soutěžní identita:
+Shoda zápisu se skutečným českým slovem sama o sobě neurčuje, zda jde o skutečné slovo, nebo kvazislovo. Rozhoduje celá soutěžní identita a aktuální stav katalogu skutečných slov:
 
-- odpovídá-li deklarovaná identita některému doloženému skutečnému slovu, jde o skutečné slovo a tutéž identitu nelze znovu prohlásit za kvazislovo,
-- neodpovídá-li deklarovaná identita žádnému doloženému skutečnému slovu, může jít o kvazislovo, i když má stejný zápis nebo základní tvar jako skutečné slovo,
-- takové kvazislovo musí samo splnit zvolený soutěžní model; existence stejně zapsaného skutečného slova jeho kvazimorfologii nedokládá.
+- odpovídá-li deklarovaná identita a použitý tvar schválené položce katalogu skutečných slov, jde pro soutěž o skutečné slovo a tutéž identitu nelze v daném posouzení znovu prohlásit za kvazislovo,
+- není-li deklarovaná identita/tvar v katalogu jako skutečné slovo schválená, může být při splnění ostatních pravidel posuzována jako kvazislovo,
+- takové kvazislovo musí samo splnit zvolený soutěžní model; pouhá existence stejně zapsaného českého slova mimo katalog jeho kvazimorfologii nedokládá.
 
 ## 9. Skutečné české slovo
 
+Pro soutěžní status skutečného slova je autoritou **spravovaný katalog skutečných slov a tvarů**.
+
 Skutečné české slovo lze použít pouze tehdy, když:
 
-1. jeho základní tvar, slovní druh a všechny vlastnosti tvořící soutěžní identitu odpovídají témuž doloženému skutečnému slovu,
-2. jeho konkrétní použitý tvar je doloženým tvarem tohoto slova v deklarovaných morfologických hodnotách,
+1. jeho základní tvar, slovní druh a vlastnosti tvořící soutěžní identitu odpovídají schválené položce katalogu,
+2. jeho konkrétní použitý tvar je v katalogu schválený pro tuto identitu a deklarované morfologické hodnoty,
 3. tentýž konkrétní tvar současně odpovídá některému povolenému soutěžnímu morfologickému modelu.
 
-Existenci skutečného slova lze soutěžně doložit pouze:
+Není-li kandidátní skutečné slovo v katalogu schválené, řešitel může požádat kvaziautoritu o přezkoumání nebo vznést námitku. Po jazykovém ověření lze katalog doplnit nebo opravit.
 
-- slovníkovou částí [Internetové jazykové příručky ÚJČ](https://prirucka.ujc.cas.cz/) (IJP),
-- již zveřejněným heslem [Akademického slovníku současné češtiny](https://www.slovnikcestiny.cz/) (ASSČ).
+Při správě katalogu může kvaziautorita vycházet zejména z IJP, ASSČ, dalších jazykových příruček, mluvnic a relevantních odborných zdrojů. Tyto zdroje však samy nejsou přímým soutěžním whitelistem hráče; rozhodující je přijatý stav našeho katalogu.
 
-Záznam v některém z těchto zdrojů dokládá pouze existenci slova; nenahrazuje ostatní podmínky tohoto oddílu, zejména současnou spisovnost konkrétního tvaru a shodu se soutěžním modelem.
+Katalog je záměrně průběžně spravovatelný. Jeho jednotlivé opravy nebo doplnění samy o sobě nevyžadují novou `rules_version`.
 
-SSJČ, PSJČ, korpusy, jiné slovníky ani internetové výskyty samy o sobě existenci skutečného soutěžního slova neprokazují.
+Nepravidelné, defektivní, nesklonné nebo jinak atypické tvary a vlastnosti, které nespadají do soutěžních modelů, se nepoužívají ani tehdy, když příslušné české slovo v katalogu existuje.
 
-Nepravidelné, defektivní, nesklonné nebo jinak atypické tvary a vlastnosti, které nespadají do soutěžních modelů, se nepoužívají.
-
-Externí existence zvláštního reálného tvaru sama o sobě nezakládá právo použít jej v soutěži.
-
-Veřejný úplný katalog všech přípustných reálných slov se nezveřejňuje.
+Zda bude úplný katalog veřejně a taxativně zveřejněn, je samostatné otevřené produktové rozhodnutí (#72).
 
 ## 10. Morfologické modely
 
@@ -373,7 +370,7 @@ Rozdíl mezi `Q` a posloupností `KV` není variantním zápisem téže identity
 
 Skutečné slovo a kvazislovo stejného zápisu mohou být dvě různé identity jen tehdy, pokud se skutečně liší některou vlastností, která je podle těchto pravidel součástí identity.
 
-Příklad: `VAZ` jako substantivum mužského rodu neživotného podle modelu `hrad` je při splnění požadavků oddílu 9 skutečné slovo. Tentýž základní tvar `VAZ` jako substantivum mužského rodu životného podle modelu `pán` je odlišná soutěžní identita a může být kvazislovem. Identitu `VAZ + mužský neživotný + hrad` však nelze podruhé vydávat za kvazislovo ani rozmnožit pouhou změnou pádu, čísla, významu nebo větné funkce.
+Je-li konkrétní identita a tvar schválen v katalogu skutečných slov, nelze tutéž identitu v témže aktuálním posouzení vydávat za kvazislovo. Jiná morfologická identita stejného zápisu může být kvazislovem, pokud sama splní příslušný soutěžní model.
 
 ## 16. Interpunkce
 
@@ -397,7 +394,7 @@ Odevzdání musí pro každé slovo strukturovaně zachytit alespoň:
 - slovní druh,
 - úplnou morfologickou identifikaci vyžadovanou pro daný slovní druh a soutěžní model,
 - soutěžní identitu,
-- morfologickou obhajobu a požadované zdroje,
+- morfologickou obhajobu a případné požadované podklady,
 - syntaktickou funkci,
 - všechny vztahy ke konkrétním dalším tokenům, které zvolená syntaktická konstrukce vyžaduje,
 - další údaje daného modelu.
@@ -412,16 +409,16 @@ Konkrétní UI ani datový model formuláře nesmí měnit jazykovou platnost.
 
 Důkazní břemeno v jazykovém sporu nese řešitel.
 
-Důkaz existence skutečného soutěžního slova se řídí uzavřeným seznamem zdrojů v oddílu 9.
+Status skutečného soutěžního slova se neposuzuje přímým splněním jednoho povinného externího slovníku, ale podle katalogu skutečných slov z oddílu 9.
 
-Pro jiné jazykové otázky mohou být relevantní zejména:
+Při námitce proti katalogu nebo při jiné jazykové obhajobě mohou být relevantní zejména:
 
-- ÚJČ a jeho slovníky/příručky,
+- IJP, ASSČ a další zdroje ÚJČ,
 - akademické a vysokoškolské mluvnice,
 - odborné slovníky a publikace,
 - jiné relevantní odborné zdroje.
 
-Žádný z těchto dalších zdrojů nerozšiřuje množinu skutečných soutěžních slov vymezenou oddílem 9. Náhodný internetový výskyt sám o sobě nestačí ani pro jinou jazykovou obhajobu.
+Náhodný internetový výskyt sám o sobě nestačí jako přesvědčivá jazyková obhajoba. Kvaziautorita však není vázána jediným taxativním seznamem externích zdrojů při správě katalogu skutečných slov.
 
 U kvazislova se nedokládá existence slova, ale pravidlo/model, o který se opírá. U valenční obhajoby se dokládá jazyková analogie konkrétního použití slovesa, nikoli samostatná soutěžní identita.
 
@@ -443,7 +440,7 @@ musí být uznáno.
 
 Jazykově platné řešení nelze odmítnout pouze proto, že využívá neočekávanou nebo nežádoucí vlastnost pravidel.
 
-Taková vlastnost se může změnit až v nové verzi pravidel.
+Pravidlovou díru lze zavřít až v nové verzi pravidel. Oprava nebo doplnění katalogu skutečných slov je však běžná provozní správa podle oddílu 9 a sama o sobě novou `rules_version` nevyžaduje.
 
 Řešení lze vyřadit při porušení soutěžního procesu, například:
 
