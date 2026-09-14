@@ -39,6 +39,14 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - Variantní realizace nevytváří novou soutěžní identitu.
 - Produkční formulář, katalog ani validátor nesmějí automaticky přebírat obecné spisovné dublety, které nejsou uvedeny v normativním soutěžním modelu.
 
+### Slovesné časovací typy
+
+- Soutěžní sada slovesných časovacích typů bude minimální a odvozená z reachability auditu.
+- Samostatný časovací typ se zařadí pouze tehdy, pokud přináší alespoň jednu novou soutěžně dosažitelnou morfologickou možnost, kterou nelze reprezentovat již existujícím soutěžním typem.
+- Typy se nepřebírají jen proto, že v obecné češtině představují odlišné slovesné vzory nebo třídy.
+- `V-AT` a `V-IT` jsou výchozí kandidáti pro audit, nikoli automaticky schválené finální typy.
+- Každý kandidátní typ musí zachovat konečný a rozhodnutelný počet soutěžních identit pro konkrétní použitý tvar.
+
 ## Syntaxe a formulář
 
 - Syntaxe má uzavřený seznam hlavních syntaktických vztahů a pro každý závazný praktický test.
@@ -84,7 +92,7 @@ První veřejné MVP povinně obsahuje:
 Nadále je nutné rozhodnout zejména:
 
 - přesná normativní paradigmata substantivních a adjektivních modelů,
-- slovesné časovací typy,
+- konkrétní finální slovesné časovací typy po reachability auditu,
 - valenční rámce a finální sadu vidů,
 - reachability hlavních a hraničních mechanismů,
 - úplné field schema formuláře,
