@@ -12,6 +12,7 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - TODO není implicitní rozhodnutí.
 - Uživatelská deklarace analýzy není sama morfologickou pravdou.
 - Projekt upřednostňuje srozumitelnou a praktickou správu recesní hry před maximální formální přesností tam, kde by přesnost nepřinášela odpovídající herní hodnotu.
+- Férové hraní stojí na vzájemné důvěře; projekt záměrně nevytváří dohledový nebo disciplinární systém pro způsob vzniku řešení.
 
 ## Soutěžní abeceda a motiv
 
@@ -153,6 +154,19 @@ Magic-link login se pro MVP nepoužívá. Zapomenuté heslo se řeší časově 
 
 Komentáře nejsou součástí MVP. Neimplementují se komentářové identity, magic linky, moderace komentářů ani jejich privacy/retention lifecycle. Případné budoucí komentáře budou nové produktové rozhodnutí.
 
+## Férovost a nástroje
+
+### Důvěra místo kontroly — rozhodnutí #71
+
+- Kvazi stojí na vzájemné důvěře; bez ní recesní soutěž nedává smysl.
+- Soutěžní řešení má vzniknout lidskou hlavou.
+- Nástroje smějí pomáhat se studiem, počítáním a mechanickou kontrolou konkrétního lidského nápadu; nesmějí kandidáty automaticky hledat, generovat, skládat nebo optimalizovat.
+- AI smí vysvětlovat pravidla Kvazi i obecnou češtinu, ale nesmí za hráče řešit konkrétní soutěžní případ, navrhovat kandidáty, opravovat řešení nebo hledat lepší varianty.
+- Praktická zkratka zní: **„AI ti smí vysvětlit hru. Nesmí ji za tebe hrát.“**
+- Projekt nebude vyžadovat pracovní logy, screenshoty, historii promptů ani jiné důkazy a nebude vyšetřovat způsob vzniku řešení.
+- Odesláním řešení hráč jednoduše prohlašuje, že hrál fér a řešení vytvořil v duchu pravidel.
+- Kvaziautorita nevede disciplinární řízení o použití AI nebo jiných nástrojů.
+
 ## Veřejnost a autorství
 
 ### Otevřený kumulativní problém — rozhodnutí #69
@@ -207,7 +221,7 @@ První veřejné MVP musí umět používat katalog skutečných slov a minimál
 - Schválení podle starší rules verze je neměnný historický fakt.
 - Nová `rules_version` vytvoří nový obsahový validační výsledek nad stejnou immutable revizí; starý verdikt nepřepisuje.
 - Do aktuálního žebříčku vstupují jen řešení platná/uznaná podle aktuální rules verze.
-- Historická procesní compliance původního podání se při obsahové revalidaci retroaktivně nepřehodnocuje.
+- Způsob, jakým hráč řešení vytvořil, se při revalidaci zpětně nevyšetřuje; fair-play pravidla stojí na důvěře.
 - Průběžná správa katalogu skutečných slov není sama o sobě novou `rules_version` a nemá sloužit k bezdůvodnému rušení již schválených historických řešení.
 
 ### Immutable revize — rozhodnutí 18/19
