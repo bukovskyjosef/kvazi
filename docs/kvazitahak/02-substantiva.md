@@ -75,6 +75,12 @@ U dvojic `pán/muž` a `hrad/stroj` se u kvazislova nezkoumá přirozená fonolo
 | kuře | `-e`, rozšířené kmeny podle normativního modelu |
 | stavení | `-í` |
 
+## NORMATIVNÍ: model `píseň`
+
+Model `píseň` je v první rules verzi **jednokmenný souhláskový model**. Pro lemma `S` platí `kmen = S`.
+
+Pohyblivé `e`, vypouštění samohlásky ani jiná lexikální kmenová změna známá ze skutečného českého slova `píseň` se do soutěžního modelu nepřenáší. Název modelu zde označuje inspirační český skloňovací typ a jeho normativní sadu koncovek, nikoli lexikální alternaci vzorového slova.
+
 ## NORMATIVNÍ: paradigma modelu `kuře`
 
 Model `kuře` je explicitní modelová výjimka z obecného jednokmenného pravidla. Jeho charakteristické rozšířené kmeny jsou součástí samotného soutěžního modelu, nikoli obecnou českou alternací.
