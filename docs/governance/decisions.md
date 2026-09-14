@@ -2,7 +2,7 @@
 
 Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přijata decision ownerem. Detailní diskuse, auditní nálezy a implementační práce zůstávají v GitHub Issues.
 
-> **Stav po auditu 2026-09-14:** otevřené rozhodovací body se vedou v GitHub Issues a po rozhodnutí se jejich stabilní výsledek promítá sem a do normativních artefaktů. Pokud historická formulace odporuje novějšímu explicitnímu rozhodnutí, platí novější rozhodnutí a normativní pravidla.
+> **Stav po auditu 2026-09-14:** původní sada produktových rozhodnutí byla uzavřena; následný produktový audit může otevírat další skutečné pravidlové nebo koncepční volby. Otevřené rozhodovací body se vedou v GitHub Issues a po rozhodnutí se jejich stabilní výsledek promítá sem a do normativních artefaktů.
 
 ## Autorita a governance
 
@@ -13,7 +13,6 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - Uživatelská deklarace analýzy není sama morfologickou pravdou.
 - Projekt upřednostňuje srozumitelnou a praktickou správu recesní hry před maximální formální přesností tam, kde by přesnost nepřinášela odpovídající herní hodnotu.
 - Férové hraní stojí na vzájemné důvěře; projekt záměrně nevytváří dohledový nebo disciplinární systém pro způsob vzniku řešení.
-- Součástí hry je i samostatné objevování slepých cest; interní reachability nesmí normativně filtrovat hráčův prostor.
 
 ## Soutěžní abeceda a motiv
 
@@ -27,30 +26,15 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 
 ## Soutěžní identita a morfologické modely
 
-### Uzavřený morfologický model — freeze rozhodnutí #1
+### Uzavřený a deterministický morfologický model — rozhodnutí v #1
 
-- Soutěžní vzor je uzavřený herní morfologický model inspirovaný češtinou, nikoli otevřený odkaz na všechny možnosti stejnojmenného českého vzoru.
-- Normativní tabulka určuje podmínku lemmatu, mechanické pravidlo kmene a všechny povolené realizace.
-- Hráč si kmenovou alternaci ani jinou lexikální odchylku nedeklaruje libovolně.
-- Model musí umožnit mechanicky rozhodnout vztah `lemma + model + morfologické hodnoty → konečná sada povolených tvarů`.
-
-### Variantní realizace paradigmat — rozhodnutí 1/19, aktualizováno při freeze
-
-- Každá morfologická kombinace má v normativním soutěžním modelu výslovně uvedenou jednu nebo více povolených realizací.
+- Soutěžní vzor je uzavřený herní model inspirovaný češtinou, nikoli otevřený odkaz na všechny české dublety, alternace a lexikální výjimky.
+- Soutěžní kmen a případné další kmenové podoby se vždy odvozují mechanicky ze základního tvaru a zvoleného modelu; hráč je nevolí ani neobhajuje vlastní analogií.
+- Každá morfologická buňka má standardně jednu kanonickou realizaci.
+- Další realizace je povolena pouze tehdy, když ji normativní tabulka výslovně uvádí.
 - Existence jiné spisovné varianty mimo normativní tabulku sama o sobě nezakládá soutěžní přípustnost.
-- Další variantní realizace se přidává pouze vědomým produktovým rozhodnutím jako součást pravidel.
-- **Reachability ani herní užitečnost varianty není kritériem pro její přijetí nebo odmítnutí.**
-- Variantní realizace nevytváří novou soutěžní identitu.
-- Produkční formulář, katalog ani validátor nesmějí automaticky přebírat obecné české dublety mimo normativní model.
-
-### Slovesné časovací typy — aktualizované rozhodnutí #2/#4
-
-- Dřívější rozhodnutí, že finální sada slovesných typů má být minimální a odvozená z reachability, je **překonané**.
-- Finální soutěžní sada bude konečná, explicitní a tvořená uzavřenými morfologickými modely.
-- Normativně přijatý typ se nesmí vyloučit, skrýt nebo sloučit pouze proto, že je nedosažitelný nebo má stejné dosažitelné povrchy jako jiný typ.
-- Reachability může být interní auditní/testovací informace, nikoli kritérium výběru typu.
-- Každý typ musí zachovat konečný a rozhodnutelný počet soutěžních identit pro konkrétní použitý tvar.
-- Konkrétní finální sada, paradigmata a zacházení s pomocnými slovesnými tvary zůstávají otevřeným freeze bodem #2.
+- Reachability není kritériem existence modelu ani varianty; normativně povolené slepé cesty zůstávají součástí pravidel a hráčské nabídky.
+- Cílová vlastnost každého produktivního modelu je mechanicky rozhodnutelný vztah `lemma + model + morfologické hodnoty → konečná sada povolených tvarů`.
 
 ### Vid — rozhodnutí 3/19
 
@@ -72,12 +56,6 @@ Vid sám o sobě nevytváří soutěžní identitu. Obouvidovost je jedna gramat
 - Všechna obligatorní doplnění vyplývající z obhájeného použití musí být ve větě výslovně realizována.
 - Valence se automaticky jazykově nevaliduje ani neporovnává jako katalogová identita. Při jazykovém review ale může vést k zamítnutí věty, pokud analogie nebo realizace obligatorních doplnění neobstojí.
 - Modelové sloveso pro valenci nemusí být stejné jako případný jazykový podklad pro časování.
-
-### Skutečná zájmena — otevřený freeze bod #74
-
-- Skutečná česká zájmena zůstávají povolenou kategorií; nová kvazizájmena jsou zakázaná.
-- Reachability nesmí rozhodovat o tom, zda se kategorie nabídne nebo skryje.
-- Před rules freeze je nutné v #74 uzavřít jejich soutěžní identitu, povinnou deklaraci a vztah ke katalogu/morfologii.
 
 ## Syntaxe a formulář
 
@@ -108,14 +86,15 @@ Pokud pravidla dovolují případ, který veřejný formulář neumí reprezento
 
 Technické/resource limity formuláře jsou nenormativní a nesmějí vytvořit skrytý maximální počet slov.
 
-### Reachability a slepé cesty — nové rozhodnutí #4, nahrazuje 8/19
+### Reachability — aktuální rozhodnutí #4
 
-- Reachability je analytická vlastnost pravidel, nikoli normativní filtr.
-- Normativně povolený model, morfologická větev nebo jiný mechanismus zůstává v pravidlech a odpovídajícím UI i při prokázané nedosažitelnosti.
-- Nedosažitelnost není důvodem volbu skrýt, zakázat, odstranit z hlavního taháku ani přesunout do hraniční kapitoly.
-- Hráčské materiály nemají známé slepé cesty preventivně označovat.
-- Interní reachability analýza může sloužit k auditu, testům a poznání herního prostoru.
-- Možnost samostatně objevit cestu, která nikam nevede, je záměrnou součástí hry a jejího vzdělávacího rozměru.
+Reachability je analytická vlastnost pravidel, nikoli normativní filtr.
+
+- normativně povolený model, morfologická větev nebo jiný mechanismus zůstává součástí pravidel i při prokázané nedosažitelnosti,
+- nedosažitelnost není důvodem volbu skrýt, odstranit z UI ani přesunout do hraniční vrstvy,
+- hráčské materiály nemají známé slepé cesty označovat jen proto, že je interní audit zjistil,
+- interní reachability lze používat pro audit, testy a poznání herního prostoru,
+- konkrétní použitý povrchový tvar musí vždy samostatně splnit znaková, motivová, morfologická a syntaktická pravidla.
 
 ### Typ věty a interpunkce — rozhodnutí 9/19
 
@@ -129,7 +108,7 @@ U rozkazovací věty může být podmět pravidelně nevyjádřený pouze v dovo
 ### Morfologický panel
 
 Dříve schválený UX princip zůstává:
-- celé editovatelné paradigma je součást formuláře,
+- celé editovatelné paradigma je součást formuláře tam, kde daná produktivní kategorie paradigma používá,
 - buňky mohou být předvyplněny aktuálním povrchovým tvarem jako UX zkratka,
 - předvyplnění není jazykový návrh ani verifikace systému,
 - uživatel může předvyplněné hodnoty ponechat beze změny,
@@ -143,7 +122,7 @@ Dříve schválený UX princip zůstává:
 - Katalog skutečných slov není veřejně procházetelný. Hráč může po kompletním vyplnění vlastní morfologické identity a konkrétního použitého tvaru požádat o exact-match kontrolu podle #72.
 - Exact-match kontrola pouze potvrdí již schválenou kombinaci; z částečných údajů nesmí vypisovat možné identity, podobná slova ani jiné alternativy.
 - Hráč vždy předkládá požadovanou deklaraci podle pravidel; technické UI nesmí samo vytvářet jazykové pravidlo.
-- Formulář nesmí filtrovat normativně povolené modely podle reachability.
+- Skutečná zájmena jsou podle #74 zvláštní `real-word-only` kategorie bez produktivního kvazizájmenného paradigmatu; jejich identitu tvoří lexém/lemma a konkrétní tvar s relevantními morfologickými vlastnostmi ověřuje katalog.
 
 ## Uživatelské účty a administrace
 
@@ -274,7 +253,6 @@ První veřejné MVP musí umět používat katalog skutečných slov a minimál
 - FE neposuzuje jazykovou správnost morfologie, syntaxe, významu ani slovní valenční obhajoby.
 - FE nesmí navrhovat náhradní slova, tvary, tokenizaci, analýzu nebo syntaktické vazby.
 - Výjimkou je explicitně vyžádaná exact-match kontrola katalogu skutečných slov podle #72, která je dostupná až po kompletním vyplnění morfologické identity a konkrétního použitého tvaru a smí pouze potvrdit již schválenou přesnou kombinaci.
-- FE nesmí skrývat normativní model nebo volbu podle interní reachability analýzy.
 
 ## MVP scope – uzavřeno
 
@@ -292,22 +270,16 @@ První veřejné MVP povinně obsahuje:
 
 Čekající a zamítnuté věty nejsou veřejné. Veřejné peer review ani komentáře nejsou součástí MVP.
 
-## Zbývající freeze a implementační práce
+## Zbývající práce před pravidlovým freeze
 
-### `[SPEC]` před rules freeze
+### `[SPEC]`
 - doplnit přesná normativní paradigmata substantivních a adjektivních modelů (#1),
-- uzavřít finální slovesné časovací typy, paradigmata a pomocné slovesné mechanismy (#2),
-- uzavřít skutečná zájmena (#74),
-- dokončit úplné field schema formuláře podle POS/modelu (#5),
-- rozhodnout #60 pouze tehdy, pokud má být prefixová výjimka součástí první rules verze.
+- uzavřít finální slovesné časovací typy, jejich paradigmata a pomocné mechanismy (#2),
+- po #1/#2 dokončit úplné field schema formuláře (#5),
+- před definitivním freeze projednat samostatný checkpoint #60 (`kvazi-` u substantiv).
 
-### `[DOCUMENTATION]`
-- po freeze sestavit finální hráčský balík bez reachability spoilerů (#70).
-
-### `[IMPLEMENTATION]`
-- promítnout rozhodnutí do DB/migrací, katalogů, auth/security a release procesu,
-- opravit a dokončit konfigurátor podle aktuálního field schematu,
-- vytvořit automatické testy deterministického validátoru,
-- před produkcí uzavřít security baseline a query/index review.
+### `[DOCUMENTATION / AUDIT]`
+- sestavit finální hráčský balík (#70),
+- dokončit závěrečný produktový freeze audit (#64).
 
 Pokud při SPEC nebo implementaci vznikne nová skutečná produktová volba, nesmí ji vývojový agent rozhodnout sám; musí ji znovu eskalovat decision ownerovi.
