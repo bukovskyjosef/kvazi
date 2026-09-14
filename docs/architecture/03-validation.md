@@ -34,6 +34,8 @@ Před konečným odesláním může formulář vedle znakové kontroly živě ov
 - zda syntaktické odkazy míří na existující tokeny téhož návrhu,
 - zda je vložen požadovaný počet strukturovaných vztahů a podkladů.
 
+Počet a typ povinných odkazů se odvozuje od zvolené hlavní syntaktické funkce. Živá kontrola nevyžaduje odborný významový podtyp a sama neposuzuje, zda obhajoba skutečně splňuje jazykový rozhodovací test.
+
 Tato kontrola potvrzuje úplnost a formální strukturu deklarace, nikoli její jazykovou správnost. Nesmí se při ní dotazovat interní katalog ani vracet informaci, zda katalog konkrétní slovo, tvar, identitu nebo analýzu zná.
 
 ## Jazyková validace

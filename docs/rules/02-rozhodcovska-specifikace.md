@@ -124,6 +124,10 @@ Spojky `a`, `i` musí spojovat dvě výslovně přítomné souřadné části t�
 
 Lexikální rekce podstatných a přídavných jmen se v soutěži **nepoužívá**.
 
+Uzavřenost platí pro hlavní syntaktické vztahy uvedené výše. Jejich běžné významové podtypy nejsou samostatnými soutěžními konstrukcemi a nemusí být vyjmenovány všechny. Příklady v kvazitaháku jsou názorné, nikoli vyčerpávající.
+
+Každý deklarovaný vztah musí splnit rozhodovací test své hlavní funkce v normativním kvazitaháku a odevzdání musí zachytit všechny tímto testem vyžadované vazby ke konkrétním tokenům. Pouhé přiřazení názvu povolené funkce konstrukci, která její test nesplňuje, nestačí.
+
 ## 7. Slovní druhy
 
 Povoleny jsou:
@@ -282,7 +286,7 @@ Fiktivní význam:
 
 Lze jej použít pouze v rámci výslovně povoleného syntaktického vztahu.
 
-Pokud je význam pro platnost konstrukce podstatný, použití musí odpovídat běžné české analogii uvedené v kvazitaháku nebo jiné zjevně stejné konstrukci současné spisovné češtiny.
+Pokud je význam pro platnost konstrukce podstatný, použití musí odpovídat běžné české analogii uvedené v kvazitaháku nebo jiné zjevně stejné konstrukci současné spisovné češtiny. Jiná analogie může doložit běžný významový podtyp povoleného vztahu, ale nesmí vytvořit nový hlavní syntaktický vztah ani obejít jeho rozhodovací test nebo valenci.
 
 ## 15. Soutěžní identita
 
@@ -366,6 +370,8 @@ Odevzdání musí pro každé slovo strukturovaně zachytit alespoň:
 - syntaktickou funkci,
 - všechny vztahy ke konkrétním dalším tokenům, které zvolená syntaktická konstrukce vyžaduje,
 - další údaje daného modelu.
+
+Odborný významový podtyp hlavní syntaktické funkce není povinným strukturovaným údajem, pokud jej jiné výslovné normativní pravidlo nevyžaduje. Je-li vztah nejasný nebo závislý na fiktivním významu, zachytí se v obhajobě běžná česká analogie.
 
 Konkrétní UI ani datový model formuláře nesmí měnit jazykovou platnost.
 

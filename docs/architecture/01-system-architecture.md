@@ -88,6 +88,8 @@ Po zadání slov následuje povinná strukturovaná analýza slovo po slově. U 
 - jeden nebo více strukturovaných vztahů ke konkrétním dalším tokenům, pokud je zvolená konstrukce vyžaduje,
 - obhajobu a zdroje v rozsahu požadovaném pravidly.
 
+UI nabízí uzavřený seznam hlavních syntaktických funkcí. Nevyžaduje odborné pojmenování jejich významových podtypů. Podle hlavní funkce dynamicky vyžádá všechny potřebné odkazy na konkrétní tokeny; u významově nejasného vztahu nebo vztahu závislého na fiktivním významu také krátkou obhajobu a běžnou českou analogii.
+
 Podle zvoleného slovního druhu a modelu se zobrazí odpovídající povinná pole. Údaje, které pravidla vyžadují strukturovaně, nelze nahradit jediným obecným textovým polem.
 
 Během editace formulář živě kontroluje veřejná formální a strukturální pravidla: znaky a motivy, úplnost povinných polí, příslušnost zvolených hodnot k veřejným seznamům aktuální verze a existenci požadovaných odkazů na tokeny v témže návrhu.

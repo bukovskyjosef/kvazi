@@ -292,27 +292,27 @@ Příklady musí používat slova zjevně mimo soutěžní prostor, aby nebyly z
 
 ### 8.5 Přívlastek neshodný
 
-Pro veřejnou verzi doporučuji jedinou podobu:
+Neshodný přívlastek se neomezuje pouze na genitivní jmennou skupinu. Karta má místo úplného seznamu podtypů obsahovat tento test:
 
-- substantivní skupina v genitivu,
-- přímo rozvíjí jiné substantivum,
+- přímo rozvíjí konkrétní jmenný člen,
+- netvoří s ním vztah morfologické shody,
+- jeho konkrétní realizace je běžnou konstrukcí současné spisovné češtiny,
 - není skrytou náhradou nepovolené lexikální rekce.
 
-Toto zúžení odstraňuje potřebu určovat desítky méně běžných typů neshodného přívlastku.
+Genitivní skupina může být hlavním didaktickým příkladem, nikoli jedinou povolenou realizací.
 
 ### 8.6 Příslovečné určení
 
-Namísto neurčité kategorie doporučuji uzavřené šablony:
+Významové podtypy ani povrchové realizace se neuzavírají do vyčerpávajícího seznamu šablon. Karta má místo toho požadovat, aby příslovečné určení:
 
-| Kód | Tvar | Základní vztah |
-|---|---|---|
-| `ADV-K3` | `k` + DAT | směr nebo přiblížení |
-| `ADV-V4` | `v` + ACC | směr dovnitř / časový rozsah |
-| `ADV-V6` | `v` + LOC | místo nebo čas |
-| `ADV-Z2` | `z` + GEN | původ nebo směr odkud |
-| `ADV-I7` | prostý INS | nástroj nebo způsob |
+- bylo připojeno ke konkrétnímu přísudku,
+- vyjadřovalo okolnost děje nebo stavu,
+- nebylo předmětem a jeho případná obligatornost byla výslovně určena zvoleným valenčním rámcem,
+- odpovídalo běžné české konstrukci, pokud jeho platnost závisí na významu.
 
-Každá šablona musí být připojena ke slovesu a obhájena jedním z významů uvedených na kartě. Fiktivní význam nesmí vytvořit jiný typ příslovečného určení.
+Jako názorné realizace lze ukázat například `k` + dativ, `v` + akuzativ nebo lokál, `z` + genitiv či prostý instrumentál. Tento výčet není whitelist a samotná shoda s jedním příkladem nezaručuje platnost konkrétního použití.
+
+Fiktivní význam může doložit jiný běžný významový podtyp příslovečného určení, ale nesmí pod jeho názvem vytvořit jiný hlavní syntaktický vztah ani obejít valenci.
 
 ### 8.7 Doplněk
 
@@ -460,7 +460,7 @@ Nedoporučuji spoléhat pouze na barvu. Stav má být vždy uveden i textovým �
 2. Dokončit reachability audit a odstranit mrtvé větve z hlavní vrstvy.
 3. Schválit dvě slovesné rodiny a přesné dosažitelné tvary.
 4. Schválit vid `DOK/NEDOK` a valenční rámce `V0`, `V2`, `V3`, `V4`, `V7`, `V34`.
-5. Schválit uzavřené šablony příslovečného určení.
+5. Převést schválené rozhodovací testy syntaktických vztahů do stručných hráčských karet.
 6. Vytvořit úplná normativní paradigmata a z nich automaticky odvodit hráčskou projekci dosažitelných tvarů.
 7. Doplnit obyčejné české analogie a důvody odmítnutí.
 8. Teprve potom z materiálu vysázet jednostránkovou stolní verzi.
@@ -479,7 +479,9 @@ Kvazitahák je připravený k vydání, když:
 
 ## 18. Body vyžadující rozhodnutí Josefa Bukovského
 
-Tento návrh předkládá k explicitnímu rozhodnutí zejména:
+Po vzniku původního návrhu bylo rozhodnuto, že příslovečné určení ani neshodný přívlastek nebudou omezeny vyčerpávajícím seznamem významových podtypů nebo několika povrchových šablon. Uzavřený zůstává seznam hlavních vztahů a každý z nich má závazný rozhodovací test.
+
+K explicitnímu rozhodnutí tak nadále zbývá zejména:
 
 1. zda hráčská vrstva ukáže jen dosažitelné buňky, zatímco úplná paradigmata zůstanou v dodatku,
 2. zda soutěžní modely používají přesně definovaný kmen `S`,
@@ -488,8 +490,6 @@ Tento návrh předkládá k explicitnímu rozhodnutí zejména:
 5. zda `V-IT` připustí imperativ `S`,
 6. zda se vid omezí na `DOK/NEDOK`,
 7. zda se přijme šest navržených valenčních rámců,
-8. zda se příslovečné určení omezí na pět navržených šablon,
-9. zda koordinovaná skupina vyplňuje právě jeden syntaktický nebo valenční slot,
-10. zda se neshodný přívlastek v hlavní hře omezí na genitivní jmennou skupinu.
+8. zda koordinovaná skupina vyplňuje právě jeden syntaktický nebo valenční slot.
 
 Dokud tyto body nejsou rozhodnuté a zaneseny do normativních souborů, zůstává celý dokument pouze návrhem k zapracování.

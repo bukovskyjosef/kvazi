@@ -1,12 +1,10 @@
 # Kvazitahák – syntax
 
-> **Status:** částečně rozhodnuto; před publikací doplnit přesné normativní definice a příklady.
+> **Status:** základní vztahy a jejich rozhodovací testy jsou normativně uzavřené; hráčskou grafickou podobu lze dále zjednodušovat.
 
-## NORMATIVNÍ: uzavřený seznam
+## NORMATIVNÍ: uzavřený seznam hlavních vztahů
 
-V kvazivětě jsou přípustné pouze výslovně uvedené syntaktické vztahy.
-
-Aktuálně přijaté kategorie:
+V kvazivětě jsou přípustné pouze tyto hlavní syntaktické funkce a vztahy:
 
 - podmět,
 - přísudek,
@@ -17,33 +15,106 @@ Aktuálně přijaté kategorie:
 - doplněk,
 - koordinace pomocí `a` nebo `i`, pokud nevznikne několikanásobný podmět ani několikanásobný přísudek.
 
+Seznam je uzavřený na úrovni těchto hlavních vztahů. Jejich běžné významové podtypy nejsou samostatnými soutěžními mechanismy a nemusí být vyjmenovány všechny. Například místo, čas, způsob nebo míra mohou být různými významy příslovečného určení, pokud konkrétní použití splní jeho test níže.
+
+Příklady v této kapitole jsou pouze názorné. Nejsou úplným seznamem dovolených významů ani povrchových realizací.
+
+Pouhé označení členu názvem povolené funkce nestačí. Každý člen musí:
+
+1. splnit rozhodovací test své hlavní funkce,
+2. uvést všechny touto funkcí vyžadované vazby ke konkrétním slovům věty,
+3. respektovat zvolený valenční rámec, morfologii a ostatní zákazy pravidel.
+
+## NORMATIVNÍ: rozhodovací testy
+
+### Podmět
+
+- **Vazba:** hlava podmětové skupiny odkazuje na jediný přísudek.
+- **Test:** je to jediná hlava členu, o němž přísudek něco vypovídá?
+- **Povinnost:** právě jeden; vynechat jej lze pouze u dovoleného imperativu.
+- **Běžná analogie:** `Pes spí.`
+
+Závislé členy uvnitř podmětové skupiny nejsou dalšími podměty. Koordinace více podmětových hlav není dovolena.
+
+### Přísudek
+
+- **Vazba:** je kořenem hlavní predikační osy; výslovný podmět a další slovesné členy odkazují k němu podle své funkce.
+- **Test:** je tvořen jediným povoleným tokenem plnovýznamového slovesa a nese jedinou hlavní výpověď věty?
+- **Povinnost:** právě jeden.
+- **Běžná analogie:** `Pes spí.`
+
+### Předmět
+
+- **Vazba:** odkazuje na přísudek a na konkrétní slot zvoleného valenčního rámce.
+- **Test:** odpovídá jeho pád a role tomuto slotu?
+- **Povinnost:** každý obligatorní slot musí být výslovně realizován; rámec může připustit pouze to, co stanoví normativní valenční tabulka.
+- **Běžná analogie:** `Dítě čte knihu.`
+
+### Přívlastek shodný
+
+- **Vazba:** odkazuje na konkrétní řídící jmenný člen.
+- **Test:** rozvíjí tento člen a shoduje se s ním v kategoriích, v nichž se podle svého modelu shodovat má?
+- **Povinnost:** volný člen; nevyplňuje valenční slot slovesa.
+- **Běžná analogie:** `malý dům`
+
+### Přívlastek neshodný
+
+- **Vazba:** odkazuje na konkrétní řídící jmenný člen.
+- **Test:** rozvíjí tento člen, ale netvoří s ním vztah morfologické shody?
+- **Povinnost:** volný člen; nesmí být skrytou náhradou zakázané lexikální rekce podstatného nebo přídavného jména.
+- **Běžná analogie:** `střecha domu`
+
+Neshodný přívlastek není omezen pouze na jeden významový podtyp. Jeho konkrétní realizace však musí být běžnou konstrukcí současné spisovné češtiny a musí splnit uvedený test.
+
+### Příslovečné určení
+
+- **Vazba:** odkazuje na přísudek.
+- **Test:** vyjadřuje okolnost děje nebo stavu a nelze je podle zvoleného rámce zařadit jako předmět?
+- **Povinnost:** je volné, pokud normativní valenční rámec výslovně nestanoví odpovídající obligatorní příslovečný slot; takový slot musí být ve větě vyplněn a ve formuláři uveden.
+- **Běžné analogie:** `Přijel večer.` a `Prošel lesem.`
+
+Významové podtypy příslovečného určení se soutěžně neuzavírají do úplného seznamu. Neobvyklý název podtypu sám nic nedokazuje; rozhoduje vazba na přísudek, vztah ke zvolenému valenčnímu rámci a obhajitelná běžná česká konstrukce.
+
+### Doplněk
+
+- **Vazby:** odkazuje současně na přísudek a na konkrétní podmět nebo předmět.
+- **Test:** popisuje vlastnost nebo stav tohoto členu platný ve vztahu k vyjádřenému ději či stavu?
+- **Morfologie:** shoduje se s příslušným členem v kategoriích, v nichž to jeho model vyžaduje.
+- **Povinnost:** volný člen; pro soutěž se nepovažuje za další hlavní predikační osu ani další přísudek.
+- **Běžné analogie:** `Petr přišel unavený.` a `Našli Petra unaveného.`
+
+### Koordinace
+
+- **Vazby:** `a` nebo `i` odkazuje na hlavy obou výslovně přítomných souřadných částí.
+- **Test:** mají obě části stejnou hlavní syntaktickou funkci a jsou zapojeny do téže věty?
+- **Povinnost:** koordinace je volitelná; při jejím použití musí být obě spojované části výslovně přítomné.
+- **Běžná analogie:** `Koupil jablka a hrušky.`
+
+Koordinace nesmí vytvořit více podmětových hlav ani více přísudků. Každou ze spojek `a` a `i` lze použít nejvýše jednou podle pravidla jednopísmenných slov.
+
+## NORMATIVNÍ: co zůstává zakázané
+
 Zakázány jsou zejména:
 
 - přístavek,
 - elipsa obligatorního členu,
 - koordinace vytvářející více podmětových hlav,
 - koordinace vytvářející více přísudků,
-- jiné syntaktické konstrukce neuvedené v aktuálním normativním seznamu.
+- konstrukce, kterou nelze podle rozhodovacích testů zařadit do některého povoleného hlavního vztahu,
+- pouhé přejmenování jiné syntaktické konstrukce názvem povolené funkce.
 
-## Doplněk
-
-Doplněk se pro soutěž nepovažuje za další hlavní predikační osu ani další přísudek.
-
-## Koordinace
-
-`a` a `i` musí spojovat dvě výslovně přítomné souřadné části téže kvazivěty.
-
-## Fiktivní význam
+## Fiktivní význam a obhajoba
 
 Pokud syntaktická funkce závisí na fiktivním významu kvazislova:
 
-- vztah musí být z tohoto uzavřeného seznamu,
-- musí odpovídat běžné české analogii.
+- vztah musí být z uzavřeného seznamu hlavních vztahů,
+- musí splnit jeho rozhodovací test a všechny vyžadované vazby,
+- řešitel uvede běžnou českou analogii se stejnou konstrukcí.
 
-## TODO
+Analogie nemusí být jedním z příkladů uvedených v tomto taháku. Může ukázat jiný běžný významový podtyp, ale nesmí vytvořit nový hlavní syntaktický vztah ani obejít valenci.
 
-Ke každému vztahu doplnit:
-- krátkou definici,
-- jednu nebo několik běžných českých ukázkových vět,
-- jednoduchou kontrolní otázku pro hráče,
-- co se za tento vztah naopak nepovažuje.
+## Formulář
+
+U každého slova se ukládá hlavní syntaktická funkce a všechny vazby vyžadované jejím rozhodovacím testem. Povinné vybírání odborného významového podtypu, například konkrétního druhu příslovečného určení, se nevyžaduje.
+
+Je-li vztah významově nejasný nebo závislý na fiktivním významu, formulář vyžádá krátkou obhajobu a běžnou českou analogii.

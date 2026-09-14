@@ -117,6 +117,8 @@ Kontrola: Shoduje se tvar s řídícím jménem?
 
 Příklady mají používat běžná česká slova mimo soutěžní kandidátní prostor, aby nenapovídaly konkrétní tahy.
 
+Karta pojmenovává hlavní syntaktickou funkci a její rozhodovací test. Nevyžaduje po hráči odborné určení významového podtypu a uvedený příklad není vyčerpávajícím seznamem povolených realizací.
+
 ## 7. Identita jako krátký checklist
 
 Ne vysvětlovat dlouhým prose textem, ale tabulkou:

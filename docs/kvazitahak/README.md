@@ -77,6 +77,8 @@ Tahák popisuje **mechanismy**, nikoli inventory konkrétních soutěžních slo
 
 Pokud by norma v taháku otevřela výhodu pouze člověku se znalostí jevu mimo tahák, je to důvod k auditu dané mechaniky.
 
+U syntaxe je uzavřený seznam hlavních vztahů a jejich rozhodovací testy. Běžné významové podtypy těchto vztahů se neomezují na seznam příkladů; příklady jsou názorné, nikoli vyčerpávající.
+
 ## Otevřené decision issues
 
 - #1 dokončení kvazitaháku

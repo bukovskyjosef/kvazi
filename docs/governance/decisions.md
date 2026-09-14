@@ -31,6 +31,10 @@ Tento dokument je stručný decision log. Není náhradou normativních pravidel
 - přístavek ne,
 - elipsa obligatorních členů ne,
 - syntax je uzavřená normativním seznamem,
+- uzavřený je seznam hlavních syntaktických vztahů, nikoli vyčerpávající seznam jejich běžných významových podtypů,
+- každý hlavní vztah má v kvazitaháku jednoduchý rozhodovací test a předepsané vazby ke konkrétním tokenům,
+- příklady jsou ilustrativní; jiný běžný podtyp je přípustný, pokud projde stejným testem a nevytvoří jiný hlavní vztah,
+- formulář nevyžaduje odborné pojmenování významového podtypu, ale vyžaduje hlavní funkci, potřebné vazby a ve významově nejasném případě běžnou českou analogii,
 - lexikální rekce substantiv/adjektiv se nepoužívá.
 
 ## Morfologie

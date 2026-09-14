@@ -93,6 +93,12 @@ Je neměnná konkrétní verze soutěžního podání. Editace vytváří novou 
 ### `sentence_rule_validation`
 Reprezentuje platnost jedné revize vůči konkrétní verzi pravidel a umožňuje revalidaci bez nového podání.
 
+### `syntax_role`
+Reprezentuje uzavřenou hlavní syntaktickou funkci. Odborný významový podtyp není povinným číselníkem a příklady z kvazitaháku se nesmějí změnit v technický whitelist.
+
+### Syntaktické vztahy
+Logický model musí pro každý token uložit všechny odkazy vyžadované zvolenou hlavní funkcí. Některé funkce vyžadují více než jeden vztah, zejména doplněk vazbu k přísudku i podmětu nebo předmětu a spojka koordinace vazby k oběma souřadným částem. Jediný obecný sloupec pro řídící token proto není úplnou cílovou reprezentací; pracovní SQL návrh se upraví v rámci #25 a #8.
+
 ## Důležité invarianty
 
 1. `sentence_revision` je neměnná.

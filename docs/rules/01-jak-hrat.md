@@ -53,7 +53,7 @@ Kvazivěta má:
 
 U rozkazu může být podmět nevyjádřený, pokud je z tvaru slovesa jasný.
 
-Přesně povolené větné vztahy jsou v kvazitaháku. Nelze využít libovolnou exotickou konstrukci jen proto, že někde v češtině existuje.
+Povolené hlavní větné vztahy a jejich jednoduché kontrolní testy jsou v kvazitaháku. Jejich běžné významové varianty nemusí být vyjmenované všechny, ale každá musí projít testem své hlavní funkce. Nelze využít jinou konstrukci jen tím, že ji označíš názvem povoleného vztahu.
 
 ## 4. Co může být slovem
 
