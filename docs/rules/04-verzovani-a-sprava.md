@@ -80,6 +80,32 @@ Kvazi je otevřený kumulativní problém. Zveřejněné schválené řešení s
 
 Projekt nezkoumá, zda byl zveřejněný herní nápad později znovu objeven nezávisle nebo převzat. Smyslem soutěže je posouvat nejdelší známou platnou kvazivětu, nikoli forenzně určovat původ každého dílčího nápadu.
 
+## Veřejná prezentace schválených vět
+
+Veřejná prezentace má ukazovat výsledek a srozumitelně vysvětlit základní stavbu věty; nemá publikovat kompletní validační spis.
+
+Ve výsledkovém přehledu se zveřejňuje zejména samotná věta, skóre (počet slov a soutěžních znaků) a autor nebo spoluautoři.
+
+V detailu věty se u jednotlivých slov veřejně uvádí zejména:
+
+- použitý tvar,
+- status skutečné slovo / kvazislovo,
+- slovní druh,
+- lemma nebo základní tvar,
+- soutěžní vzor nebo model,
+- základní morfologické vlastnosti konkrétního použitého tvaru,
+- hlavní syntaktická role a podle potřeby jednoduché vazby na další slova.
+
+Veřejně se standardně nezveřejňuje:
+
+- celé paradigma,
+- úplná morfologická obhajoba,
+- detailní zdrojové a důkazní podklady,
+- interní katalogové stavy,
+- úplný záznam administrativního nebo rozhodcovského review.
+
+Tyto neveřejné podklady mohou být zachovány pro posouzení, audit a případnou námitku. Omezený veřejný detail nemění pravidlo, že zveřejněné řešení lze jako celek i po částech legitimně použít při dalším hledání.
+
 ## Technická specifikace a omezení aplikace
 Technická specifikace, databázový model ani UI nesmějí změnit jazykovou platnost řešení.
 
