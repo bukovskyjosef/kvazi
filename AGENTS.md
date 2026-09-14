@@ -1,106 +1,115 @@
 # AGENTS.md
 
-Tento repozitář používá více agentů s oddělenými rolemi. **Josef Bukovský je jediný decision owner pro produktová, pravidlová a sporná architektonická rozhodnutí.**
+Tento soubor je **kanonický vstupní kontrakt pro všechny agenty**, kteří pracují s repozitářem. Nástrojově specifické instrukční soubory smějí pouze odkazovat sem a nesmějí kopírovat nebo měnit zdejší pravidla.
 
-## 1. Source of truth
+**Josef Bukovský je jediný decision owner pro produktová, pravidlová a sporná architektonická rozhodnutí.**
+
+## 1. Povinný startup protocol
+
+Před netriviální analýzou, auditem nebo změnou:
+
+1. přečti tento `AGENTS.md`,
+2. přečti `docs/00-project-context.md`,
+3. přečti `docs/README.md` jako mapu autority dokumentace,
+4. načti dokumenty relevantní pro svou roli a úkol,
+5. zjisti **aktuální** stav práce přímo z GitHub Issues,
+6. teprve potom navrhuj změny nebo implementuj.
+
+Nikdy nepoužívej historii chatu, starou auditní zprávu ani ručně udržovaný Markdown seznam jako náhradu za aktuální stav repozitáře a Issues.
+
+## 2. Autorita a source of truth
+
+### Soutěžní platnost
 
 Normativní zdroje jsou:
 
-1. `docs/rules/02-rozhodcovska-specifikace.md`
-2. výslovně označené NORMATIVNÍ části `docs/kvazitahak/`
-3. `docs/rules/03-ai-policy.md`
-4. `docs/rules/04-verzovani-a-sprava.md`
+1. `docs/rules/02-rozhodcovska-specifikace.md`,
+2. výslovně označené **NORMATIVNÍ** části `docs/kvazitahak/`,
+3. `docs/rules/03-ai-policy.md`,
+4. `docs/rules/04-verzovani-a-sprava.md`.
 
-`docs/rules/01-jak-hrat.md` je veřejná stručná vrstva a nesmí vytvářet nové pravidlo.
+`docs/rules/01-jak-hrat.md` je veřejná vysvětlující vrstva a nesmí vytvářet nové pravidlo.
 
-Architektura a SQL návrhy nejsou normativními pravidly hry. Implementace musí pravidla implementovat, nikoli je měnit.
+### Technická implementace
 
-## 2. GitHub Issues jsou jediný backlog
+Architektura, databázové návrhy, UI, validátor, interní katalog a aplikační kód jsou normativním pravidlům podřízené. Implementují pravidla; samy je nemění.
 
-Veškerá otevřená práce se eviduje v GitHub Issues. Dokumentace nesmí udržovat paralelní seznam otevřených bodů, jejich stavů ani priorit.
+### Mapa autority
+
+Detailní klasifikace všech artefaktů je pouze v `docs/README.md`. Neudržuj její kopii v dalších README.
+
+## 3. GitHub Issues jsou jediný živý backlog
+
+Aktuální otevřená práce, její stav, priority, závislosti a disposition se zjišťují přímo z GitHub Issues.
 
 Platí:
-- každý významný otevřený problém nebo úkol má vlastní issue,
-- stav práce určuje GitHub `open/closed`, nikoli seznam v Markdownu,
-- každé issue musí mít alespoň jeden smysluplný label,
-- závislosti, rozhodnutí, změny scope a důvody uzavření se zapisují do issue,
-- rozhodnutí vzniklé v chatu se musí stručně přenést do příslušného issue,
-- dokumenty mohou odkazovat na konkrétní issue, ale nesmějí zrcadlit celý aktuální backlog,
-- `TODO` v dokumentu není náhradou za issue, pokud představuje skutečnou samostatnou práci.
+- každý významný problém nebo úkol, který má přežít aktuální session, má issue,
+- stav práce určuje GitHub `open/closed`, labely a obsah issue,
+- každé aktivní issue má alespoň jeden smysluplný label,
+- rozhodnutí vzniklé mimo GitHub se stručně přenese do příslušného issue,
+- Markdown dokumentace nesmí udržovat paralelní seznam otevřených issues, jejich stavů ani priorit,
+- `TODO` není náhrada za issue, pokud představuje samostatnou práci nebo blokuje další postup.
 
-### Label taxonomy
+Detailní workflow, label taxonomy, prefixy a pravidla konsolidace jsou **pouze** v `docs/governance/decision-workflow.md`.
 
-Používají se zejména tyto existující labely:
-- `question` – otevřené pravidlové, produktové, specifikační nebo auditní téma vyžadující vyjasnění,
-- `enhancement` – plánovaná implementace, feature nebo technické rozšíření,
-- `bug` – rozpor implementace s již přijatým chováním,
-- `documentation` – hlavní výstup je změna pravidel, specifikace nebo dokumentace; může být kombinován s `question`,
-- `duplicate` – detail byl absorbován do jiného master issue; před uzavřením musí být požadavek v cílovém issue skutečně zachycen.
+## 4. Konflikty mezi artefakty
 
-Prefixy v názvu (`[SPEC]`, `[DECISION]`, `[AUDIT]`, `[IMPLEMENTATION]`, `[FEATURE]`, `[META]`) jsou pomocné pro čitelnost. Autoritativní backlogová klasifikace je stav issue + labely + jeho obsah.
+Pokud dva autoritativní nebo relevantní artefakty odporují jeden druhému:
 
-## 3. Role agentů
+1. neurčuj vítěze vlastním odhadem,
+2. ověř související GitHub Issues a explicitní rozhodnutí decision ownera,
+3. pokud již existuje jednoznačné rozhodnutí, oprav zastaralý odvozený artefakt,
+4. pokud rozhodnutí chybí nebo je konflikt skutečně normativní, založ/aktualizuj issue a spornou část neimplementuj,
+5. konflikt mezi dvěma normativními zdroji je governance defect, nikoli prostor pro kreativní interpretaci agenta.
+
+Technický artefakt odporující platnému pravidlu je vadný technický artefakt.
+
+## 5. Role agentů
 
 ### Auditor / oponent
 
 Musí:
-- přečíst celý relevantní repozitář, ne pouze pravidla,
+- načíst celý relevantní kontext, ne pouze pravidla,
 - hledat rozpory, mezery, exploity, expert advantage a skryté předpoklady,
-- auditovat také kvazitahák, architekturu, DB model, validaci, správu verzí a bezpečnostní/provozní návrhy,
-- každý samostatný akční nález založit jako vlastní GitHub Issue,
-- přidělit mu label a uvést závažnost, dotčené artefakty, problém, dopad, varianty a doporučení.
+- auditovat podle `docs/audit/README.md`,
+- každý samostatný akční nález zachytit v GitHub Issue.
 
 Nesmí:
 - bez explicitního rozhodnutí Josefa měnit normativní pravidla,
-- autonomně uzavírat otázku vyžadující produktové rozhodnutí,
-- proměnit vlastní doporučení v hotové produktové rozhodnutí,
+- proměnit vlastní doporučení v produktové rozhodnutí,
 - vést paralelní auditní backlog v textovém souboru.
 
 ### Návrhový / produktový agent
 
-Smí:
-- analyzovat auditní nálezy,
-- připravovat varianty a argumenty,
-- navrhovat změny dokumentů,
-- po explicitním rozhodnutí Josefa zapracovat výsledek do source of truth.
+Smí analyzovat varianty a připravovat návrhy změn.
 
 Musí:
 - zachytit rozhodnutí a jeho důsledky v příslušném issue,
-- aktualizovat všechny dotčené artefakty před uzavřením issue.
+- po explicitním rozhodnutí aktualizovat všechny dotčené canonical artefakty před uzavřením issue.
 
-Nesmí autonomně rozhodnout otevřený produktový problém.
+Nesmí autonomně rozhodnout otevřený produktový nebo pravidlový problém.
 
 ### Vývojový agent
 
-Musí:
-- před implementací přečíst `AGENTS.md`, pravidla, kvazitahák, architekturu a relevantní otevřená issues,
-- pracovat z GitHub Issues, ne z ručně udržovaného seznamu úkolů v dokumentaci,
-- držet implementaci oddělenou od normativních pravidel,
-- při nové nejasnosti založit issue místo domýšlení pravidla,
-- technické kompromisy s dopadem na produktovou platnost předložit Josefovi k rozhodnutí.
+Musí před implementací přečíst relevantní normativní pravidla, architekturu a otevřená issues.
 
 Nesmí:
 - měnit význam pravidel kvůli jednodušší implementaci,
-- považovat DB schéma nebo UI za vyšší autoritu než pravidla,
-- potichu doplňovat chybějící soutěžní model.
+- považovat DB schéma, UI nebo existující kód za vyšší autoritu než pravidla,
+- potichu vyplňovat mezery v neuzavřené specifikaci.
 
-## 4. Životní cyklus issue
+Pokud lze technický základ vytvořit parametricky bez předjímání otevřené otázky, je to přípustné; jinak platí vývojový gate z governance workflow.
 
-1. problém nebo práce je identifikována,
-2. vznikne nebo se najde odpovídající issue,
-3. issue dostane správné labely a vazby,
-4. připraví se varianty / technický plán,
-5. pokud je třeba produktové rozhodnutí, rozhodne Josef,
-6. výsledek se zapíše do issue,
-7. aktualizují se normativní a/nebo technické artefakty,
-8. provede se kontrola konzistence a akceptačních kritérií,
-9. issue se zavře s odpovídajícím důvodem.
+## 6. Historické artefakty
 
-Issue se nezavírá jen proto, že bylo rozhodnuto; zavírá se až po zapracování. Pokud se detail sloučí do master issue, nejdřív se přenese jeho podstata a až potom se původní issue zavře jako `duplicate`.
+`docs/history/`, datované soubory v `docs/audit/` a `docs/governance/decisions.md` mohou obsahovat historický kontext, dřívější názvy issues nebo snapshot tehdejšího stavu.
 
-Podrobný proces je v `docs/governance/decision-workflow.md`.
+- nejsou aktuálním backlogem,
+- nesmějí přebít současné normativní zdroje,
+- aktuální stav issue se vždy ověřuje na GitHubu,
+- `docs/governance/decisions.md` je shrnutí stabilních rozhodnutí, nikoli samostatný normativní source of truth.
 
-## 5. Zásada proti skrytým pravidlům
+## 7. Zásada proti skrytým pravidlům
 
 Žádný z následujících artefaktů nesmí nepozorovaně změnit soutěžní platnost:
 - UI,
@@ -112,30 +121,16 @@ Podrobný proces je v `docs/governance/decision-workflow.md`.
 - README,
 - komentáře v kódu.
 
-Pokud technický artefakt odporuje pravidlům, je vadný technický artefakt.
+## 8. Definition of done pro změnu
 
-## 6. Auditor: povinný rozsah
+Před uzavřením issue nebo označením práce za hotovou:
 
-Nezávislý audit musí zahrnout minimálně:
-- konzistenci mezi vrstvami pravidel,
-- úplnost a hratelnost kvazitaháku,
-- soutěžní identitu,
-- morfologické modely,
-- syntaxi a valenci,
-- AI policy,
-- verzování a revalidaci,
-- interní katalog,
-- architekturu,
-- databázový model,
-- validátor,
-- oddělení dokumentace a implementace,
-- autentizaci/admin/security,
-- rizika budoucího vývoje.
+1. aktualizuj všechny dotčené canonical artefakty,
+2. odstraň nebo oprav zastaralé odvozené tvrzení,
+3. proveď kontrolu konzistence,
+4. spusť relevantní testy/validace, pokud existují,
+5. ověř finální diff,
+6. zapiš výsledek do issue,
+7. až potom issue zavři správným důvodem.
 
-Viz také `docs/audit/README.md`.
-
-## 7. Stav nedokončených specifikací
-
-Dokumenty s `TODO` jsou záměrně nedokončené. Agent nesmí jejich chybějící obsah považovat za implicitně rozhodnutý.
-
-**Aktuální backlog se vždy zjišťuje přímo z GitHub Issues. Žádný textový soubor v repozitáři není indexem aktuálně otevřené práce.**
+Issue se nezavírá jen proto, že bylo rozhodnuto; zavírá se až po zapracování.

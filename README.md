@@ -8,6 +8,12 @@ Repozitář projektu **Nejdelší kvazivěta**.
 - `docs/rules/01-jak-hrat.md`
 - `docs/kvazitahak/README.md`
 
+### Pro agenty
+- `AGENTS.md` – kanonický vstupní kontrakt
+- `docs/00-project-context.md` – smysl a principy projektu
+- `docs/README.md` – mapa dokumentace a autority
+- GitHub Issues – jediný aktuální backlog
+
 ### Pro audit
 - `AGENTS.md`
 - `docs/audit/README.md`
@@ -47,24 +53,13 @@ docs/
   history/
 ```
 
-## Řízení práce přes GitHub Issues
+## Řízení práce
 
 Finální produktová a pravidlová rozhodnutí provádí Josef Bukovský.
 
-**GitHub Issues jsou jediný aktuální backlog projektu.** README ani jiný Markdown soubor neudržuje ruční seznam otevřených úkolů.
+**GitHub Issues jsou jediný aktuální backlog projektu.** README ani jiný Markdown soubor neudržuje seznam otevřených úkolů, jejich stavů nebo priorit.
 
-Aktuální práci je nutné získávat přímo z Issues podle stavu a labelů. Každé issue musí mít alespoň jeden smysluplný label.
-
-Základní labely:
-- `question` – otevřená pravidlová, produktová, specifikační nebo auditní otázka,
-- `enhancement` – plánovaná implementace nebo feature,
-- `bug` – chyba vůči přijatému chování,
-- `documentation` – pravidla/specifikace/dokumentace,
-- `duplicate` – práce absorbovaná do jiného master issue.
-
-Prefixy názvů (`[SPEC]`, `[DECISION]`, `[AUDIT]`, `[IMPLEMENTATION]`, `[FEATURE]`, `[META]`) jsou pouze pomocné pro čitelnost.
-
-Podrobný proces: `docs/governance/decision-workflow.md`.
+Detailní governance, labely a issue workflow jsou pouze v `docs/governance/decision-workflow.md`.
 
 ## Dokumentační vrstvy pro hráče
 
