@@ -126,6 +126,16 @@ table.mt input:focus { background: #eff6ff; border-radius: 3px; }
 
 .vtable tr.v-warn .vd ul { margin: 4px 0 0 16px; font-size: 12px; color: #b45309; }
 .vtable tr.v-warn .vd li { margin-bottom: 2px; }
+
+/* Submit card */
+.submit-card-body { padding: 16px 20px; display: flex; align-items: center; gap: 16px; }
+.submit-btn { padding: 10px 26px; font-size: 14px; font-weight: 600; font-family: inherit; border-radius: 7px; border: none; cursor: pointer; transition: background .15s; }
+.submit-btn.ready  { background: #16a34a; color: #fff; }
+.submit-btn.ready:hover { background: #15803d; }
+.submit-btn.locked { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+.submit-blockers { font-size: 12px; color: #94a3b8; }
+.submit-blockers ul { margin: 4px 0 0 14px; }
+.submit-blockers li { margin-bottom: 2px; }
 </style>
 </head>
 <body>
@@ -169,6 +179,10 @@ table.mt input:focus { background: #eff6ff; border-radius: 3px; }
     </div>
   </div>
 
+  <div class="card">
+    <div class="submit-card-body" id="submitBody"></div>
+  </div>
+
 </div>
 
 <script>
@@ -186,6 +200,23 @@ const TERMS = {
   inf:    ['Infinitiv',      'Neurčitek'],
   imp:    ['Imperativ',      'Rozkazovací způsob'],
   lpart:  ['Příčestí l-ové', 'Příčestí minulé'],
+  mziv:   ['M živ',         'Rod m. živ.'],
+  mneziv: ['M neživ',       'Rod m. neživ.'],
+  rodF:   ['F',             'Rod ž.'],
+  rodN:   ['N',             'Rod str.'],
+  // Slovní druhy
+  verb:   ['Verbum',        'Sloveso'],
+  pron:   ['Pronomen',      'Zájmeno'],
+  prep:   ['Prepozice',     'Předložka'],
+  conj:   ['Konjunkce',     'Spojka'],
+  // Větné funkce
+  vf_podmet:   ['Subjekt',          'Podmět'],
+  vf_prisudek: ['Predikát',         'Přísudek'],
+  vf_predmet:  ['Objekt',           'Předmět'],
+  vf_privs:    ['Atribut shodný',   'Přívlastek shodný'],
+  vf_privn:    ['Atribut neshodný', 'Přívlastek neshodný'],
+  vf_pris:     ['Adverbiale',       'Příslovečné určení'],
+  vf_dopl:     ['Predikativum',     'Doplněk'],
 };
 function T(key) { return TERMS[key][czechMode ? 1 : 0]; }
 
@@ -199,54 +230,63 @@ function SLOVNI_DRUHY() {
   return [
     { id: 'subst', label: T('subst') },
     { id: 'adj',   label: T('adj') },
-    { id: 'verb',  label: 'Sloveso' },
-    { id: 'pron',  label: 'Zájmeno' },
-    { id: 'prep',  label: 'Předložka  (k / v / z)' },
-    { id: 'conj',  label: 'Spojka  (a / i)' },
+    { id: 'verb',  label: T('verb') },
+    { id: 'pron',  label: T('pron') },
+    { id: 'prep',  label: `${T('prep')}  (k / v / z)` },
+    { id: 'conj',  label: `${T('conj')}  (a / i)` },
+  ];
+}
+
+function VETNE_FUNKCE() {
+  return [
+    { id: 'podmet',        label: T('vf_podmet') },
+    { id: 'prisudek',      label: T('vf_prisudek') },
+    { id: 'predmet',       label: T('vf_predmet') },
+    { id: 'priv_shodny',   label: T('vf_privs') },
+    { id: 'priv_neshodny', label: T('vf_privn') },
+    { id: 'pris_urceni',   label: T('vf_pris') },
+    { id: 'doplanek',      label: T('vf_dopl') },
+    { id: 'koordinace',    label: 'Koordinace  (a / i)' },
   ];
 }
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 
-const VZORY_SUBST = [
-  { id: 'pan',      label: 'pán  (M živ, -kons.)' },
-  { id: 'muz',      label: 'muž  (M živ, -kons.)' },
-  { id: 'predseda', label: 'předseda  (M živ, -a)' },
-  { id: 'soudce',   label: 'soudce  (M živ, -e)' },
-  { id: 'hrad',     label: 'hrad  (M neživ, -kons.)' },
-  { id: 'stroj',    label: 'stroj  (M neživ, -kons.)' },
-  { id: 'zena',     label: 'žena  (F, -a)' },
-  { id: 'ruze',     label: 'růže  (F, -e)' },
-  { id: 'pisen',    label: 'píseň  (F, -kons.)' },
-  { id: 'kost',     label: 'kost  (F, -kons.)' },
-  { id: 'mesto',    label: 'město  (N, -o)' },
-  { id: 'more',     label: 'moře  (N, -e)' },
-  { id: 'kure',     label: 'kuře  (N, rozšíř. kmen)' },
-  { id: 'staveni',  label: 'stavení  (N, -í)' },
-];
+function VZORY_SUBST() {
+  const mz = T('mziv'), mn = T('mneziv'), f = T('rodF'), n = T('rodN');
+  return [
+    { id: 'pan',      label: `pán  (${mz}, -kons.)` },
+    { id: 'muz',      label: `muž  (${mz}, -kons.)` },
+    { id: 'predseda', label: `předseda  (${mz}, -a)` },
+    { id: 'soudce',   label: `soudce  (${mz}, -e)` },
+    { id: 'hrad',     label: `hrad  (${mn}, -kons.)` },
+    { id: 'stroj',    label: `stroj  (${mn}, -kons.)` },
+    { id: 'zena',     label: `žena  (${f}, -a)` },
+    { id: 'ruze',     label: `růže  (${f}, -e)` },
+    { id: 'pisen',    label: `píseň  (${f}, -kons.)` },
+    { id: 'kost',     label: `kost  (${f}, -kons.)` },
+    { id: 'mesto',    label: `město  (${n}, -o)` },
+    { id: 'more',     label: `moře  (${n}, -e)` },
+    { id: 'kure',     label: `kuře  (${n}, rozšíř. kmen)` },
+    { id: 'staveni',  label: `stavení  (${n}, -í)` },
+  ];
+}
 
-const VZORY_ADJ = [
-  { id: 'mlady',  label: 'mladý' },
-  { id: 'jarni',  label: 'jarní' },
-  { id: 'otcuv',  label: 'otcův  (přivl. M)' },
-  { id: 'matcin', label: 'matčin  (přivl. F)' },
-];
+function VZORY_ADJ() {
+  const mz = T('mziv'), f = T('rodF');
+  return [
+    { id: 'mlady',  label: 'mladý' },
+    { id: 'jarni',  label: 'jarní' },
+    { id: 'otcuv',  label: `otcův  (přivl. ${mz})` },
+    { id: 'matcin', label: `matčin  (přivl. ${f})` },
+  ];
+}
 
 const VIDY = [
   { id: 'nedok', label: 'Nedokonavý' },
   { id: 'dok',   label: 'Dokonavý' },
 ];
 
-const VETNE_FUNKCE = [
-  { id: 'podmet',        label: 'Podmět' },
-  { id: 'prisudek',      label: 'Přísudek' },
-  { id: 'predmet',       label: 'Předmět' },
-  { id: 'priv_shodny',   label: 'Přívlastek shodný' },
-  { id: 'priv_neshodny', label: 'Přívlastek neshodný' },
-  { id: 'pris_urceni',   label: 'Příslovečné určení' },
-  { id: 'doplanek',      label: 'Doplněk' },
-  { id: 'koordinace',    label: 'Koordinace  (a / i)' },
-];
 
 // Allowed characters (soutěžní abeceda)
 const ALLOWED = new Set(['K','V','Q','A','Á','Z','I','Í','Y','Ý']);
@@ -276,9 +316,11 @@ function newWord(text) {
 
 document.getElementById('wInput').addEventListener('keydown', e => {
   const inp = e.currentTarget;
-  const txt = inp.value.trim();
-  if ((e.key === ' ' || e.key === 'Enter') && txt) {
+  if ((e.key === ' ' || e.key === 'Enter') && inp.value.trim()) {
     e.preventDefault();
+    // Strip trailing period (sentence-end marker); lowercase everything
+    const txt = inp.value.trim().replace(/\.$/, '').trim().toLowerCase();
+    if (!txt) { inp.value = ''; return; } // nothing left after stripping
     const w = newWord(txt);
     words.push(w);
     inp.value = '';
@@ -293,6 +335,28 @@ document.getElementById('wInput').addEventListener('keydown', e => {
     inp.focus();
   }
 });
+
+// ── COMPLETENESS CHECKS ───────────────────────────────────────────────────────
+
+// Returns list of missing config field names for a word.
+function configMissing(w) {
+  const m = [];
+  if (!w.sd) { m.push('slovní druh'); return m; }
+  if (!w.vf) m.push('větná funkce');
+  if ((w.sd === 'subst' || w.sd === 'adj') && !w.vzor) m.push('vzor');
+  if (w.sd === 'verb' && !w.vid) m.push('vid');
+  return m;
+}
+
+function isConfigComplete(w) { return configMissing(w).length === 0; }
+
+// Morfo confirmation is separate from config: word must first be config-complete,
+// then for words with a morfo table the user must explicitly confirm.
+function isMorfoConfirmed(w) {
+  if (!isConfigComplete(w)) return false;
+  if (w.sd === 'prep' || w.sd === 'conj') return true; // no morfo table
+  return w.morfoConfirmed === true;
+}
 
 // ── VALIDATION ────────────────────────────────────────────────────────────────
 
@@ -452,6 +516,13 @@ function validate() {
   const wordCount = words.length;
   const charCount = words.reduce((s, w) => s + w.text.length, 0);
 
+  const configIncomplete = words.filter(w => !isConfigComplete(w));
+  const configOk = words.length > 0 && configIncomplete.length === 0;
+
+  // Only words whose config is complete but morfo not yet confirmed
+  const morfoIncomplete = words.filter(w => isConfigComplete(w) && !isMorfoConfirmed(w));
+  const morfoOk = configOk && morfoIncomplete.length === 0;
+
   return {
     seqOk: seqIssues.length === 0, seqIssues,
     podmetOk, podmetMsg,
@@ -460,6 +531,8 @@ function validate() {
     syntaxIssues,
     wordCount, charCount,
     errWords,
+    configOk, configIncomplete,
+    morfoOk, morfoIncomplete,
   };
 }
 
@@ -472,6 +545,7 @@ function render() {
   renderConfig();
   renderMorfo();
   renderValidation(v);
+  renderSubmit(v);
 }
 
 function renderPreview() {
@@ -481,7 +555,7 @@ function renderPreview() {
     el.textContent = 'Věta se zobrazí zde…';
   } else {
     el.className = 'sentence-preview';
-    el.textContent = words.map(w => w.text).join(' ') + '.';
+    el.textContent = words.map(w => dispText(w)).join(' ') + '.';
   }
 }
 
@@ -492,7 +566,7 @@ function renderTokens(errWords = new Set()) {
   words.forEach((w, i) => {
     const chip = document.createElement('div');
     const hasErr = errWords.has(i);
-    const vf = w.vf ? (VETNE_FUNKCE.find(f => f.id === w.vf)?.label || '') : '';
+    const vf = w.vf ? (VETNE_FUNKCE().find(f => f.id === w.vf)?.label || '') : '';
     const sdLabel = w.sd ? (sd.find(d => d.id === w.sd)?.label || '') : '';
     chip.className = [
       'chip',
@@ -502,7 +576,7 @@ function renderTokens(errWords = new Set()) {
     ].filter(Boolean).join(' ');
     chip.innerHTML =
       `<div class="chip-num">${i+1}</div>` +
-      `<span class="chip-text">${esc(w.text)}</span>` +
+      `<span class="chip-text">${esc(dispText(w))}</span>` +
       (sdLabel||vf ? `<span class="chip-sub">${[sdLabel,vf].filter(Boolean).map(esc).join('<br>')}</span>` : '') +
       `<span class="chip-del" data-id="${w.id}" title="Smazat">&times;</span>`;
     chip.addEventListener('click', e => {
@@ -559,6 +633,37 @@ function renderValidation(v) {
     row('v-info', '—', 'Počet znaků', String(v.charCount), 'Q = 1 znak, KV = 2 znaky');
 }
 
+function renderSubmit(v) {
+  const body = document.getElementById('submitBody');
+  const ready = v.seqOk && v.podmetOk && v.prisudekOk && v.configOk && v.morfoOk && v.wordCount > 0;
+
+  if (ready) {
+    body.innerHTML =
+      `<button class="submit-btn ready" onclick="submitSentence()">Odeslat kvazivětu</button>`;
+    return;
+  }
+
+  const blockers = [];
+  if (v.wordCount === 0) blockers.push('Věta neobsahuje žádná slova');
+  if (!v.seqOk)          blockers.push('Sekvence znaků obsahuje chyby');
+  if (!v.podmetOk)       blockers.push('Podmět: ' + v.podmetMsg);
+  if (!v.prisudekOk)     blockers.push('Přísudek: ' + v.prisudekMsg);
+  if (!v.configOk) {
+    v.configIncomplete.forEach(w => {
+      const missing = configMissing(w).join(', ');
+      blockers.push(`[${idx(w)+1}] „${w.text}" – v konfiguraci chybí: ${missing}`);
+    });
+  }
+  if (!v.morfoOk) {
+    const names = v.morfoIncomplete.map(w => `[${idx(w)+1}] „${w.text}"`).join(', ');
+    blockers.push(`Morfologická identifikace nepotvrzena: ${names}`);
+  }
+
+  body.innerHTML =
+    `<button class="submit-btn locked" disabled>Odeslat kvazivětu</button>` +
+    `<div class="submit-blockers"><ul>${blockers.map(b => `<li>${esc(b)}</li>`).join('')}</ul></div>`;
+}
+
 // ── CONFIG PANEL ──────────────────────────────────────────────────────────────
 
 function renderConfig() {
@@ -572,9 +677,9 @@ function renderConfig() {
 
   let vzorBlock = '';
   if (w.sd === 'subst') {
-    vzorBlock = fld('Vzor', `<select onchange="onF('vzor',this.value)">${oB('— vyberte vzor —')}${os(VZORY_SUBST, w.vzor)}</select>`);
+    vzorBlock = fld('Vzor', `<select onchange="onF('vzor',this.value)">${oB('— vyberte vzor —')}${os(VZORY_SUBST(), w.vzor)}</select>`);
   } else if (w.sd === 'adj') {
-    vzorBlock = fld('Vzor', `<select onchange="onF('vzor',this.value)">${oB('— vyberte vzor —')}${os(VZORY_ADJ, w.vzor)}</select>`);
+    vzorBlock = fld('Vzor', `<select onchange="onF('vzor',this.value)">${oB('— vyberte vzor —')}${os(VZORY_ADJ(), w.vzor)}</select>`);
   } else if (w.sd === 'verb') {
     vzorBlock =
       fld('Vid', `<select onchange="onF('vid',this.value)">${oB('— vyberte —')}${os(VIDY, w.vid)}</select>`) +
@@ -611,7 +716,7 @@ function renderConfig() {
   const depBadges = words.flatMap(x => relationKinds
     .filter(([key]) => x[key] === w.id)
     .map(([, relationLabel]) => {
-      const vfl = x.vf ? VETNE_FUNKCE.find(f => f.id === x.vf)?.label : '';
+      const vfl = x.vf ? VETNE_FUNKCE().find(f => f.id === x.vf)?.label : '';
       return `<span class="dep-badge">[${idx(x)+1}] ${esc(x.text)} · ${esc(relationLabel)}${vfl ? ' · ' + esc(vfl) : ''}</span>`;
     })
   ).join('');
@@ -621,7 +726,7 @@ function renderConfig() {
     <div class="config-grid">
       ${fld('Slovní druh', `<select onchange="onSD(this.value)">${oB('— vyberte —')}${os(SLOVNI_DRUHY(), w.sd)}</select>`)}
       ${vzorBlock}
-      ${fld('Větná funkce', `<select onchange="onF('vf',this.value)">${oB('— vyberte —')}${os(VETNE_FUNKCE, w.vf)}</select>`)}
+      ${fld('Větná funkce', `<select onchange="onF('vf',this.value)">${oB('— vyberte —')}${os(VETNE_FUNKCE(), w.vf)}</select>`)}
       ${relationBlock}
     </div>
     ${depBadges ? `<div class="deps-section"><div class="deps-label">Na tomto slově závisí:</div><div class="deps-list">${depBadges}</div></div>` : ''}
@@ -669,7 +774,7 @@ window.mfInput = (el, id, key) => {
 // Tab moves natively between inputs in DOM order (left→right, top→bottom).
 function mi(w, key, minW) {
   const style = minW ? ` style="min-width:${minW}px"` : '';
-  const isPre = w.m[key] !== undefined && w.m[key] !== '' && !(w.mUser && w.mUser.has(key));
+  const isPre = w.m[key] !== undefined && w.m[key] !== '' && !(w.mUser && w.mUser.has(key)) && !w.morfoConfirmed;
   const cls = isPre ? ' class="mf-pre"' : '';
   return `<input type="text"${style}${cls} value="${esc(w.m[key]||'')}" `
     + `oninput="mfInput(this,${w.id},'${key}')" `
@@ -678,7 +783,7 @@ function mi(w, key, minW) {
 }
 
 function morfoSubst(w) {
-  const vz = w.vzor ? VZORY_SUBST.find(v => v.id === w.vzor)?.label : '(vzor nevybrán)';
+  const vz = w.vzor ? VZORY_SUBST().find(v => v.id === w.vzor)?.label : '(vzor nevybrán)';
   return `<p class="morfo-hint">Vzor: <strong>${esc(vz)}</strong> · doplňte všechny tvary paradigmatu</p>
   <div class="morfo-wrap"><table class="mt">
     <thead><tr><th>Pád</th><th>${T('sg')}</th><th>${T('pl')}</th></tr></thead>
@@ -687,12 +792,13 @@ function morfoSubst(w) {
 }
 
 function morfoAdj(w) {
-  const vz   = w.vzor ? VZORY_ADJ.find(v => v.id === w.vzor)?.label : '(vzor nevybrán)';
+  const vz   = w.vzor ? VZORY_ADJ().find(v => v.id === w.vzor)?.label : '(vzor nevybrán)';
   const poss = w.vzor === 'otcuv' || w.vzor === 'matcin';
   const sg = T('sgA'), pl = T('plA');
+  const mz = T('mziv'), mn = T('mneziv'), f = T('rodF'), n = T('rodN');
   const cols = poss
-    ? [`M živ ${sg}`,`M neživ ${sg}`,`F ${sg}`,`N ${sg}`,`M živ ${pl}`,`ost. ${pl}`]
-    : [`M živ ${sg}`,`M neživ ${sg}`,`F ${sg}`,`N ${sg}`,`M živ ${pl}`,`M neživ ${pl}`,`F ${pl}`,`N ${pl}`];
+    ? [`${mz} ${sg}`,`${mn} ${sg}`,`${f} ${sg}`,`${n} ${sg}`,`${mz} ${pl}`,`ost. ${pl}`]
+    : [`${mz} ${sg}`,`${mn} ${sg}`,`${f} ${sg}`,`${n} ${sg}`,`${mz} ${pl}`,`${mn} ${pl}`,`${f} ${pl}`,`${n} ${pl}`];
   const keys = poss
     ? ['mz_sg','mn_sg','f_sg','n_sg','mz_pl','ost_pl']
     : ['mz_sg','mn_sg','f_sg','n_sg','mz_pl','mn_pl','f_pl','n_pl'];
@@ -823,6 +929,12 @@ window.confirmMorfo = id => {
   const w = byId(id); if (!w) return;
   w.morfoConfirmed = !w.morfoConfirmed;
   renderMorfo();
+  renderSubmit(validate());
+};
+
+window.submitSentence = () => {
+  const sentence = words.map(w => w.text).join(' ') + '.';
+  alert(`Věta odeslána:\n\n${sentence}`);
 };
 
 window.toggleLang = () => {
@@ -834,6 +946,13 @@ window.toggleLang = () => {
 };
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
+
+// Display text for a word: first word gets first char uppercased, rest lowercase.
+function dispText(w) {
+  if (words[0] === w && w.text.length > 0)
+    return w.text[0].toUpperCase() + w.text.slice(1);
+  return w.text;
+}
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
