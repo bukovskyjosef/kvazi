@@ -100,7 +100,7 @@ Přístavek není dovolen.
 
 Elipsa obligatorního členu není dovolena.
 
-Všechny obligatorní členy zvoleného valenčního rámce musí být ve větě výslovně realizovány; jedinou zvláštní výjimkou je povolený nevyjádřený podmět imperativu.
+Všechna obligatorní doplnění, která vyplývají z obhájeného valenčního použití slovesa, musí být ve větě výslovně realizována; jedinou zvláštní výjimkou je povolený nevyjádřený podmět imperativu.
 
 ### Pomocná slovesa
 
@@ -133,6 +133,8 @@ Lexikální rekce podstatných a přídavných jmen se v soutěži **nepoužív�
 Uzavřenost platí pro hlavní syntaktické vztahy uvedené výše. Jejich běžné významové podtypy nejsou samostatnými soutěžními konstrukcemi a nemusí být vyjmenovány všechny. Příklady v kvazitaháku jsou názorné, nikoli vyčerpávající.
 
 Každý deklarovaný vztah musí splnit rozhodovací test své hlavní funkce v normativním kvazitaháku a odevzdání musí zachytit všechny tímto testem vyžadované vazby ke konkrétním tokenům. Pouhé přiřazení názvu povolené funkce konstrukci, která její test nesplňuje, nestačí.
+
+Je-li syntaktická platnost členu závislá na valenci slovesa, posuzuje se podle slovní valenční obhajoby dle oddílu 13 a `docs/kvazitahak/05-valence.md`, nikoli podle uzavřeného seznamu strukturovaných rámců.
 
 ## 7. Slovní druhy
 
@@ -261,23 +263,35 @@ Skutečné doložené krátké formy lze použít pouze tehdy, pokud je připou�
 
 Obecná slovotvorba sama o sobě nezakládá platnost ani identitu. Slovotvorný vztah se dokládá jen tam, kde jej konkrétní soutěžní model výslovně vyžaduje.
 
-## 13. Slovesa
+## 13. Slovesa a valence
 
 Kvazisloveso:
 
 - používá jeden z uzavřených soutěžních časovacích typů v kvazitaháku,
 - volí vid z uzavřené soutěžní sady,
-- deklaruje právě jeden valenční rámec.
+- obsahuje slovní valenční obhajobu konkrétního použití ve větě.
 
-Valenční rámec není omezen malým normativním whitelistem pádových rámců. Hráč jej jednoznačně popíše, ve větě výslovně realizuje všechny obligatorní sloty a doloží jej konkrétním současným českým slovesem, které používá stejný valenční rámec.
+Valence není samostatný strukturovaný soutěžní model a není součástí morfologické ani soutěžní identity slovesa.
 
-Modelové sloveso pro valenci nemusí být stejné jako model pro časování nebo jiné morfologické vlastnosti.
+Hráč ji obhajuje volným textem. Z obhajoby musí být srozumitelné:
+
+- jaká doplnění zvolené použití slovesa vyžaduje,
+- která slova nebo části konkrétní kvazivěty tato doplnění realizují,
+- o jaké konkrétní současné české sloveso a jeho použití se obhajoba opírá.
+
+Pravidla nevyžadují převod této obhajoby do kanonického kódu typu `ACC`, `DAT + ACC` ani do strukturovaného seznamu valenčních slotů.
+
+Všechna obligatorní doplnění vyplývající z obhájeného valenčního použití musí být ve větě výslovně realizována.
+
+Modelové sloveso pro valenci nemusí být stejné jako případný jazykový podklad pro časování nebo jiné morfologické vlastnosti.
 
 Časování se neposuzuje analogií s libovolným českým slovesem.
 
 Vid se nedokládá libovolným externím modelovým slovesem.
 
-Přesné časovací typy zůstávají `TODO` normativního kvazitaháku. Princip vidu a valence je již rozhodnutý; otevřená zůstává jejich technická reprezentace tam, kde ji řeší formulář a datový model.
+Valenční obhajoba se automaticky jazykově nevaliduje ani neporovnává jako katalogová identita. Při jazykovém review však může být důvodem k zamítnutí řešení, pokud analogie neobstojí nebo ve větě chybí obligatorní doplnění, které z obhájeného použití vyplývá.
+
+Přesné časovací typy zůstávají `TODO` normativního kvazitaháku.
 
 ## 14. Fiktivní význam
 
@@ -289,12 +303,12 @@ Fiktivní význam:
 - nesmí vytvářet novou identitu,
 - nesmí měnit morfologii,
 - nesmí zakládat nepovolenou rekci,
-- nesmí nahrazovat valenční rámec,
+- nesmí nahrazovat valenční obhajobu,
 - nesmí obcházet soutěžní omezení.
 
 Lze jej použít pouze v rámci výslovně povoleného syntaktického vztahu.
 
-Pokud je význam pro platnost konstrukce podstatný, použití musí odpovídat běžné české analogii uvedené v kvazitaháku nebo jiné zjevně stejné konstrukci současné spisovné češtiny. Jiná analogie může doložit běžný významový podtyp povoleného vztahu, ale nesmí vytvořit nový hlavní syntaktický vztah ani obejít jeho rozhodovací test nebo valenci.
+Pokud je význam pro platnost konstrukce podstatný, použití musí odpovídat běžné české analogii uvedené v kvazitaháku nebo jiné zjevně stejné konstrukci současné spisovné češtiny. Jiná analogie může doložit běžný významový podtyp povoleného vztahu, ale nesmí vytvořit nový hlavní syntaktický vztah ani obejít jeho rozhodovací test nebo valenční obhajobu.
 
 ## 15. Soutěžní identita
 
@@ -320,9 +334,11 @@ Rod, pád, číslo, stupeň a syntaktická funkce novou identitu nevytvářejí.
 
 Identitu tvoří:
 
-`infinitiv + soutěžní časovací typ + valenční rámec`
+`infinitiv + soutěžní časovací typ`
 
-Vid sám o sobě novou identitu nevytváří.
+Vid ani valence samy o sobě novou identitu nevytvářejí.
+
+V jedné kvazivětě je právě jeden plnovýznamový slovesný token; valence se proto nepoužívá jako prostředek rozlišování více slovesných identit uvnitř jedné věty.
 
 ### Zájmeno
 
@@ -342,6 +358,7 @@ Samo o sobě novou identitu nevytváří zejména:
 - číslo,
 - stupeň adjektiva,
 - vid slovesa,
+- valenční obhajoba slovesa,
 - variantní koncovka,
 - dubleta,
 - slovotvorný původ,
@@ -381,6 +398,8 @@ Odevzdání musí pro každé slovo strukturovaně zachytit alespoň:
 - všechny vztahy ke konkrétním dalším tokenům, které zvolená syntaktická konstrukce vyžaduje,
 - další údaje daného modelu.
 
+U slovesa musí být navíc uvedena slovní valenční obhajoba podle oddílu 13. Tato obhajoba se nepřevádí do další morfologické identity ani do povinného strukturovaného valenčního rámce.
+
 Odborný významový podtyp hlavní syntaktické funkce není povinným strukturovaným údajem, pokud jej jiné výslovné normativní pravidlo nevyžaduje. Je-li vztah nejasný nebo závislý na fiktivním významu, zachytí se v obhajobě běžná česká analogie.
 
 Konkrétní UI ani datový model formuláře nesmí měnit jazykovou platnost.
@@ -400,7 +419,7 @@ Pro jiné jazykové otázky mohou být relevantní zejména:
 
 Žádný z těchto dalších zdrojů nerozšiřuje množinu skutečných soutěžních slov vymezenou oddílem 9. Náhodný internetový výskyt sám o sobě nestačí ani pro jinou jazykovou obhajobu.
 
-U kvazislova se nedokládá existence slova, ale pravidlo/model, o který se opírá.
+U kvazislova se nedokládá existence slova, ale pravidlo/model, o který se opírá. U valenční obhajoby se dokládá jazyková analogie konkrétního použití slovesa, nikoli samostatná soutěžní identita.
 
 ## 19. Nástroje
 
