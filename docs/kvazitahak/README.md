@@ -40,6 +40,7 @@ Příklady, komentáře a vysvětlivky jsou didaktické a samy o sobě pravidla 
 - `04-slovesa.md` – časovací typy a vid
 - `05-valence.md` – uzavřené valenční rámce
 - `06-hranicni-pravidla.md` – málo pravděpodobné a hraniční mechanismy
+- `07-player-format-proposal.md` – nenormativní návrh výsledné podoby materiálu pro hráče
 
 ## Povinný cílový obsah
 
