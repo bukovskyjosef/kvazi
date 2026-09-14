@@ -1,6 +1,6 @@
 # Kvazitahák – slovesa
 
-> **Status:** architektura pravidla je rozhodnutá, konkrétní typy ještě nejsou navrženy.
+> **Status:** architektura pravidla a princip výběru typů jsou rozhodnuté; konkrétní typy ještě nejsou uzavřeny.
 
 ## NORMATIVNÍ princip
 
