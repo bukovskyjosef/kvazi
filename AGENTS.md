@@ -15,7 +15,31 @@ Normativní zdroje jsou:
 
 Architektura a SQL návrhy nejsou normativními pravidly hry. Implementace musí pravidla implementovat, nikoli je měnit.
 
-## 2. Role agentů
+## 2. GitHub Issues jsou jediný backlog
+
+Veškerá otevřená práce se eviduje v GitHub Issues. Dokumentace nesmí udržovat paralelní seznam otevřených bodů, jejich stavů ani priorit.
+
+Platí:
+- každý významný otevřený problém nebo úkol má vlastní issue,
+- stav práce určuje GitHub `open/closed`, nikoli seznam v Markdownu,
+- každé issue musí mít alespoň jeden smysluplný label,
+- závislosti, rozhodnutí, změny scope a důvody uzavření se zapisují do issue,
+- rozhodnutí vzniklé v chatu se musí stručně přenést do příslušného issue,
+- dokumenty mohou odkazovat na konkrétní issue, ale nesmějí zrcadlit celý aktuální backlog,
+- `TODO` v dokumentu není náhradou za issue, pokud představuje skutečnou samostatnou práci.
+
+### Label taxonomy
+
+Používají se zejména tyto existující labely:
+- `question` – otevřené pravidlové, produktové, specifikační nebo auditní téma vyžadující vyjasnění,
+- `enhancement` – plánovaná implementace, feature nebo technické rozšíření,
+- `bug` – rozpor implementace s již přijatým chováním,
+- `documentation` – hlavní výstup je změna pravidel, specifikace nebo dokumentace; může být kombinován s `question`,
+- `duplicate` – detail byl absorbován do jiného master issue; před uzavřením musí být požadavek v cílovém issue skutečně zachycen.
+
+Prefixy v názvu (`[SPEC]`, `[DECISION]`, `[AUDIT]`, `[IMPLEMENTATION]`, `[FEATURE]`, `[META]`) jsou pomocné pro čitelnost. Autoritativní backlogová klasifikace je stav issue + labely + jeho obsah.
+
+## 3. Role agentů
 
 ### Auditor / oponent
 
@@ -23,13 +47,14 @@ Musí:
 - přečíst celý relevantní repozitář, ne pouze pravidla,
 - hledat rozpory, mezery, exploity, expert advantage a skryté předpoklady,
 - auditovat také kvazitahák, architekturu, DB model, validaci, správu verzí a bezpečnostní/provozní návrhy,
-- každý samostatný nález založit jako vlastní GitHub Issue s prefixem `[AUDIT]`,
-- uvést závažnost, dotčené soubory, problém, 1–3 varianty, výhody/nevýhody a doporučení.
+- každý samostatný akční nález založit jako vlastní GitHub Issue,
+- přidělit mu label a uvést závažnost, dotčené artefakty, problém, dopad, varianty a doporučení.
 
 Nesmí:
 - bez explicitního rozhodnutí Josefa měnit normativní pravidla,
-- uzavírat `[DECISION]` issues,
-- proměnit vlastní doporučení v hotové produktové rozhodnutí.
+- autonomně uzavírat otázku vyžadující produktové rozhodnutí,
+- proměnit vlastní doporučení v hotové produktové rozhodnutí,
+- vést paralelní auditní backlog v textovém souboru.
 
 ### Návrhový / produktový agent
 
@@ -37,17 +62,21 @@ Smí:
 - analyzovat auditní nálezy,
 - připravovat varianty a argumenty,
 - navrhovat změny dokumentů,
-- po explicitním rozhodnutí Josefa zapracovat rozhodnutí do source of truth.
+- po explicitním rozhodnutí Josefa zapracovat výsledek do source of truth.
 
-Nesmí:
-- autonomně rozhodnout otevřený produktový problém.
+Musí:
+- zachytit rozhodnutí a jeho důsledky v příslušném issue,
+- aktualizovat všechny dotčené artefakty před uzavřením issue.
+
+Nesmí autonomně rozhodnout otevřený produktový problém.
 
 ### Vývojový agent
 
 Musí:
 - před implementací přečíst `AGENTS.md`, pravidla, kvazitahák, architekturu a relevantní otevřená issues,
+- pracovat z GitHub Issues, ne z ručně udržovaného seznamu úkolů v dokumentaci,
 - držet implementaci oddělenou od normativních pravidel,
-- při nejasnosti založit issue místo domýšlení pravidla,
+- při nové nejasnosti založit issue místo domýšlení pravidla,
 - technické kompromisy s dopadem na produktovou platnost předložit Josefovi k rozhodnutí.
 
 Nesmí:
@@ -55,23 +84,23 @@ Nesmí:
 - považovat DB schéma nebo UI za vyšší autoritu než pravidla,
 - potichu doplňovat chybějící soutěžní model.
 
-## 3. Workflow otevřených problémů
+## 4. Životní cyklus issue
 
-- Každý významný otevřený problém má vlastní GitHub Issue.
-- `[DECISION]` = vyžaduje rozhodnutí Josefa.
-- `[AUDIT]` = nový auditní nález.
-- `[IMPLEMENTATION]` = čistě technický úkol po uzavření potřebných rozhodnutí.
-- `[META]` = repo/procesní úkol.
+1. problém nebo práce je identifikována,
+2. vznikne nebo se najde odpovídající issue,
+3. issue dostane správné labely a vazby,
+4. připraví se varianty / technický plán,
+5. pokud je třeba produktové rozhodnutí, rozhodne Josef,
+6. výsledek se zapíše do issue,
+7. aktualizují se normativní a/nebo technické artefakty,
+8. provede se kontrola konzistence a akceptačních kritérií,
+9. issue se zavře s odpovídajícím důvodem.
 
-Diskuse může probíhat v issue nebo v chatu, ale finální rozhodnutí musí být následně zachyceno v repozitáři.
+Issue se nezavírá jen proto, že bylo rozhodnuto; zavírá se až po zapracování. Pokud se detail sloučí do master issue, nejdřív se přenese jeho podstata a až potom se původní issue zavře jako `duplicate`.
 
-Po rozhodnutí:
-1. aktualizovat normativní nebo technické dokumenty,
-2. aktualizovat `docs/governance/decisions.md`, pokud jde o významné rozhodnutí,
-3. zavřít příslušné issue až po konzistentním zapracování,
-4. pokud rozhodnutí mění soutěžní pravidla, postupovat podle verzování.
+Podrobný proces je v `docs/governance/decision-workflow.md`.
 
-## 4. Zásada proti skrytým pravidlům
+## 5. Zásada proti skrytým pravidlům
 
 Žádný z následujících artefaktů nesmí nepozorovaně změnit soutěžní platnost:
 - UI,
@@ -85,28 +114,28 @@ Po rozhodnutí:
 
 Pokud technický artefakt odporuje pravidlům, je vadný technický artefakt.
 
-## 5. Auditor: povinný rozsah
+## 6. Auditor: povinný rozsah
 
 Nezávislý audit musí zahrnout minimálně:
-- konzistenci mezi třemi vrstvami pravidel,
+- konzistenci mezi vrstvami pravidel,
 - úplnost a hratelnost kvazitaháku,
 - soutěžní identitu,
 - morfologické modely,
 - syntaxi a valenci,
 - AI policy,
 - verzování a revalidaci,
-- interní katalog a námitkový proces,
+- interní katalog,
 - architekturu,
 - databázový model,
-- znakový validátor,
+- validátor,
 - oddělení dokumentace a implementace,
-- magic link / komentáře / admin,
+- autentizaci/admin/security,
 - rizika budoucího vývoje.
 
-Viz také `docs/audit/README.md` a umbrella issue `[AUDIT] Kompletní nezávislý audit repozitáře`.
+Viz také `docs/audit/README.md`.
 
-## 6. Stav nedokončených specifikací
+## 7. Stav nedokončených specifikací
 
 Dokumenty s `TODO` jsou záměrně nedokončené. Agent nesmí jejich chybějící obsah považovat za implicitně rozhodnutý.
 
-Aktuální rozhodovací backlog je v GitHub Issues s prefixem `[DECISION]` a v `docs/governance/open-issues.md`.
+**Aktuální backlog se vždy zjišťuje přímo z GitHub Issues. Žádný textový soubor v repozitáři není indexem aktuálně otevřené práce.**
