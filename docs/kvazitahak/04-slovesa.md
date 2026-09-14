@@ -14,11 +14,28 @@ Každé kvazisloveso musí mít:
 
 Zvolený časovací typ musí přesně určovat vztah mezi infinitivem, případným kmenem, deklarovanými morfologickými hodnotami a použitým tvarem. Nesmí připustit, aby se tentýž použitý tvar odvozoval z libovolně mnoha infinitivů a soutěžních identit.
 
-## TODO – časovací typy
+## NORMATIVNÍ princip výběru časovacích typů
 
-Je nutné vytvořit **malou uzavřenou sadu soutěžních časovacích typů**.
+Soutěžní sada časovacích typů je **minimální a odvozená z reachability auditu**.
 
-Každý typ musí normativně definovat:
+Samostatný časovací typ se zařadí pouze tehdy, pokud přináší alespoň jednu novou soutěžně dosažitelnou morfologickou možnost, kterou nelze reprezentovat již existujícím soutěžním typem.
+
+Rozdíl mezi dvěma českými slovesnými vzory nebo třídami sám o sobě nestačí k vytvoření dvou soutěžních typů, pokud jejich soutěžně dosažitelné možnosti nejsou odlišné.
+
+Pracovní typy `V-AT` a `V-IT` jsou výchozími kandidáty pro reachability audit, nikoli automaticky schválenými finálními typy.
+
+Každý kandidátní typ musí být před zařazením ověřen z hlediska:
+
+- soutěžní dosažitelnosti alespoň jedné vlastní morfologické možnosti,
+- konečného a rozhodnutelného počtu soutěžních identit pro konkrétní použitý tvar,
+- srozumitelnosti pro veřejného hráče,
+- absence redundantního soutěžního typu, který by nepřinesl nic navíc.
+
+## TODO – konkrétní časovací typy
+
+Je nutné provést reachability audit pravidelných kandidátních modelů a z něj vytvořit výslednou malou uzavřenou sadu soutěžních časovacích typů.
+
+Každý výsledný typ musí normativně definovat:
 
 - podmínku lemmatu / infinitivu,
 - přesné vymezení vztahu mezi infinitivem a případným kmenem, včetně všech dovolených variant,
