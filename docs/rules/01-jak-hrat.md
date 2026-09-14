@@ -139,7 +139,31 @@ Autory konkrétního podání jsou osoby uvedené u tohoto podání. Převzetí 
 
 Přesně shodné řešení může odevzdat více lidí. Pokud má stejné skóre jako existující rekord, jde o společný rekord; pořadí podání nerozhoduje.
 
-## 9. Nástroje a AI
+## 9. Co je veřejné po schválení
+
+Schválené věty se zveřejňují tak, aby bylo možné pochopit výsledek a základní stavbu věty, nikoli jako úplný revizní spis.
+
+Ve výsledkovém přehledu se zobrazuje zejména:
+
+- samotná schválená věta,
+- počet slov a počet soutěžních znaků,
+- autor nebo spoluautoři.
+
+V detailu schválené věty se u jednotlivých slov veřejně ukazuje zejména:
+
+- použitý tvar,
+- zda jde o skutečné slovo nebo kvazislovo,
+- slovní druh,
+- lemma / základní tvar,
+- soutěžní vzor nebo model,
+- základní morfologické vlastnosti konkrétního použitého tvaru,
+- hlavní roli slova ve větě a podle potřeby jednoduchou informaci o jeho vazbě na další slovo.
+
+Veřejný detail naopak neobsahuje celé paradigma, úplnou morfologickou obhajobu, detailní zdrojové podklady, interní katalogové stavy ani úplný záznam rozhodčího. Tyto podklady mohou být součástí neveřejného posouzení.
+
+Zveřejněná věta zůstává legitimní společnou znalostí hry i tehdy, když její kompletní interní obhajoba není veřejná.
+
+## 10. Nástroje a AI
 
 Řešení musíš vytvořit vlastní hlavou.
 
@@ -153,7 +177,7 @@ Nesmíš s ní řešit pravidla hry, kvazitahák, existující či plánovanou k
 
 > **Technika smí ověřit konkrétní lidský nápad. Nesmí jej hledat ani vytvořit. AI navíc nesmí dostat žádný kvazikontext.**
 
-## 10. Co když najdeš díru v pravidlech?
+## 11. Co když najdeš díru v pravidlech?
 
 Pokud je tvoje řešení podle aktuální verze opravdu platné a dodržel jsi soutěžní proces, musí být uznáno.
 
