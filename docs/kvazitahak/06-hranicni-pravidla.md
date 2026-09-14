@@ -1,23 +1,26 @@
 # Závazná hraniční pravidla
 
-> **Status:** struktura je rozhodnutá; obsah se doplní po reachability auditu.
+> **Status:** tato kapitola je určena pro pravidlově výjimečné nebo vysvětlovací okrajové situace; reachability není důvodem k přesunu mechanismu do této kapitoly.
 
-Tato kapitola obsahuje normativní pravidla pro hraniční, výjimečné nebo málo pravděpodobné situace, které není vhodné zatěžovat do základního návodu.
+Tato kapitola může obsahovat normativní pravidla pro situace, které jsou strukturálně výjimečné, vyžadují zvláštní vysvětlení nebo by zbytečně zatěžovaly základní návod.
 
-Nejde o seznam tipů pro hráče ani katalog možných řešení.
+Nejde o seznam tipů pro hráče, katalog možných řešení ani seznam známých slepých cest.
 
-## Kandidáti k přesunu po reachability auditu
+## NORMATIVNÍ: reachability není kritérium umístění
 
-- pomocná slovesa,
-- zájmena,
-- vzor `kuře`,
-- přivlastňovací adjektiva `otcův/matčin`,
-- stupňování,
-- krátké jmenné tvary adjektiv,
-- jiné mechanismy, které se ukážou jako nedosažitelné nebo prakticky marginální.
+Mechanismus, model nebo morfologická větev se do hraničních pravidel **nepřesouvá pouze proto, že je obtížně dosažitelná nebo prokazatelně nedosažitelná** v aktuálním znakovém systému.
 
-## Pravidlo přesunu
+Je-li například morfologický model součástí normativní sady substantiv nebo adjektiv, zůstává v příslušné hlavní morfologické tabulce bez ohledu na to, zda z něj lze skutečně vytvořit použitelný soutěžní povrchový tvar.
 
-Hlavní veřejná pravidla mají popisovat především mechanismy, které lze v aktuální soutěžní verzi reálně využít.
+Známá nedosažitelnost se hráči nemá předem označovat. Možnost samostatně objevit, že některá pravidlově dovolená cesta nikam nevede, je záměrnou součástí hry.
 
-Mechanismus se nemá označit za nedosažitelný pouze proto, že při analýze nebyl nalezen příklad; je potřeba jednoznačný závěr v rámci uzavřeného soutěžního systému.
+## Co sem naopak patří
+
+Hraniční kapitola je vhodná tehdy, když daný případ:
+
+- používá zvláštní pravidlo nebo výjimku oproti běžnému modelu,
+- vyžaduje zvláštní rozhodovací test,
+- je pro běžné čtení příliš technický, ale stále normativně relevantní,
+- nebo potřebuje vysvětlit vztah několika jinak samostatných pravidel.
+
+O umístění tedy rozhoduje **struktura a srozumitelnost pravidla**, nikoli pravděpodobnost nalezení použitelného tahu.
