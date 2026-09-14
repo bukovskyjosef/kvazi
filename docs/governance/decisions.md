@@ -7,11 +7,11 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 ## Autorita a governance
 
 - Finální produktová a pravidlová rozhodnutí provádí Josef Bukovský.
-- Normativní pravidla mají vyšší autoritu než architektura, databáze, UI nebo interní katalog.
+- Normativní pravidla mají vyšší autoritu než architektura, databáze nebo UI.
 - Technická implementace nesmí sama vytvářet nové soutěžní pravidlo.
 - TODO není implicitní rozhodnutí.
 - Uživatelská deklarace analýzy není sama morfologickou pravdou.
-- Odvozená data musí být reprodukovatelná ze zdrojových dat a příslušné rules/catalog/validator provenance.
+- Projekt upřednostňuje srozumitelnou a praktickou správu recesní hry před maximální formální přesností tam, kde by přesnost nepřinášela odpovídající herní hodnotu.
 
 ## Soutěžní abeceda a motiv
 
@@ -121,12 +121,11 @@ Dříve schválený UX princip zůstává:
 - potvrzení se váže ke konkrétnímu aktuálnímu snapshotu a změna potvrzovaných dat je zneplatní,
 - FE správnost paradigmatu před submittem neposuzuje.
 
-### Katalog nesmí měnit formulář — rozhodnutí 15/19
+### Katalog a formulář
 
-- Hráč před submittem nikdy nedostane informaci, zda interní katalog jeho identitu/tvar už zná.
-- Formulář je stejný při prázdném i vybudovaném katalogu.
-- Hráč vždy předkládá úplnou požadovanou strukturovanou deklaraci a minimální důkaz/obhajobu podle pravidel.
-- Katalog šetří práci rozhodčímu, nikoli povinnosti formuláře hráči.
+- Morfologický učící se katalog nesmí před submittem radit hráči, zda jeho novou morfologickou analýzu už zná.
+- U katalogu skutečných slov je samostatně otevřeno (#72), zda bude celý zveřejněný, částečně dohledatelný, nebo neveřejný.
+- Hráč vždy předkládá požadovanou deklaraci podle pravidel; technické UI nesmí samo vytvářet jazykové pravidlo.
 
 ## Uživatelské účty a administrace
 
@@ -154,36 +153,41 @@ Magic-link login se pro MVP nepoužívá. Zapomenuté heslo se řeší časově 
 
 Komentáře nejsou součástí MVP. Neimplementují se komentářové identity, magic linky, moderace komentářů ani jejich privacy/retention lifecycle. Případné budoucí komentáře budou nové produktové rozhodnutí.
 
-## Interní učící se katalog
+## Katalogy
 
-### Semantika katalogu — rozhodnutí 13/19
+### Katalog skutečných slov — rozhodnutí #68
 
-Katalog je znalostní báze předchozího rozhodování pro konkrétní `rules_version`, nikoli předem úplný whitelist.
+- Pro status „skutečné slovo“ je soutěžní autoritou náš ručně spravovaný katalog skutečných slov/tvarů.
+- Je-li odpovídající soutěžní identita a použitý tvar v katalogu schválený, považuje se pro soutěž za skutečné slovo.
+- Není-li v katalogu, hráč může požádat o přezkoumání nebo vznést námitku; po jazykovém ověření lze katalog doplnit nebo opravit.
+- IJP, ASSČ a další odborné jazykové zdroje jsou podklady pro správu katalogu, nikoli samy přímý soutěžní whitelist.
+- Katalog je záměrně průběžně spravovatelný a jeho jednotlivé změny nevyžadují novou `rules_version`.
+- Přijímáme tím menší míru formální reprodukovatelnosti ve prospěch jednoduchosti a recesního charakteru projektu.
+- Zda bude katalog veřejně a taxativně zveřejněn, zůstává otevřeno v #72.
 
-- Nová rules verze začíná z hlediska automatického schvalování prázdná.
-- `APPROVED` znamená, že přesná identita/tvar jsou pro danou rules verzi schválené a další shodný výskyt lze automaticky uznat.
-- `REJECTED` znamená předchozí negativní rozhodnutí s uloženým důvodem/provenance.
-- `UNKNOWN` znamená, že rozhodná znalost neexistuje; absence není neplatnost a vyžaduje ruční review.
-- Schválení neznámého případu vytváří budoucí `APPROVED`; zamítnutí `REJECTED`.
-- Zamítnutí kteréhokoli slova/identity nezbytné pro deklarovanou analýzu znamená zamítnutí dané revize věty.
-- Historie katalogu starších rules verzí se zachovává, ale automaticky se nepřenáší do verze nové.
+### Morfologický učící se katalog — rozhodnutí 13/19
+
+Morfologický katalog je znalostní báze předchozího morfologického rozhodování pro konkrétní `rules_version`, nikoli předem úplný whitelist.
+
+- Nová rules verze začíná z hlediska automatického morfologického schvalování prázdná.
+- `APPROVED` znamená, že přesná identita/tvar jsou pro danou rules verzi morfologicky schválené a další shodný výskyt lze automaticky uznat.
+- `REJECTED` znamená předchozí negativní morfologické rozhodnutí s uloženým důvodem.
+- `UNKNOWN` znamená, že rozhodná znalost neexistuje a je nutné ruční review.
 - Valenční obhajoba není součástí katalogového klíče morfologické identity slovesa.
 
-### Katalog je součást MVP — rozhodnutí 19/19
+### Katalogová podpora je součást MVP — rozhodnutí 19/19
 
-Minimální učící se katalog je povinnou součástí prvního veřejného MVP. Musí podporovat interní lookup po uzamčeném submitu, stavy/semantiku `APPROVED / REJECTED / UNKNOWN`, automatické znovupoužití schválení v rámci stejné rules verze a auditní stopu rozhodnutí.
-
-Mimo první MVP mohou zůstat pokročilé bulk importy, veřejné katalogové rozhraní, složitý námitkový workflow, AI příprava katalogových dat a pokročilé porovnávání verzí.
+První veřejné MVP musí umět používat katalog skutečných slov a minimální učící se morfologický katalog při review. Pokročilé bulk importy, složitý námitkový workflow a veřejné katalogové rozhraní mohou zůstat mimo první MVP; způsob zveřejnění katalogu skutečných slov je otevřen v #72.
 
 ## Revize, revalidace a historie
 
 ### Historické a aktuální schválení — rozhodnutí 14/19
 
 - Schválení podle starší rules verze je neměnný historický fakt.
-- Nová `rules_version` vytvoří nový obsahový validační výsledek nad stejou immutable revizí; starý verdikt nepřepisuje.
+- Nová `rules_version` vytvoří nový obsahový validační výsledek nad stejnou immutable revizí; starý verdikt nepřepisuje.
 - Do aktuálního žebříčku vstupují jen řešení platná/uznaná podle aktuální rules verze.
-- Historická procesní compliance původního podání (např. tehdy platná AI/tool policy) se při obsahové revalidaci retroaktivně nepřehodnocuje.
-- Pokud se scoring semantics změní, skóre patří ke konkrétní validaci podle konkrétní rules verze.
+- Historická procesní compliance původního podání se při obsahové revalidaci retroaktivně nepřehodnocuje.
+- Průběžná správa katalogu skutečných slov není sama o sobě novou `rules_version` a nemá sloužit k bezdůvodnému rušení již schválených historických řešení.
 
 ### Immutable revize — rozhodnutí 18/19
 
@@ -195,33 +199,26 @@ Mimo první MVP mohou zůstat pokročilé bulk importy, veřejné katalogové ro
 
 ## Rules release a reprodukovatelnost
 
-### Kdy vzniká nová rules version — rozhodnutí 16/19
+### Kdy vzniká nová rules version — rozhodnutí 16/19 + #68
 
-- Bez nové verze jsou dovoleny jen čistě redakční/vysvětlující změny, které nemohou změnit verdikt žádného řešení.
-- Jakákoli změna nebo autoritativní výklad, který může změnit platnost alespoň jednoho řešení, vyžaduje novou `rules_version` (typicky patch release).
-- Samostatná paralelní `interpretation_revision` se nezavádí.
+- Nová `rules_version` je potřeba při změně samotných soutěžních pravidel nebo autoritativního výkladu pravidla.
+- Čistě redakční změny pravidel novou verzi nevyžadují.
+- Doplnění nebo oprava provozního katalogu skutečných slov se nepovažuje za změnu pravidla a novou `rules_version` sama o sobě nevyžaduje.
+- Projekt vědomě neusiluje o absolutní historickou reprodukovatelnost každého stavu externích jazykových zdrojů.
 
 ### Immutable manifest — rozhodnutí 17/19
 
-- Každá rules verze má immutable manifest všech normativních artefaktů a hash každé položky; manifest může mít i vlastní souhrnný hash.
+- Každá rules verze má immutable manifest normativních pravidlových artefaktů a hash každé položky; manifest může mít i vlastní souhrnný hash.
 - Git commit/tag se ukládá pouze jako doplňková reference, nikoli jako jediná definice normativního rozsahu.
-- Normativní číselníky, paradigmata a modely, které mohou změnit verdikt, patří do stejného verzovaného normativního balíku.
-- Interní katalog je od pravidel oddělená provozní znalost.
-
-## Skutečná česká slova a zdroje
-
-- Existenci skutečného soutěžního slova lze doložit pouze slovníkovou částí IJP nebo již zveřejněným heslem ASSČ.
-- SSJČ, PSJČ, korpusy, jiné slovníky ani internetové výskyty samy o sobě existenci soutěžního slova neprokazují.
-- Záznam v IJP/ASSČ nenahrazuje požadavek současné spisovnosti konkrétního tvaru ani shodu se soutěžním modelem.
-- Hráč hledá skutečná soutěžní slova pouze ručně; úplný předfiltrovaný seznam kandidátů se nezveřejňuje.
-- Změna této sady zdrojů vyžaduje novou rules verzi.
+- Normativní paradigmata a modely patří do stejného verzovaného normativního balíku.
+- Provozní katalog skutečných slov a učící se katalog jsou od pravidel oddělené znalosti.
 
 ## Hranice live validace
 
 - FE může před submittem deterministicky kontrolovat pouze veřejná znaková a strukturální pravidla a úplnost deklarace.
 - FE neposuzuje jazykovou správnost morfologie, syntaxe, významu ani slovní valenční obhajoby.
 - FE nesmí navrhovat náhradní slova, tvary, tokenizaci, analýzu nebo syntaktické vazby.
-- Katalogová kontrola probíhá až nad uzamčenou revizí a její interní výsledek je před administrativním rozhodnutím neveřejný.
+- Způsob zpřístupnění katalogu skutečných slov hráčům je otevřená produktová otázka #72.
 
 ## MVP scope – uzavřeno
 
@@ -230,11 +227,11 @@ První veřejné MVP povinně obsahuje:
 - registraci/přihlášení a reset zapomenutého hesla,
 - interaktivní strukturovaný formulář,
 - immutable submission revisions,
-- minimální interní učící se katalog,
+- katalog skutečných slov a minimální interní učící se morfologický katalog,
 - neveřejné admin review,
 - veřejný seznam pouze schválených vět,
 - veřejný detail schválené věty včetně obhajoby a morfologické identifikace jednotlivých slov,
-- rules versioning/revalidation potřebné pro reprodukovatelné soutěžní výsledky.
+- základní historii verzí pravidel a podání.
 
 Čekající a zamítnuté věty nejsou veřejné. Veřejné peer review ani komentáře nejsou součástí MVP.
 
@@ -249,7 +246,7 @@ Před implementací/produkčním releasem zbývá zejména:
 - dokončit úplné field schema formuláře podle POS/modelu (#5).
 
 ### `[IMPLEMENTATION]`
-- promítnout rozhodnutí do DB/migrací, katalogu, provenance, auth/security a release procesu,
+- promítnout rozhodnutí do DB/migrací, katalogů, auth/security a release procesu,
 - opravit a dokončit konfigurátor podle frontendového auditu,
 - vytvořit automatické testy deterministického validátoru,
 - před produkcí uzavřít security baseline a query/index review.
