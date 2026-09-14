@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Konfigurátor kvazivěty</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: #1a1a1a; background: #f0f2f5; min-height: 100vh; }
+
+header { background: #1e293b; color: #f8fafc; padding: 14px 28px; display: flex; align-items: baseline; gap: 14px; }
+header h1 { font-size: 16px; font-weight: 600; }
+header p { font-size: 12px; color: #94a3b8; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+.card-header { padding: 8px 16px; border-bottom: 1px solid #f1f5f9; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #64748b; display: flex; align-items: center; gap: 10px; }
+.card-header .hint { font-weight: 400; text-transform: none; letter-spacing: 0; color: #94a3b8; font-size: 11px; }
+.card-body { padding: 14px 16px; }
+
+/* Sentence */
+.sentence-area { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 40px; }
+
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px 4px 5px; border: 1.5px solid #cbd5e1; border-radius: 5px; background: #fff; cursor: pointer; user-select: none; transition: border-color .1s, background .1s; }
+.chip:hover { border-color: #94a3b8; }
+.chip.active { border-color: #3b82f6 !important; background: #eff6ff !important; }
+.chip.ok { border-color: #86efac; }
+.chip.err { border-color: #fca5a5; background: #fff5f5; }
+
+.chip-num { width: 18px; height: 18px; border-radius: 50%; background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.chip.active .chip-num { background: #bfdbfe; color: #1d4ed8; }
+.chip.err .chip-num { background: #fee2e2; color: #b91c1c; }
+.chip-text { font-weight: 600; }
+.chip-sub { font-size: 10px; color: #94a3b8; border-left: 1px solid #e2e8f0; padding-left: 5px; line-height: 1.4; }
+.chip.err .chip-sub { color: #f87171; }
+.chip-del { color: #cbd5e1; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.chip-del:hover { color: #ef4444; }
+
+.word-input { border: none; outline: none; font-size: 14px; font-family: inherit; background: transparent; min-width: 130px; padding: 4px 2px; color: #1a1a1a; }
+.word-input::placeholder { color: #cbd5e1; }
+
+/* Config */
+.word-heading { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #0f172a; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; }
+.word-heading span { font-size: 12px; font-weight: 400; color: #94a3b8; margin-left: 8px; }
+
+.config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+
+.fld label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #64748b; margin-bottom: 4px; }
+.fld select, .fld input[type=text] { width: 100%; padding: 7px 10px; border: 1px solid #e2e8f0; border-radius: 5px; font-size: 13px; font-family: inherit; background: #fff; color: #1a1a1a; }
+.fld select:focus, .fld input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+
+.deps-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.deps-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #64748b; margin-bottom: 6px; }
+.deps-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.dep-badge { display: inline-flex; align-items: center; padding: 3px 10px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 20px; font-size: 12px; color: #16a34a; }
+
+/* Morfo table */
+.morfo-hint { font-size: 12px; color: #94a3b8; margin-bottom: 12px; }
+.morfo-hint strong { color: #475569; }
+
+.morfo-wrap { overflow-x: auto; }
+.morfo-section { margin-bottom: 18px; }
+.morfo-section h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #64748b; margin-bottom: 7px; }
+
+.morfo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+
+table.mt { border-collapse: collapse; font-size: 13px; }
+table.mt th { background: #f8fafc; border: 1px solid #e2e8f0; padding: 5px 12px; font-weight: 600; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+table.mt td { border: 1px solid #e2e8f0; padding: 3px 6px; vertical-align: middle; }
+table.mt td.rl { background: #f8fafc; font-weight: 500; color: #475569; padding: 3px 12px; white-space: nowrap; min-width: 130px; }
+table.mt input { border: none; outline: none; background: transparent; font-size: 13px; font-family: inherit; width: 100%; min-width: 85px; padding: 3px 4px; }
+table.mt input:focus { background: #eff6ff; border-radius: 3px; }
+
+.empty { padding: 32px; text-align: center; color: #cbd5e1; font-size: 13px; }
+
+/* Word-type chip colors (only when not active and not error) */
+.chip:not(.active):not(.err).sd-subst { background: #fefce8; border-color: #ca8a04; }
+.chip:not(.active):not(.err).sd-adj   { background: #eff6ff; border-color: #60a5fa; }
+.chip:not(.active):not(.err).sd-verb  { background: #f0fdf4; border-color: #4ade80; }
+.chip:not(.active):not(.err).sd-pron  { background: #faf5ff; border-color: #c084fc; }
+.chip:not(.active):not(.err).sd-prep  { background: #fff7ed; border-color: #fb923c; }
+.chip:not(.active):not(.err).sd-conj  { background: #ecfeff; border-color: #22d3ee; }
+
+/* Validation table */
+.vtable { border-collapse: collapse; width: 100%; font-size: 13px; }
+.vtable td { padding: 9px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.vtable tr:last-child td { border-bottom: none; }
+.vtable .vi { width: 30px; text-align: center; font-size: 15px; font-weight: 700; line-height: 1; }
+.vtable .vl { font-weight: 600; white-space: nowrap; padding-right: 20px; }
+.vtable .vd { color: #6b7280; }
+.vtable .vs { font-size: 11px; color: #9ca3af; display: block; margin-top: 2px; }
+
+.vtable tr.v-ok   .vi { color: #16a34a; }
+.vtable tr.v-ok   .vl { color: #166534; }
+.vtable tr.v-warn .vi { color: #d97706; }
+.vtable tr.v-warn .vl { color: #92400e; }
+.vtable tr.v-warn .vd { color: #b45309; font-weight: 500; }
+.vtable tr.v-info .vi { color: #94a3b8; font-size: 13px; }
+.vtable tr.v-info .vl { color: #64748b; font-weight: 500; }
+.vtable tr.v-info .vd { color: #1e293b; font-weight: 700; font-size: 16px; }
+
+/* Sentence preview */
+.sentence-preview {
+  padding: 20px 28px 18px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 26px;
+  color: #0f172a;
+  letter-spacing: .01em;
+  line-height: 1.4;
+  border-bottom: 1px solid #f1f5f9;
+  min-height: 72px;
+  word-break: break-word;
+}
+.sentence-preview.empty { color: #cbd5e1; font-style: italic; font-size: 20px; }
+
+.vtable tr.v-warn .vd ul { margin: 4px 0 0 16px; font-size: 12px; color: #b45309; }
+.vtable tr.v-warn .vd li { margin-bottom: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Konfigurátor kvazivěty</h1>
+  <p>Nejdelší kvazivěta · prototyp</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div id="sentencePreview" class="sentence-preview empty">Věta se zobrazí zde…</div>
+    <div class="card-header">
+      Zadání
+      <span class="hint">· mezerník nebo Enter = nové slovo &nbsp;· Backspace na prázdném poli = smaž poslední</span>
+    </div>
+    <div class="card-body">
+      <div class="sentence-area">
+        <div id="tokens"></div>
+        <input type="text" id="wInput" class="word-input" placeholder="Začněte psát…" autocomplete="off" spellcheck="false" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="configCard" style="display:none">
+    <div class="card-header">Konfigurace slova</div>
+    <div class="card-body" id="configBody"></div>
+  </div>
+
+  <div class="card" id="morfoCard" style="display:none">
+    <div class="card-header">Morfologická identifikace</div>
+    <div class="card-body" id="morfoBody"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Kontrolní tabulka</div>
+    <div class="card-body" style="padding:0">
+      <table class="vtable" id="vtable"></table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const SLOVNI_DRUHY = [
+  { id: 'subst', label: 'Substantivum' },
+  { id: 'adj',   label: 'Adjektivum' },
+  { id: 'verb',  label: 'Sloveso' },
+  { id: 'pron',  label: 'Zájmeno' },
+  { id: 'prep',  label: 'Předložka  (k / v / z)' },
+  { id: 'conj',  label: 'Spojka  (a / i)' },
+];
+
+const VZORY_SUBST = [
+  { id: 'pan',      label: 'pán  (M živ, -kons.)' },
+  { id: 'muz',      label: 'muž  (M živ, -kons.)' },
+  { id: 'predseda', label: 'předseda  (M živ, -a)' },
+  { id: 'soudce',   label: 'soudce  (M živ, -e)' },
+  { id: 'hrad',     label: 'hrad  (M neživ, -kons.)' },
+  { id: 'stroj',    label: 'stroj  (M neživ, -kons.)' },
+  { id: 'zena',     label: 'žena  (F, -a)' },
+  { id: 'ruze',     label: 'růže  (F, -e)' },
+  { id: 'pisen',    label: 'píseň  (F, -kons.)' },
+  { id: 'kost',     label: 'kost  (F, -kons.)' },
+  { id: 'mesto',    label: 'město  (N, -o)' },
+  { id: 'more',     label: 'moře  (N, -e)' },
+  { id: 'kure',     label: 'kuře  (N, rozšíř. kmen)' },
+  { id: 'staveni',  label: 'stavení  (N, -í)' },
+];
+
+const VZORY_ADJ = [
+  { id: 'mlady',  label: 'mladý' },
+  { id: 'jarni',  label: 'jarní' },
+  { id: 'otcuv',  label: 'otcův  (přivl. M)' },
+  { id: 'matcin', label: 'matčin  (přivl. F)' },
+];
+
+const VIDY = [
+  { id: 'nedok', label: 'Nedokonavý' },
+  { id: 'dok',   label: 'Dokonavý' },
+];
+
+const VETNE_FUNKCE = [
+  { id: 'podmet',        label: 'Podmět' },
+  { id: 'prisudek',      label: 'Přísudek' },
+  { id: 'predmet',       label: 'Předmět' },
+  { id: 'priv_shodny',   label: 'Přívlastek shodný' },
+  { id: 'priv_neshodny', label: 'Přívlastek neshodný' },
+  { id: 'pris_urceni',   label: 'Příslovečné určení' },
+  { id: 'doplanek',      label: 'Doplněk' },
+  { id: 'koordinace',    label: 'Koordinace  (a / i)' },
+];
+
+const PADY = ['1. Nominativ','2. Genitiv','3. Dativ','4. Akuzativ','5. Vokativ','6. Lokál','7. Instrumentál'];
+
+// Allowed characters (soutěžní abeceda)
+const ALLOWED = new Set(['K','V','Q','A','Á','Z','I','Í','Y','Ý']);
+// Single-char exception words
+const SINGLES = new Set(['K','V','Z','A','I']);
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+
+let words = [], selectedId = null, nextId = 1;
+const byId = id => words.find(w => w.id === id);
+const sel  = ()  => selectedId ? byId(selectedId) : null;
+const idx  = w   => words.indexOf(w);
+
+function newWord(text) {
+  return { id: nextId++, text, sd: null, vzor: null, vid: null, lemma: null, vf: null, headId: null, m: {} };
+}
+
+// ── INPUT ─────────────────────────────────────────────────────────────────────
+
+document.getElementById('wInput').addEventListener('keydown', e => {
+  const inp = e.currentTarget;
+  const txt = inp.value.trim();
+  if ((e.key === ' ' || e.key === 'Enter') && txt) {
+    e.preventDefault();
+    const w = newWord(txt);
+    words.push(w);
+    inp.value = '';
+    selectedId = w.id;
+    render();
+    inp.focus();
+    return;
+  }
+  if (e.key === 'Backspace' && !inp.value && words.length) {
+    e.preventDefault();
+    delWord(words[words.length - 1].id);
+    inp.focus();
+  }
+});
+
+// ── VALIDATION ────────────────────────────────────────────────────────────────
+
+// DFA transition for the KVAZI motif sequence.
+// States: 0=start-of-motif, 1=after-K, 2=after-KV/Q, 3=after-A/Á, 4=after-Z
+function dfaTr(state, ch) {
+  const c = ch.toUpperCase();
+  if (state === 0) return c === 'K' ? 1 : c === 'Q' ? 2 : -1;
+  if (state === 1) return c === 'V' ? 2 : -1;
+  if (state === 2) return (c === 'A' || c === 'Á') ? 3 : -1;
+  if (state === 3) return c === 'Z' ? 4 : -1;
+  if (state === 4) return (c === 'I' || c === 'Í' || c === 'Y' || c === 'Ý') ? 0 : -1;
+  return -1;
+}
+
+function validate() {
+  // Returns { seqOk, seqIssues[], podmetOk, podmetMsg, prisudekOk, prisudekMsg,
+  //           wordCount, charCount, errWords: Set<wordIndex> }
+  const seqIssues = [];
+  const errWords  = new Set();
+
+  if (words.length > 0) {
+    // 1. Allowed characters
+    for (let wi = 0; wi < words.length; wi++) {
+      const badCh = [...words[wi].text.toUpperCase()].find(c => !ALLOWED.has(c));
+      if (badCh) {
+        seqIssues.push(`Slovo [${wi+1}] „${words[wi].text}": nedovolený znak „${badCh}" — povoleno K V Q A Á Z I Í Y Ý`);
+        errWords.add(wi);
+      }
+    }
+
+    // 2. Word length
+    for (let wi = 0; wi < words.length; wi++) {
+      const w   = words[wi];
+      const up  = w.text.toUpperCase();
+      const isEx = SINGLES.has(up) && w.text.length === 1;
+      if (!isEx) {
+        if (w.text.length < 3)
+          seqIssues.push(`Slovo [${wi+1}] „${w.text}": příliš krátké (${w.text.length} znak; povoleno 3–5, nebo k/v/z/a/i)`),
+          errWords.add(wi);
+        else if (w.text.length > 5)
+          seqIssues.push(`Slovo [${wi+1}] „${w.text}": příliš dlouhé (${w.text.length} znaků; povoleno 3–5)`),
+          errWords.add(wi);
+      }
+    }
+
+    // 3. Single-char uniqueness
+    const used = {};
+    for (let wi = 0; wi < words.length; wi++) {
+      const up = words[wi].text.toUpperCase();
+      if (SINGLES.has(up) && words[wi].text.length === 1) {
+        if (used[up] !== undefined) {
+          seqIssues.push(`Slovo [${wi+1}] „${words[wi].text.toLowerCase()}": použito opakovaně (každé z k/v/z/a/i max. 1×)`);
+          errWords.add(wi);
+          errWords.add(used[up]);
+        } else {
+          used[up] = wi;
+        }
+      }
+    }
+
+    // 4. DFA — motif sequence + per-word boundary check
+    // Try all 5 possible starting states (= starting positions within a motif).
+    // A word is "in one motif" if the DFA never reaches state 0 before the last char.
+    let seqValid = false;
+    let bestFailWord = -1; // for pinpointing the error in chips
+
+    for (let s0 = 0; s0 <= 4; s0++) {
+      let state = s0, ok = true, failAt = -1;
+      for (let wi = 0; wi < words.length; wi++) {
+        const chars = [...words[wi].text.toUpperCase()];
+        const isEx  = chars.length === 1 && SINGLES.has(chars[0]);
+        for (let ci = 0; ci < chars.length; ci++) {
+          const ns = dfaTr(state, chars[ci]);
+          if (ns === -1) { ok = false; failAt = wi; break; }
+          // Non-exception word must not cross a motif boundary (state→0) mid-word
+          if (!isEx && ns === 0 && ci < chars.length - 1) { ok = false; failAt = wi; break; }
+          state = ns;
+        }
+        if (!ok) break;
+      }
+      if (ok) { seqValid = true; break; }
+      if (failAt > bestFailWord) bestFailWord = failAt;
+    }
+
+    if (!seqValid) {
+      seqIssues.push('Sekvence znaků netvoří platnou podposloupnost KVAZI motivů');
+      if (bestFailWord >= 0) errWords.add(bestFailWord);
+    }
+  }
+
+  // Podmět / přísudek
+  const podmets  = words.filter(w => w.vf === 'podmet');
+  const prisudky = words.filter(w => w.vf === 'prisudek');
+
+  const podmetOk   = podmets.length === 1;
+  const prisudekOk = prisudky.length === 1;
+
+  const podmetMsg = podmets.length === 0
+    ? 'Chybí'
+    : podmets.length > 1
+      ? `Více podmětů (${podmets.length}×) — povoleno právě 1`
+      : `[${idx(podmets[0])+1}] „${podmets[0].text}"`;
+
+  const prisudekMsg = prisudky.length === 0
+    ? 'Chybí'
+    : prisudky.length > 1
+      ? `Více přísudků (${prisudky.length}×) — povoleno právě 1`
+      : `[${idx(prisudky[0])+1}] „${prisudky[0].text}"`;
+
+  const wordCount = words.length;
+  const charCount = words.reduce((s, w) => s + w.text.length, 0);
+
+  return {
+    seqOk: seqIssues.length === 0, seqIssues,
+    podmetOk, podmetMsg,
+    prisudekOk, prisudekMsg,
+    wordCount, charCount,
+    errWords,
+  };
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+
+function render() {
+  const v = validate();
+  renderPreview();
+  renderTokens(v.errWords);
+  renderConfig();
+  renderMorfo();
+  renderValidation(v);
+}
+
+function renderPreview() {
+  const el = document.getElementById('sentencePreview');
+  if (words.length === 0) {
+    el.className = 'sentence-preview empty';
+    el.textContent = 'Věta se zobrazí zde…';
+  } else {
+    el.className = 'sentence-preview';
+    el.textContent = words.map(w => w.text).join(' ') + '.';
+  }
+}
+
+function renderTokens(errWords = new Set()) {
+  const c = document.getElementById('tokens');
+  c.innerHTML = '';
+  words.forEach((w, i) => {
+    const chip = document.createElement('div');
+    const hasErr = errWords.has(i);
+    const vf = w.vf ? (VETNE_FUNKCE.find(f => f.id === w.vf)?.label || '') : '';
+    const sd = w.sd ? (SLOVNI_DRUHY.find(d => d.id === w.sd)?.label || '') : '';
+    chip.className = [
+      'chip',
+      w.id === selectedId ? 'active' : '',
+      hasErr ? 'err' : w.sd ? 'ok' : '',
+      w.sd ? `sd-${w.sd}` : '',
+    ].filter(Boolean).join(' ');
+    chip.innerHTML =
+      `<div class="chip-num">${i+1}</div>` +
+      `<span class="chip-text">${esc(w.text)}</span>` +
+      (sd||vf ? `<span class="chip-sub">${[sd,vf].filter(Boolean).map(esc).join('<br>')}</span>` : '') +
+      `<span class="chip-del" data-id="${w.id}" title="Smazat">&times;</span>`;
+    chip.addEventListener('click', e => {
+      const delId = e.target.dataset.id;
+      if (delId) { delWord(+delId); return; }
+      selectedId = w.id;
+      render();
+    });
+    c.appendChild(chip);
+  });
+}
+
+function delWord(id) {
+  words = words.filter(w => w.id !== id);
+  words.forEach(w => { if (w.headId === id) w.headId = null; });
+  if (selectedId === id) selectedId = words.at(-1)?.id ?? null;
+  render();
+}
+
+function renderValidation(v) {
+  const row = (cls, icon, label, detail, sub) =>
+    `<tr class="${cls}">
+      <td class="vi">${icon}</td>
+      <td class="vl">${label}</td>
+      <td class="vd">${detail}${sub ? `<span class="vs">${sub}</span>` : ''}</td>
+    </tr>`;
+
+  const seqDetail = v.seqOk
+    ? 'Platná — znaky tvoří KVAZI podposloupnost'
+    : v.seqIssues.length === 1
+      ? esc(v.seqIssues[0])
+      : `<ul>${v.seqIssues.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`;
+
+  const seqSub = v.seqOk
+    ? 'K V Q A Á Z I Í Y Ý · délky 3–5 zn. · motiv KVAZI · bez přechodů hranic'
+    : null;
+
+  document.getElementById('vtable').innerHTML =
+    row(v.seqOk   ? 'v-ok' : 'v-warn', v.seqOk   ? '✓' : '⚠', 'Sekvence znaků', seqDetail, seqSub) +
+    row(v.podmetOk  ? 'v-ok' : 'v-warn', v.podmetOk  ? '✓' : '⚠', 'Podmět',    esc(v.podmetMsg),   null) +
+    row(v.prisudekOk? 'v-ok' : 'v-warn', v.prisudekOk? '✓' : '⚠', 'Přísudek',  esc(v.prisudekMsg), null) +
+    row('v-info', '—', 'Počet slov',  String(v.wordCount), null) +
+    row('v-info', '—', 'Počet znaků', String(v.charCount), 'Q = 1 znak, KV = 2 znaky');
+}
+
+// ── CONFIG PANEL ──────────────────────────────────────────────────────────────
+
+function renderConfig() {
+  const card = document.getElementById('configCard');
+  const body = document.getElementById('configBody');
+  const w = sel();
+  if (!w) { card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  const others = words.filter(x => x.id !== w.id);
+
+  let vzorBlock = '';
+  if (w.sd === 'subst') {
+    vzorBlock = fld('Vzor', `<select onchange="onF('vzor',this.value)">${oB('— vyberte vzor —')}${os(VZORY_SUBST, w.vzor)}</select>`);
+  } else if (w.sd === 'adj') {
+    vzorBlock = fld('Vzor', `<select onchange="onF('vzor',this.value)">${oB('— vyberte vzor —')}${os(VZORY_ADJ, w.vzor)}</select>`);
+  } else if (w.sd === 'verb') {
+    vzorBlock =
+      fld('Vid', `<select onchange="onF('vid',this.value)">${oB('— vyberte —')}${os(VIDY, w.vid)}</select>`) +
+      fld('Infinitiv / lemma', `<input type="text" value="${esc(w.lemma||'')}" placeholder="kvazit…" onchange="onF('lemma',this.value)">`);
+  }
+
+  const depBadges = words.filter(x => x.headId === w.id).map(x => {
+    const vfl = x.vf ? VETNE_FUNKCE.find(f => f.id === x.vf)?.label : '';
+    return `<span class="dep-badge">[${idx(x)+1}] ${esc(x.text)}${vfl ? ' · ' + esc(vfl) : ''}</span>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="word-heading">"${esc(w.text)}" <span>slovo ${idx(w)+1} / ${words.length}</span></div>
+    <div class="config-grid">
+      ${fld('Slovní druh', `<select onchange="onSD(this.value)">${oB('— vyberte —')}${os(SLOVNI_DRUHY, w.sd)}</select>`)}
+      ${vzorBlock}
+      ${fld('Větná funkce', `<select onchange="onF('vf',this.value)">${oB('— vyberte —')}${os(VETNE_FUNKCE, w.vf)}</select>`)}
+      ${fld('Závisí na slově', `<select onchange="onHead(this.value)">
+        <option value="">— kořen věty / bez závislosti —</option>
+        ${others.map(x => `<option value="${x.id}" ${w.headId===x.id?'selected':''}>[${idx(x)+1}] ${esc(x.text)}</option>`).join('')}
+      </select>`)}
+    </div>
+    ${depBadges ? `<div class="deps-section"><div class="deps-label">Na tomto slově závisí:</div><div class="deps-list">${depBadges}</div></div>` : ''}
+  `;
+}
+
+// ── MORFO PANEL ───────────────────────────────────────────────────────────────
+
+function renderMorfo() {
+  const card = document.getElementById('morfoCard');
+  const body = document.getElementById('morfoBody');
+  const w = sel();
+  if (!w || !w.sd || w.sd === 'prep' || w.sd === 'conj') { card.style.display = 'none'; return; }
+  card.style.display = '';
+  const fn = { subst: morfoSubst, adj: morfoAdj, verb: morfoVerb, pron: morfoPron }[w.sd];
+  body.innerHTML = fn ? fn(w) : '<div class="empty">Morfologická tabulka není k dispozici.</div>';
+}
+
+// Sanitize a morfo input: lowercase + only Czech/Latin letters.
+// Cursor position is recalculated after characters are removed.
+window.mfInput = (el, id, key) => {
+  const ALLOWED_MORFO = /[^a-záčďéěíňóřšťúůýžA-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]/g;
+  const pos   = el.selectionStart;
+  const raw   = el.value;
+  const lower = raw.toLowerCase();
+  const clean = lower.replace(ALLOWED_MORFO, '');
+  if (raw !== clean) {
+    const newPos = lower.slice(0, pos).replace(ALLOWED_MORFO, '').length;
+    el.value = clean;
+    el.setSelectionRange(newPos, newPos);
+  }
+  onM(id, key, el.value);
+};
+
+// Tab moves natively between inputs in DOM order (left→right, top→bottom).
+function mi(w, key, minW) {
+  const style = minW ? ` style="min-width:${minW}px"` : '';
+  return `<input type="text"${style} value="${esc(w.m[key]||'')}" `
+    + `oninput="mfInput(this,${w.id},'${key}')" `
+    + `onchange="mfInput(this,${w.id},'${key}')" `
+    + `onfocus="const l=this.value.length;this.setSelectionRange(l,l)">`;
+}
+
+function morfoSubst(w) {
+  const vz = w.vzor ? VZORY_SUBST.find(v => v.id === w.vzor)?.label : '(vzor nevybrán)';
+  return `<p class="morfo-hint">Vzor: <strong>${esc(vz)}</strong> · doplňte všechny tvary paradigmatu</p>
+  <div class="morfo-wrap"><table class="mt">
+    <thead><tr><th>Pád</th><th>Singulár</th><th>Plurál</th></tr></thead>
+    <tbody>${PADY.map((p,i) => `<tr><td class="rl">${p}</td><td>${mi(w,`sg${i}`,100)}</td><td>${mi(w,`pl${i}`,100)}</td></tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function morfoAdj(w) {
+  const vz   = w.vzor ? VZORY_ADJ.find(v => v.id === w.vzor)?.label : '(vzor nevybrán)';
+  const poss = w.vzor === 'otcuv' || w.vzor === 'matcin';
+  const cols = poss
+    ? ['M živ SG','M neživ SG','F SG','N SG','M živ PL','ost. PL']
+    : ['M živ SG','M neživ SG','F SG','N SG','M živ PL','M neživ PL','F PL','N PL'];
+  const keys = poss
+    ? ['mz_sg','mn_sg','f_sg','n_sg','mz_pl','ost_pl']
+    : ['mz_sg','mn_sg','f_sg','n_sg','mz_pl','mn_pl','f_pl','n_pl'];
+  return `<p class="morfo-hint">Vzor: <strong>${esc(vz)}</strong>${poss ? ' · přivlastňovací adjektivum' : ''}</p>
+  <div class="morfo-wrap"><table class="mt">
+    <thead><tr><th>Pád</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${PADY.map((p,i) => `<tr><td class="rl">${p}</td>${keys.map(k=>`<td>${mi(w,`${k}_${i}`,80)}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function morfoVerb(w) {
+  const vl = w.vid ? VIDY.find(v => v.id === w.vid)?.label : '(vid nevybrán)';
+  return `<p class="morfo-hint">Vid: <strong>${esc(vl)}</strong></p>
+  <div class="morfo-grid">
+    <div>
+      <div class="morfo-section"><h3>Přítomný čas</h3>
+        <div class="morfo-wrap"><table class="mt">
+          <thead><tr><th>Osoba</th><th>Singulár</th><th>Plurál</th></tr></thead>
+          <tbody>${['1. osoba','2. osoba','3. osoba'].map((o,i)=>`<tr><td class="rl">${o}</td><td>${mi(w,`pr_sg${i}`)}</td><td>${mi(w,`pr_pl${i}`)}</td></tr>`).join('')}</tbody>
+        </table></div>
+      </div>
+    </div>
+    <div>
+      <div class="morfo-section"><h3>Infinitiv</h3>
+        <div class="morfo-wrap"><table class="mt">
+          <thead><tr><th>Tvar</th><th>Forma</th></tr></thead>
+          <tbody><tr><td class="rl">Infinitiv</td><td>${mi(w,'inf',120)}</td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="morfo-section"><h3>Imperativ</h3>
+        <div class="morfo-wrap"><table class="mt">
+          <thead><tr><th></th><th>Forma</th></tr></thead>
+          <tbody>
+            <tr><td class="rl">2. os. sg.</td><td>${mi(w,'imp_2sg',120)}</td></tr>
+            <tr><td class="rl">1. os. pl.</td><td>${mi(w,'imp_1pl',120)}</td></tr>
+            <tr><td class="rl">2. os. pl.</td><td>${mi(w,'imp_2pl',120)}</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="morfo-section"><h3>Příčestí l-ové</h3>
+        <div class="morfo-wrap"><table class="mt">
+          <thead><tr><th></th><th>Forma</th></tr></thead>
+          <tbody>
+            <tr><td class="rl">M sg</td><td>${mi(w,'lp_mSg',120)}</td></tr>
+            <tr><td class="rl">F sg</td><td>${mi(w,'lp_fSg',120)}</td></tr>
+            <tr><td class="rl">N sg</td><td>${mi(w,'lp_nSg',120)}</td></tr>
+            <tr><td class="rl">M živ pl</td><td>${mi(w,'lp_mzPl',120)}</td></tr>
+            <tr><td class="rl">ostatní pl</td><td>${mi(w,'lp_ostPl',120)}</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function morfoPron(w) {
+  return `<p class="morfo-hint">Zájmeno – pádová deklinace</p>
+  <div class="morfo-wrap"><table class="mt">
+    <thead><tr><th>Pád</th><th>Tvar</th></tr></thead>
+    <tbody>${PADY.map((p,i) => `<tr><td class="rl">${p}</td><td>${mi(w,`pron${i}`,120)}</td></tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── PRE-FILL ──────────────────────────────────────────────────────────────────
+
+// Fill all morphological cells with the word text as a starting point.
+// Called after selecting a word type (and again after selecting vzor).
+function prefillMorfo(w) {
+  const t = w.text;
+  if (w.sd === 'subst') {
+    for (let i = 0; i < 7; i++) { w.m[`sg${i}`] = t; w.m[`pl${i}`] = t; }
+  } else if (w.sd === 'adj') {
+    const allKeys = ['mz_sg','mn_sg','f_sg','n_sg','mz_pl','mn_pl','f_pl','n_pl','ost_pl'];
+    for (const k of allKeys) for (let i = 0; i < 7; i++) w.m[`${k}_${i}`] = t;
+  } else if (w.sd === 'verb') {
+    for (let i = 0; i < 3; i++) { w.m[`pr_sg${i}`] = t; w.m[`pr_pl${i}`] = t; }
+    w.m.inf = t;
+    w.m.imp_2sg = t; w.m.imp_1pl = t; w.m.imp_2pl = t;
+    w.m.lp_mSg = t; w.m.lp_fSg = t; w.m.lp_nSg = t; w.m.lp_mzPl = t; w.m.lp_ostPl = t;
+  } else if (w.sd === 'pron') {
+    for (let i = 0; i < 7; i++) w.m[`pron${i}`] = t;
+  }
+}
+
+// ── HANDLERS ──────────────────────────────────────────────────────────────────
+
+window.onSD = v => {
+  const w = sel(); if (!w) return;
+  w.sd = v || null; w.vzor = null; w.vid = null; w.lemma = null; w.m = {};
+  if (w.sd) prefillMorfo(w);
+  render();
+};
+
+window.onF = (key, v) => {
+  const w = sel(); if (!w) return;
+  w[key] = v || null;
+  if (key === 'vzor') { w.m = {}; prefillMorfo(w); renderMorfo(); }
+  if (key === 'vid')  { renderMorfo(); }
+  const vv = validate();
+  if (key === 'vf')   { renderTokens(vv.errWords); }
+  renderConfig();
+  renderValidation(vv);
+};
+
+window.onHead = v => {
+  const w = sel(); if (!w) return;
+  w.headId = v ? +v : null;
+  renderConfig();
+};
+
+window.onM = (id, key, val) => {
+  const w = byId(id); if (w) w.m[key] = val;
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function os(arr, sel) {
+  return arr.map(x => `<option value="${x.id}"${sel===x.id?' selected':''}>${esc(x.label)}</option>`).join('');
+}
+function oB(label) { return `<option value="">${label}</option>`; }
+function fld(label, ctrl) { return `<div class="fld"><label>${label}</label>${ctrl}</div>`; }
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
+render();
+</script>
+</body>
+</html>
