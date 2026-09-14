@@ -32,6 +32,7 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - Soutěžní kmen a případné další kmenové podoby se vždy odvozují mechanicky ze základního tvaru a zvoleného modelu; hráč je nevolí ani neobhajuje vlastní analogií.
 - U běžných substantivních modelů se kmen tvoří mechanicky z lemmatu: u souhláskových modelů je kmen celé lemma; u modelů na `-a`, `-e`, `-o` a `-í` se příslušná nominativní koncovka odtrhne. Nominativ singuláru je přímo lemma.
 - Pokud konkrétní model potřebuje další kmenovou podobu, musí ji sám výslovně a deterministicky definovat včetně buněk, kde se použije.
+- Model `kuře` je první explicitně zmrazená vícekmenová výjimka: pro lemma `S+e` používá základ `S`, singulárový rozšířený kmen `S+et` a plurálový rozšířený kmen `S+at`; přesné použití určuje jeho normativní tabulka.
 - Po vydání je normativní autoritou konkrétní zmrazená tabulka Kvazi, nikoli živý stav externí jazykové příručky ani pořadí variant v ní.
 - Obecné české hláskové alternace se automaticky nepřenášejí; změna kmene nebo hlásky existuje jen tehdy, pokud ji konkrétní model výslovně a deterministicky definuje.
 - **V první zmrazené rules verzi má každá morfologická buňka právě jednu kanonickou realizaci. Morfologické dublety se nepovolují.**
