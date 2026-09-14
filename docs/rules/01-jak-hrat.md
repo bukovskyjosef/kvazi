@@ -57,6 +57,8 @@ U rozkazu může být podmět nevyjádřený, pokud je z tvaru slovesa jasný.
 
 Povolené hlavní větné vztahy a jejich jednoduché kontrolní testy jsou v kvazitaháku. Jejich běžné významové varianty nemusí být vyjmenované všechny, ale každá musí projít testem své hlavní funkce. Nelze využít jinou konstrukci jen tím, že ji označíš názvem povoleného vztahu.
 
+U slovesa musíš také slovně obhájit jeho **valenci**: vysvětlit, jaká doplnění dané použití slovesa vyžaduje, která slova ve tvé větě je realizují a o jaké běžné české sloveso se opíráš. Valence není součástí morfologické identity slovesa a nezapisuje se jako povinný formální kód. Je ale součástí jazykové obhajoby a při posouzení může rozhodnout o platnosti věty.
+
 ## 4. Co může být slovem
 
 Povolena jsou:
@@ -92,6 +94,8 @@ Jakmile jednou použiješ konkrétní soutěžní identitu slova, je vyčerpaná
 
 Nestačí změnit pád, číslo, význam nebo větnou funkci a tvrdit, že jde o nové slovo.
 
+U slovesa tvoří morfologickou soutěžní identitu infinitiv a soutěžní časovací typ. Vid ani valenční obhajoba samy o sobě novou identitu nevytvářejí.
+
 Přesné určování identity najdeš v kvazitaháku a úplných pravidlech.
 
 ## 6. Jak se měří rekord
@@ -114,6 +118,8 @@ Při odevzdání se každé slovo popíše ve strukturovaném formuláři:
 - jeho větnou funkci,
 - jeho vztah nebo vztahy ke konkrétním dalším slovům věty,
 - požadovanou obhajobu a zdroje.
+
+U slovesa je valence součástí slovní obhajoby, ne další strukturovanou morfologickou identitou.
 
 Během vyplňování aplikace kontroluje technická znaková pravidla, úplnost povinných polí, veřejně povolené hodnoty a správnost odkazů mezi vloženými slovy. Tím ale větu jazykově neschvaluje a před odesláním neprozradí, zda interní katalog konkrétní slovo nebo analýzu zná.
 
