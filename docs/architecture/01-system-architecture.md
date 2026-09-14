@@ -1,6 +1,6 @@
 # Systémová architektura aplikace
 
-> **Status:** návrh. Technická implementace nesmí měnit jazykovou platnost pravidel.
+> **Status:** cílový návrh MVP. Technická implementace nesmí měnit jazykovou platnost pravidel.
 
 ## Technologie
 
@@ -20,11 +20,14 @@ Preferovaný princip: **Keep It Simple**.
 
 ## Logické vrstvy
 
-1. **Veřejný obsah** – pravidla, kvazitahák, seznam vět, detail věty, komentáře.
-2. **Soutěžní podání** – věta po slovech, strukturovaná morfologie, syntax, zdroje a obhajoba.
-3. **Mechanický validátor** – živá deterministická kontrola veřejných znakových a strukturálních pravidel; neveřejná katalogová kontrola až po uzamčení podání.
-4. **Morfologický katalog** – neveřejná interní znalostní báze pro budoucí deterministickou morfologickou validaci.
-5. **Administrace** – schvalování, revize, moderace, správa katalogu.
+1. **Veřejný obsah** – pravidla, kvazitahák, aktuální a historické schválené věty.
+2. **Uživatelské účty** – registrace, přihlášení, reset hesla a role `USER` / `ADMIN`.
+3. **Soutěžní podání** – editovatelný draft a immutable revize věty se strukturovanou morfologií, syntaxí, zdroji a obhajobou.
+4. **Mechanický validátor** – živá deterministická kontrola veřejných znakových a strukturálních pravidel; neveřejná katalogová kontrola až po uzamčení podání.
+5. **Interní učící se katalog** – neveřejná znalostní báze `APPROVED / REJECTED / UNKNOWN` pro konkrétní `rules_version`.
+6. **Administrace** – review podání, rozhodování neznámých katalogových položek, revalidace a auditní stopa.
+
+Komentáře nejsou součástí MVP.
 
 ## Veřejné stránky
 
@@ -32,122 +35,142 @@ Preferovaný princip: **Keep It Simple**.
 - stručná pravidla,
 - aktuální rekord,
 - poslední schválené věty,
-- vstup k podání.
+- vstup k registraci/přihlášení a podání.
 
 ### `/pravidla`
 - Jak hrát,
 - úplná specifikace,
-- verze.
+- aktuální verze pravidel a historie verzí.
 
 ### `/kvazitahak`
 - normativní tabulky,
 - vysvětlující příklady.
 
 ### `/vety`
-- schválené,
-- historické schválené věty,
-- filtrování podle verze.
+- věty schválené podle aktuální verze,
+- možnost zobrazit historická schválení podle starších verzí.
 
 ### `/veta/{slug}`
+Veřejně je dostupný pouze detail revize, která má publikovatelné schválení podle příslušné verze pravidel.
 
-Veřejně je dostupný pouze detail schválené věty. Admin může v neveřejném rozhraní otevřít také čekající podání.
-
-Zobrazí:
+Zobrazuje zejména:
 - text věty,
-- skóre,
-- stav,
-- verzi pravidel,
+- autora (`username`),
+- skóre pro zvolenou verzi pravidel,
+- verzi pravidel a stav validace,
 - datum,
 - analýzu každého slova,
 - soutěžní identitu,
 - morfologii,
 - syntaxi,
 - obhajobu a zdroje,
-- fiktivní význam / kvazietymologii,
-- komentáře.
+- fiktivní význam / kvazietymologii.
+
+## Uživatelské účty
+
+MVP používá klasickou lehkou registraci:
+- globálně unikátní `username`,
+- globálně unikátní neveřejný e-mail,
+- heslo ukládané pouze jako bezpečný jednosměrný hash.
+
+Aplikace podporuje přihlášení a reset zapomenutého hesla jednorázovým časově omezeným tokenem zaslaným na registrovaný e-mail. Resetovací token není magic-link login.
+
+Administrátor používá stejný účet a autentizační mechanismus jako běžný uživatel. Oprávnění je serverově vynuceno rolí `ADMIN`; pro MVP stačí role `USER` a `ADMIN`. Admin roli nelze získat veřejnou registrací ani měnit z klientského UI.
+
+Konkrétní password hashing, session cookies, CSRF ochrana, session rotation, throttling/lockout a recovery patří do security baseline před produkčním nasazením.
 
 ## Formulář podání
 
-Kvazivěta se **nezadává jako jeden volný text**.
+Kvazivěta se **nezadává jako jeden volný text**. Formulář pracuje s jednotlivými výskyty slov se stabilními interními ID a pevným pořadím.
 
-Formulář pracuje s jednotlivými slovy:
 - každé slovo je samostatný řetězec,
-- má pevné pořadí,
 - uživatel nevkládá mezery,
-- UI dovolí jen povolené soutěžní znaky,
-- backend provede vlastní whitelist kontrolu a Unicode NFC normalizaci.
+- text se normalizuje do Unicode NFC,
+- frontend kontroluje veřejná znaková pravidla,
+- backend provede stejnou autoritativní normalizaci a kontrolu,
+- mezery ve výsledném zobrazení generuje aplikace.
 
-Mezery ve výsledném zobrazení generuje aplikace sama.
+Uživatel explicitně deklaruje typ věty:
+- oznamovací → `.`,
+- tázací → `?`,
+- rozkazovací → `!`.
 
-Po zadání slov následuje povinná strukturovaná analýza slovo po slově. U každého tokenu formulář vyžaduje:
+Tato vazba je deterministický validační invariant. Rozkazovací věta může podle pravidel použít dovolený nevyjádřený podmět imperativu.
 
+Po zadání slov následuje povinná strukturovaná analýza slovo po slově. U každého výskytu slova formulář vyžaduje podle aktuálního field schema zejména:
 - slovní druh,
-- úplnou morfologickou identifikaci požadovanou aktuální verzí pravidel pro daný slovní druh a soutěžní model,
+- úplnou morfologickou identifikaci podle zvoleného soutěžního modelu,
 - soutěžní identitu a konkrétní použitý tvar,
-- větnou funkci,
-- jeden nebo více strukturovaných vztahů ke konkrétním dalším tokenům, pokud je zvolená konstrukce vyžaduje,
-- obhajobu a zdroje v rozsahu požadovaném pravidly.
+- celé uživatelem navržené paradigma tam, kde jej pravidla/form schema vyžadují,
+- explicitní potvrzení „Potvrzuji, že toto je můj morfologický návrh.“ svázané s aktuálním snapshotem návrhu,
+- hlavní větnou funkci nebo technickou roli funkčního slova,
+- všechny povinné odkazy na konkrétní další výskyty slov,
+- minimální obhajobu a zdroje vyžadované pravidly.
 
-UI nabízí uzavřený seznam hlavních syntaktických funkcí. Nevyžaduje odborné pojmenování jejich významových podtypů. Podle hlavní funkce dynamicky vyžádá všechny potřebné odkazy na konkrétní tokeny; u významově nejasného vztahu nebo vztahu závislého na fiktivním významu také krátkou obhajobu a běžnou českou analogii.
+Předvyplnění buněk paradigmatu aktuálním povrchovým tvarem je pouze UX zkratka; není to jazykový návrh ani schválení systému.
 
-V MVP mají běžné členy jedno pole pro řídící slovo. Doplněk má samostatně vazbu k přísudku a vazbu k podmětu nebo předmětu. Spojka koordinace má samostatně vazbu ke každé ze dvou spojovaných částí. Povinné vazby se neukládají pouze do volného textu.
+### Syntaxe
+UI nabízí uzavřený seznam hlavních syntaktických funkcí. Odborný významový podtyp není povinný whitelist.
 
-Podle zvoleného slovního druhu a modelu se zobrazí odpovídající povinná pole. Údaje, které pravidla vyžadují strukturovaně, nelze nahradit jediným obecným textovým polem.
+- běžný závislý člen má právě jedno řídící slovo,
+- přísudek nemá head,
+- doplněk má zvlášť vazbu k přísudku a k podmětu nebo předmětu,
+- koordinace má dvě různé spojované části,
+- předložky `k/v/z` nemají hlavní větnou funkci; mají technickou roli a právě jednu vazbu na řízené jmenné slovo.
 
-Během editace formulář živě kontroluje veřejná formální a strukturální pravidla: znaky a motivy, úplnost povinných polí, příslušnost zvolených hodnot k veřejným seznamům aktuální verze a existenci požadovaných odkazů na tokeny v témže návrhu.
+Povinnou vazbu nelze nahradit volným textem.
 
-Před konečným odesláním formulář nekontroluje členství slova nebo analýzy v interním katalogu a nesděluje katalogový výsledek. Živá strukturální kontrola proto není jazykovým schválením podání.
+## Hranice živé validace
+
+Během editace formulář smí kontrolovat pouze zveřejněná mechanická a strukturální pravidla a úplnost deklarace. Neověřuje jazykovou správnost skloňování, časování, valence, syntaktické interpretace ani významové obhajoby.
+
+Formulář nikdy před submittem neprozrazuje, zda interní katalog konkrétní slovo, tvar nebo identitu zná. Hráč proto vždy vyplňuje stejnou úplnou požadovanou deklaraci a důkazy bez ohledu na stav katalogu.
+
+Pokud pravidly přípustný případ formulář neumí reprezentovat, přímo ve formuláři je viditelná informace o možnosti kontaktovat rozhodčího e-mailem. Pro MVP se nezavádí speciální fallback workflow ani zvláštní stav podání.
+
+## Draft a immutable revize
+
+`sentence` je dlouhodobý kontejner autorského řešení. Běžná práce probíhá v editovatelném draftu.
+
+Každé konečné odeslání vytvoří **immutable `sentence_revision`** – přesný snapshot textu, pořadí slov, strukturovaných deklarací, paradigmatu, syntaxe, zdrojů, obhajoby, typu věty, autora a času submitu.
+
+Admin ani validační systém nikdy nerozhodují nad proměnlivým draftem. Všechny verdicty odkazují na konkrétní revizi. Pokud je podání vráceno k doplnění, stará revize zůstává nedotčena a další odeslání vytvoří revizi novou.
+
+Nová verze pravidel nevytváří novou revizi věty; nad stejnou immutable revizí vznikne nový validační výsledek.
 
 ## MVP schvalovací workflow
 
-Admin rozhraní pro posouzení vět je povinnou součástí prvního veřejného MVP.
+1. Registrovaný uživatel odešle draft; vznikne immutable revize.
+2. Backend provede veřejné deterministické kontroly znovu server-side.
+3. Nad uzamčenou revizí proběhne neveřejný lookup každé relevantní soutěžní identity/tvaru v katalogu pro danou `rules_version`.
+4. `APPROVED` se pro tutéž verzi pravidel znovu použije automaticky.
+5. `REJECTED` poskytne adminovi existující negativní rozhodnutí a důvod.
+6. `UNKNOWN` musí admin ručně posoudit. Schválením vzniká budoucí `APPROVED`, zamítnutím `REJECTED`.
+7. Zamítnutí kteréhokoli slova/identity nezbytné pro deklarovanou analýzu znamená zamítnutí dané revize.
+8. Admin může revizi schválit, zamítnout nebo vrátit k doplnění.
+9. Čekající a zamítnuté revize nejsou veřejné. Zveřejní se až revize administrativně uznaná a obsahově platná podle příslušné verze pravidel.
 
-1. Konečné odeslání uzamkne konkrétní neměnnou revizi ve stavu čekajícím na posouzení.
-2. Teprve nad touto uzamčenou revizí může proběhnout neveřejná kontrola proti internímu katalogu.
-3. Čekající ani zamítnutá věta se nezobrazuje ve veřejném seznamu ani na veřejném detailu.
-4. Admin v neveřejné frontě vidí větu, úplnou deklarovanou analýzu, morfologickou identifikaci jednotlivých slov, obhajobu, zdroje a případný katalogový výsledek.
-5. Admin může větu schválit, zamítnout nebo vrátit k doplnění; přesná revizní a stavová reprezentace se uzavře v decisions #8 a #10.
-6. Autor před rozhodnutím admina nedostává okamžitou odpověď o členství jednotlivých slov či analýz v katalogu.
-7. Teprve schválená věta se zveřejní v seznamu a na detailu.
-
-Veřejné peer review čekajících vět není součástí MVP.
-
-## Oddělení tvrzení hráče a systémové pravdy
-
-> **Podaná analýza není zdrojem morfologické pravdy.**
-
-Hráč deklaruje analýzu; oddělený interní katalog může říci, zda ji systém zná jako přípustnou.
+Veřejné peer review není součástí MVP.
 
 ## Interní katalog
 
-Veřejný katalog všech slov se nezveřejňuje. Veřejné UI ani API neposkytuje před odesláním endpoint pro dotaz na členství libovolného slova nebo analýzy v katalogu.
+Katalog je provozní znalostní báze podřízená pravidlům. Pro každou novou `rules_version` začíná automatický schvalovací prostor prázdný; historická rozhodnutí starších verzí se uchovávají, ale nepřenášejí jako automatické schválení.
 
-Interní katalog může obsahovat:
-- lexémy,
-- soutěžní identity,
-- schválené tvary,
-- morfologické hodnoty,
-- zdroje,
-- stav návrhu/schválení.
+Rozhodující stavy jsou:
+- `APPROVED`,
+- `REJECTED`,
+- `UNKNOWN` (absence rozhodného záznamu může být jeho technickou reprezentací).
 
-Katalog je provozní autorita, ale pravidla jsou nad ním. Je-li katalog chybný nebo neúplný, existuje proces námitky.
+Katalogové rozhodnutí uchovává minimálně konkrétní identitu/tvar, `rules_version`, výsledek, rozhodujícího admina, čas, důvod a zdroje. Katalog nesmí vytvářet nové soutěžní pravidlo.
 
-## Budoucí deterministická morfologická validace
+## Revalidace a historie
 
-Tok:
+Historické schválení podle starší verze pravidel je neměnný fakt. Po vydání nové `rules_version` může stejná immutable revize dostat nový obsahový validační výsledek; do aktuálního žebříčku vstupují jen řešení platná podle aktuální verze.
 
-```text
-uzamčená revize podání
-  -> token z věty
-  -> deklarovaná analýza
-  -> lookup v accepted_word_form
-  -> lexeme_identity
-  -> morph values
-  -> neveřejný výsledek pro admin review
-```
+Historická procesní compliance původního podání (např. tehdy platná AI/tool policy) se při obsahové revalidaci retroaktivně nepřepisuje.
 
-AI se nepoužívá při produkčním rozhodnutí o konkrétním soutěžním kandidátovi.
+Každý rozhodující validační záznam musí být reprodukovatelný a uvádět příslušnou rules/catalog/validator provenance a způsob automatického či ručního rozhodnutí.
 
-## Historie a revize
+## Bez komentářů v MVP
 
-Podané věty se po podání nepřepisují na místě. Editace vytváří novou revizi. Evidují se revize, stavové změny, rozhodnutí admina a revalidace vůči novým verzím pravidel.
+Komentáře, komentářové identity, komentářové magic linky, moderace komentářů a jejich privacy/retention lifecycle nejsou součástí prvního MVP. Jejich případné budoucí zavedení bude nové produktové rozhodnutí.
