@@ -163,23 +163,23 @@ Veřejný detail naopak neobsahuje celé paradigma, úplnou morfologickou obhajo
 
 Zveřejněná věta zůstává legitimní společnou znalostí hry i tehdy, když její kompletní interní obhajoba není veřejná.
 
-## 10. Nástroje a AI
+## 10. Nástroje, AI a férovost
 
-Řešení musíš vytvořit vlastní hlavou.
+Kvazi stojí na důvěře. Řešení má vzniknout lidskou hlavou a nikdo po tobě nebude chtít dokazovat, jak jsi k němu došel.
 
-Smíš ručně pracovat s dovolenými veřejnými slovníky a příručkami a mechanicky ověřit konkrétní vlastní nápad.
+Můžeš používat slovníky, příručky, vlastní poznámky, kalkulačku a další běžné pomůcky. Nástroj může mechanicky ověřit konkrétní nápad, který jsi sám vytvořil.
 
-Žádný nástroj ale nesmí kandidáty automaticky generovat, hromadně hledat nebo filtrovat, skládat, porovnávat ani optimalizovat. To platí pro skripty, solvery, crawlery, makra i jiné technologie.
+AI může vysvětlit pravidlo Kvazi nebo obecný jazykový pojem. Nesmí ale za tebe hledat kandidátní slova, navrhovat nebo opravovat konkrétní řešení, skládat věty ani optimalizovat varianty.
 
-AI smíš používat pouze k vysvětlování **obecné češtiny** – třeba co je lemma, pád nebo doplněk – aniž jí ukážeš cokoli z kvaziproblému.
+Totéž platí pro skripty, solvery, crawlery, makra a jiné automatické postupy: kontrola vlastního nápadu je v pořádku, automatické hledání řešení není.
 
-Nesmíš s ní řešit pravidla hry, kvazitahák, existující či plánovanou kvazivětu, kandidátní slova, strategii ani kontrolu řešení.
+> **AI ti smí vysvětlit hru. Nesmí ji za tebe hrát.**
 
-> **Technika smí ověřit konkrétní lidský nápad. Nesmí jej hledat ani vytvořit. AI navíc nesmí dostat žádný kvazikontext.**
+Dodržování tohoto pravidla nebudeme sledovat ani vyšetřovat. Bez vzájemné důvěry by celá recesní soutěž ztratila smysl.
 
 ## 11. Co když najdeš díru v pravidlech?
 
-Pokud je tvoje řešení podle aktuální verze opravdu platné a dodržel jsi soutěžní proces, musí být uznáno.
+Pokud je tvoje řešení podle aktuální verze opravdu platné, musí být uznáno.
 
 Díru můžeme zavřít až v další verzi pravidel. Starý výsledek zůstane součástí historie.
 
