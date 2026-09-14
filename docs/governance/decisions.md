@@ -2,7 +2,7 @@
 
 Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přijata decision ownerem. Detailní diskuse, auditní nálezy a implementační práce zůstávají v GitHub Issues.
 
-> **Stav po auditu 2026-09-14:** všech 19 identifikovaných skutečných produktových rozhodnutí bylo uzavřeno. Otevřená issue již mají představovat zejména specifikační (`[SPEC]`) nebo implementační (`[IMPLEMENTATION]`) práci, nikoli skryté produktové volby.
+> **Stav po auditu 2026-09-14:** původní sada produktových rozhodnutí byla uzavřena; následný produktový audit může otevírat další skutečné pravidlové nebo koncepční volby. Otevřené rozhodovací body se vedou v GitHub Issues a po rozhodnutí se jejich stabilní výsledek promítá sem a do normativních artefaktů.
 
 ## Autorita a governance
 
@@ -12,6 +12,16 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - TODO není implicitní rozhodnutí.
 - Uživatelská deklarace analýzy není sama morfologickou pravdou.
 - Odvozená data musí být reprodukovatelná ze zdrojových dat a příslušné rules/catalog/validator provenance.
+
+## Soutěžní abeceda a motiv
+
+### Q je samostatné soutěžní písmeno — rozhodnutí #65
+
+- `Q` je samostatné soutěžní písmeno, nikoli zkratka, ligatura ani alternativní zápis dvojice `KV`.
+- `Q` se shodou pravidla vyslovuje `/kv/`, ale tato akustická shoda nemá morfologický ani lexikální účinek.
+- Při určování lemmatu, základního tvaru, morfologie, soutěžní identity, skutečnosti slova ani při práci s jazykovými zdroji se `Q` nikdy automaticky nerozvíjí nebo nenormalizuje na `KV`.
+- `QAZ` a `KVAZ` jsou dvě různě zapsaná slova a nelze jim pouze kvůli stejné výslovnosti přiřadit tutéž morfologickou identitu.
+- Tvorba motivu proto používá alternativu `KV | Q`; nejde o pravidlo jazykové ekvivalence.
 
 ## Soutěžní identita a morfologické modely
 
@@ -29,7 +39,7 @@ Tento dokument shrnuje stabilní rozhodnutí, která už byla explicitně přija
 - Samostatný typ se zařadí pouze tehdy, pokud přináší alespoň jednu novou soutěžně dosažitelnou morfologickou možnost, kterou nelze reprezentovat existujícím typem.
 - Typy se nepřebírají jen proto, že obecná česká mluvnice rozlišuje další třídy nebo vzory.
 - Reachability audit musí prověřit relevantní rodiny nad základy typu `VAZ-`, `KVAZ-` i `Q-` / `QAZ-`; pracovní kandidáti zahrnují minimálně `V-AT`, `V-IT`, `KV-AT`, `KV-IT`, `Q-AT`, `Q-IT`.
-- Kandidátní typy se mohou sloučit, pokud jsou soutěžně reachability-ekvivalentní.
+- Kandidátní typy se mohou sloučit, pokud jsou soutěžně reachability-ekvivalentní; samotná výslovnost `Q` jako `/kv/` však není důvodem ke sloučení `Q` a `KV` v morfologii.
 - Každý typ musí zachovat konečný a rozhodnutelný počet soutěžních identit pro konkrétní použitý tvar.
 
 ### Vid — rozhodnutí 3/19
