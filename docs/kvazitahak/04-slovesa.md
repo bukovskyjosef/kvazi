@@ -10,7 +10,7 @@ Každé kvazisloveso musí mít:
 2. jeden povolený vid,
 3. jeden deklarovaný valenční rámec.
 
-Časovací typ se nevybírá z libovolných externích českých sloves. Valence se deklaruje samostatně; její přesný způsob obhajoby a strukturovaného zápisu je řešen v navazujícím rozhodnutí.
+Časovací typ se nevybírá z libovolných externích českých sloves. Valence se deklaruje samostatně a její obhajoba se řídí `05-valence.md`: deklarovaný rámec se dokládá konkrétním současným českým slovesem se stejnou valencí. Otevřená zůstává přesná strukturovaná reprezentace rámce, slotů a evidence ve formuláři/datovém modelu.
 
 Zvolený časovací typ musí přesně určovat vztah mezi infinitivem, případným kmenem, deklarovanými morfologickými hodnotami a použitým tvarem. Nesmí připustit, aby se tentýž použitý tvar odvozoval z libovolně mnoha infinitivů a soutěžních identit.
 
