@@ -12,6 +12,10 @@ Adjektivní soutěžní model je stejně jako substantivní model **uzavřený h
 - další realizace je povolena pouze tehdy, když ji normativní tabulka výslovně uvede,
 - české dublety, nepravidelnosti a lexikální výjimky mimo normativní model se automaticky nepřenášejí.
 
+**Zdrojem pravdy po vydání pravidel je samotná zmrazená normativní tabulka Kvazi.** Jazykové příručky a běžná školská paradigmata jsou podkladem pro její sestavení, nikoli živým pokračováním pravidla. Další standardní česká varianta se do modelu nepřenáší bez explicitní změny normativní tabulky.
+
+Při sestavování kanonické tabulky se preferuje podoba odpovídající jmennému vzorovému slovu a běžnému školskému paradigmatu. Je-li více rovnocenných standardních podob, jedna se jednorázově zvolí jako kanonická realizace Kvazi; ostatní jsou povolené pouze tehdy, pokud jsou výslovně uvedeny.
+
 ## NORMATIVNÍ: aktuálně definované modely
 
 - `mladý`
