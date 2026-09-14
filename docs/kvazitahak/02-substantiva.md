@@ -21,9 +21,7 @@ Co v normativním modelu výslovně uvedeno není, nelze do něj převzít jen p
 
 Každá morfologická buňka má standardně **jednu kanonickou realizaci**. Další realizace je přípustná pouze tehdy, když ji normativní tabulka výslovně uvádí jako další povolenou variantu. Obecná česká dubleta se sama do soutěžního modelu nepřenáší.
 
-**Zdrojem pravdy po vydání pravidel je samotná zmrazená tabulka Kvazi.** Jazykové příručky a běžná školská paradigmata slouží při jejím sestavení jako podklad, ale nejsou živým pokračováním pravidla. Pokud se externí zdroj později změní nebo uvádí další standardní variantu, normativní model Kvazi se tím automaticky nemění.
-
-Při sestavování kanonické tabulky se přednostně volí podoba odpovídající jmennému vzorovému slovu a běžnému školskému paradigmatu. Je-li v češtině více rovnocenných podob, jedna se jednorázově zvolí jako kanonická pro Kvazi; ostatní jsou povolené jen tehdy, jsou-li v tabulce výslovně uvedeny.
+**Obecné české hláskové alternace se automaticky nepoužívají.** Jestliže model pracuje se vztahem `kmen + koncovka`, použije se mechanicky kmen určený modelem bez další fonologické změny jen proto, že by ji obecná čeština v podobném prostředí znala. Změna kmene je dovolena pouze tehdy, když je jako deterministické pravidlo výslovně zabudována do konkrétního soutěžního modelu a model určuje i buňky, ve kterých se použije. Taková změna není volbou hráče.
 
 Výsledný model tedy musí umožnit mechanickou kontrolu vztahu:
 
