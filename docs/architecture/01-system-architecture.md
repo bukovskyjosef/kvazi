@@ -58,13 +58,13 @@ Veřejně je dostupný pouze detail revize, která má publikovatelné schválen
 
 Zobrazuje zejména:
 - text věty,
-- autora (`username`) / spoluautory podle aktuálního produktového rozhodnutí,
+- veřejnou identitu (`username`) jednoho registrovaného účtu, který podání vlastní,
 - skóre pro zvolenou verzi pravidel,
 - verzi pravidel a stav validace,
 - datum,
 - u každého slova použitý tvar, skutečné/kvazi zařazení, slovní druh, lemma/základ, soutěžní model, základní morfologické vlastnosti konkrétního použití a hlavní syntaktickou roli / jednoduché vazby.
 
-Kompletní paradigma, úplná morfologická obhajoba, detailní důkazní podklady, interní stav review cache a úplný admin review nejsou veřejnou součástí detailu.
+Kompletní paradigma, úplná morfologická obhajoba, detailní důkazní podklady, interní stav review cache, úplný admin review ani identita jednotlivých lidí stojících za účtem nejsou veřejnou součástí detailu.
 
 ## Uživatelské účty
 
@@ -72,6 +72,8 @@ MVP používá klasickou lehkou registraci:
 - globálně unikátní `username`,
 - globálně unikátní neveřejný e-mail,
 - heslo ukládané pouze jako bezpečný jednosměrný hash.
+
+Registrovaný účet je jedinou systémově evidovanou autorskou identitou podání. Účet může reprezentovat jednotlivce i libovolný kolektiv lidí a registrační e-mail může patřit jednotlivci nebo skupině. Aplikace nemá zjišťovat, evidovat ani zveřejňovat identity jednotlivých osob stojících za účtem a nemá modelovat samostatné spoluautory.
 
 Aplikace podporuje přihlášení a reset zapomenutého hesla jednorázovým časově omezeným tokenem zaslaným na registrovaný e-mail. Resetovací token není magic-link login.
 
@@ -136,9 +138,9 @@ Pokud pravidly přípustný případ formulář neumí reprezentovat, přímo ve
 
 ## Draft a immutable revize
 
-`sentence` je dlouhodobý kontejner autorského řešení. Běžná práce probíhá v editovatelném draftu.
+`sentence` je dlouhodobý kontejner řešení jednoho registrovaného účtu. Běžná práce probíhá v editovatelném draftu.
 
-Každé konečné odeslání vytvoří **immutable `sentence_revision`** – přesný snapshot textu, pořadí slov, strukturovaných deklarací, syntaxe, zdrojů, obhajoby, typu věty, autora a času submitu. Normativně odvoditelné nepoužité tvary paradigmatu nejsou povinnou součástí hráčova snapshotu.
+Každé konečné odeslání vytvoří **immutable `sentence_revision`** – přesný snapshot textu, pořadí slov, strukturovaných deklarací, syntaxe, zdrojů, obhajoby, typu věty, vlastnícího účtu a času submitu. Normativně odvoditelné nepoužité tvary paradigmatu nejsou povinnou součástí hráčova snapshotu.
 
 Admin ani validační systém nikdy nerozhodují nad proměnlivým draftem. Všechny verdicty odkazují na konkrétní revizi. Pokud je podání vráceno k doplnění, stará revize zůstává nedotčena a další odeslání vytvoří revizi novou.
 
@@ -146,7 +148,7 @@ Nová verze pravidel nevytváří novou revizi věty; nad stejnou immutable revi
 
 ## MVP schvalovací workflow
 
-1. Registrovaný uživatel odešle draft; vznikne immutable revize.
+1. Registrovaný účet odešle draft; vznikne immutable revize.
 2. Backend zopakuje všechny deterministické kontroly včetně odvození konkrétních morfologických tvarů.
 3. U tokenů deklarovaných jako skutečná slova se jejich status řeší proti samostatnému katalogu skutečných slov; případný chybějící exact match není sám o sobě automatické zamítnutí a může jít k review/správě katalogu.
 4. Nad uzamčenou revizí proběhne neveřejný lookup relevantních morfologických posouzení v interní review cache pro danou `rules_version`.
