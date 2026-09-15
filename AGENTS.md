@@ -2,7 +2,7 @@
 
 Tento soubor je **kanonický vstupní kontrakt pro všechny agenty**, kteří pracují s repozitářem. Nástrojově specifické instrukční soubory smějí pouze odkazovat sem a nesmějí kopírovat nebo měnit zdejší pravidla.
 
-**Josef Bukovský je jediný decision owner pro produktová, pravidlová a sporná architektonická rozhodnutí.**
+**Josef Bukovský je kvaziautorita a jediný konečný decision owner pro produktová, pravidlová a sporná architektonická rozhodnutí. Normativní dokumentace je kanonický záznam jeho přijatých rozhodnutí, nikoli autorita nad ním.**
 
 ## 1. Povinný startup protocol
 
@@ -21,14 +21,16 @@ Nikdy nepoužívej historii chatu, starou auditní zprávu ani ručně udržovan
 
 ### Soutěžní platnost
 
-Normativní zdroje jsou:
+Kanonické normativní zdroje mají rozdělené oblasti odpovědnosti:
 
-1. `docs/rules/02-rozhodcovska-specifikace.md`,
-2. výslovně označené **NORMATIVNÍ** části `docs/kvazitahak/`,
-3. `docs/rules/03-ai-policy.md`,
-4. `docs/rules/04-verzovani-a-sprava.md`.
+1. `docs/rules/02-rozhodcovska-specifikace.md` – obecná pravidla soutěžní platnosti,
+2. výslovně označené **NORMATIVNÍ** části `docs/kvazitahak/` – přesná morfologie, paradigmata a další mechanika konkrétních modulů,
+3. `docs/rules/03-ai-policy.md` – používání AI a nástrojů,
+4. `docs/rules/04-verzovani-a-sprava.md` – verzování a správa.
 
-`docs/rules/01-jak-hrat.md` je veřejná vysvětlující vrstva a nesmí vytvářet nové pravidlo.
+Tyto zdroje se nemají významově duplikovat. Konflikt mezi nimi je dokumentační/governance defect; agent jej nesmí vyřešit vlastním výkladem. Konečné rozhodnutí dává Josef a dotčené artefakty se následně sjednotí.
+
+`docs/rules/01-jak-hrat.md` je veřejná vysvětlující vrstva a nesmí vytvářet nové pravidlo. `docs/kvazitahak/00-hracsky-tahak.md` je praktický hráčský rozcestník; normativní jsou pouze výslovně označené části detailních modulů.
 
 ### Technická implementace
 
@@ -60,7 +62,7 @@ Pokud dva autoritativní nebo relevantní artefakty odporují jeden druhému:
 2. ověř související GitHub Issues a explicitní rozhodnutí decision ownera,
 3. pokud již existuje jednoznačné rozhodnutí, oprav zastaralý odvozený artefakt,
 4. pokud rozhodnutí chybí nebo je konflikt skutečně normativní, založ/aktualizuj issue a spornou část neimplementuj,
-5. konflikt mezi dvěma normativními zdroji je governance defect, nikoli prostor pro kreativní interpretaci agenta.
+5. konflikt mezi dvěma normativními zdroji je governance defect, nikoli prostor pro kreativní interpretaci agenta; konečný výklad dává Josef.
 
 Technický artefakt odporující platnému pravidlu je vadný technický artefakt.
 
