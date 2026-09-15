@@ -2,6 +2,10 @@
 
 > **Status:** NORMATIVNÍ pravidlo první rules verze. Rozhodnutí #60 a synchronizace #79.
 
+## Místo v normativním balíku
+
+Tento modul je autoritativní **pro zvláštní substantivní prefix `kvazi-`, jeho povrchovou výjimku, identitu a skórování**. Obecná pravidla platnosti řeší `../rules/02-rozhodcovska-specifikace.md`; základní substantivní morfologii `02-substantiva.md` a ostatní přesnou mechaniku NORMATIVNÍ moduly `01` a `03-06`; AI a verzování mají vlastní dokumenty v `../rules/`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 ## NORMATIVNÍ: rozsah výjimky
 
 Prefix `kvazi-` je zvláštní tematická výjimka dostupná **pouze substantivům**. Nejde o obecný prefixační mechanismus pro jiné slovní druhy.
