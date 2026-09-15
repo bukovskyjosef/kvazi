@@ -16,6 +16,7 @@ Uživatel explicitně deklaruje typ věty. Z něj plyne závěrečná interpunkc
 Aplikace může deterministicky kontrolovat:
 - Unicode NFC a povolené znaky,
 - délku běžného slova a zvláštní pravidlo prefixu `kvazi-`,
+- automatickou inference prefixovaného substantiva v jednoznačném případě popsaném níže,
 - jednopísmenné výjimky,
 - pořadí tokenů,
 - globální motivovou posloupnost včetně normativní prefixové výjimky,
@@ -27,12 +28,25 @@ Hráč nezadává rozklad na motivy.
 
 Interní implementace může použít regulární výraz, konečný automat, parser nebo jiný deterministický postup. Implementace není sama pravidlem hry; musí být ekvivalentní slovnímu normativnímu popisu.
 
+### Automatická inference normativního `kvazi-`
+
+Pokud je po NFC a kanonické normalizaci velikosti písmen povrchový token delší než 5 soutěžních znaků a začíná sekvencí `kvazi`, konfigurátor i backend deterministicky odvodí:
+- POS = substantivum,
+- interní `kvaziPrefix = kvazi`.
+
+Hráč prefix ručně nevolí a UI pro něj nesmí zobrazovat roletku, checkbox ani jiný ovladač. Pro takový povrchový tvar nelze ručně zvolit jiný POS. Po změně povrchového tvaru se odvozené hodnoty znovu přepočítají.
+
+Porovnání je bez ohledu na velikost písmen (`kvazi…`, `Kvazi…`, `KVAZI…`), ale neprovádí jiné lexikální nebo diakritické normalizace: `qazi…`, `kvázi…`, `quasi…` se tímto mechanismem nerozpoznávají.
+
+Automatická inference sama neznamená, že je token platný. Následně musí projít úplná normativní kontrola `07-prefix-kvazi.md`, zejména platnost základního substantiva, globální replaceability a motivová pravidla. Skórová výjimka se použije až na takto odvozený a normativně platný prefix.
+
 ## Živá strukturální a morfologická validace formuláře
 
 Před konečným odesláním může formulář živě ověřovat zveřejněnou strukturu podání a deterministicky odvoditelné vlastnosti konkrétního hráčova návrhu:
 - zda jsou vyplněna všechna povinná pole aktuálního field schema,
 - zda zvolené hodnoty patří do veřejných seznamů aktuální verze pravidel,
 - zda deklarovaná morfologická identita a morfologické hodnoty konkrétního použití podle normativní tabulky vytvářejí právě hráčem zadaný `surfaceForm`,
+- zda automaticky odvozený `kvaziPrefix` a POS odpovídají povrchovému tvaru,
 - zda syntaktické odkazy míří na existující tokeny téhož draftu,
 - zda je vložen požadovaný počet strukturovaných vztahů a podkladů,
 - právě jeden plnovýznamový slovesný token a pouze normativně dovolené pomocné tokeny `být`,
