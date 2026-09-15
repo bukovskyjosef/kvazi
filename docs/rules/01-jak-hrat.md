@@ -84,15 +84,19 @@ Aplikace může během vyplňování kontrolovat technická znaková pravidla, �
 
 Kvazi je otevřený kumulativní problém. Jakmile je schválené řešení zveřejněno, kdokoli na ně smí navazovat, upravovat je, prodlužovat je nebo z něj převzít jednotlivá slova či konstrukční nápady.
 
-Nikdo si pro účely hry nevlastní jednotlivé kvazislovo, morfologický nápad, syntaktickou konstrukci ani část zveřejněné věty. Na jednom podání může spolupracovat více lidí a mohou být uvedeni jako spoluautoři bez procent zásluh.
+Nikdo si pro účely hry nevlastní jednotlivé kvazislovo, morfologický nápad, syntaktickou konstrukci ani část zveřejněné věty.
 
-Přesně shodné řešení může odevzdat více lidí. Pokud má stejné skóre jako existující rekord, jde o společný rekord; pořadí podání nerozhoduje.
+Na jednom řešení může fakticky spolupracovat libovolný počet lidí, ale soutěž jejich počet ani identity neeviduje. Každé podání vlastní a odevzdává **jeden registrovaný účet**. Tento účet může reprezentovat jednotlivce i kolektiv a jeho registrační e-mail může patřit jednotlivci nebo skupině. Samostatní spoluautoři se v systému neuvádějí.
+
+Přesně shodné řešení může odevzdat více účtů. Pokud má stejné skóre jako existující rekord, jde o společný rekord; pořadí podání nerozhoduje.
 
 ## 9. Co je veřejné po schválení
 
 Schválené věty se zveřejňují tak, aby bylo možné pochopit výsledek a základní stavbu věty, nikoli jako úplný revizní spis.
 
-Ve výsledku se zobrazuje zejména věta, počet slov, počet soutěžních znaků a autor či spoluautoři. V detailu jednotlivých slov zejména použitý tvar, skutečné/kvazi zařazení, slovní druh, lemma, soutěžní model, základní vlastnosti použitého tvaru a hlavní syntaktická role či jednoduchá vazba.
+Ve výsledku se zobrazuje zejména věta, počet slov, počet soutěžních znaků a veřejné jméno (`username`) registrovaného účtu, který podání vlastní. Identity jednotlivých lidí stojících za účtem systém nezjišťuje ani nezveřejňuje.
+
+V detailu jednotlivých slov se zveřejňuje zejména použitý tvar, skutečné/kvazi zařazení, slovní druh, lemma, soutěžní model, základní vlastnosti použitého tvaru a hlavní syntaktická role či jednoduchá vazba.
 
 Kompletní paradigma, úplná morfologická obhajoba, detailní zdrojové podklady, interní katalogové stavy a úplný záznam rozhodčího veřejné být nemusí.
 
