@@ -206,6 +206,9 @@ $activePage = 'home';
     <p style="margin-top:20px">
       Autorem kvaziproblému a pravidel je <strong style="color:var(--text)">Josef Bukovský</strong>.
     </p>
+    <div style="margin-top:20px">
+      <a class="btn btn-ghost" href="/manifest.php">Přečíst celý manifest &rarr;</a>
+    </div>
   </div>
 </section>
 
