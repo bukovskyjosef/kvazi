@@ -9,7 +9,7 @@ Každá vydaná `rules_version` má neměnný manifest normativního balíku. Ma
 
 Normativní číselníky, paradigmata a jiné strojově čitelné definice pravidel musí být součástí stejného verzovaného normativního balíku. Nesmějí se pod stejnou `rules_version` tiše změnit pouze v DB nebo kódu.
 
-Výjimkou je **spravovaný katalog skutečných slov** popsaný níže. Ten je záměrně provozní a průběžně opravitelnou autoritou, nikoli neměnnou součástí `rules_version`.
+Výjimkou je **spravovaný katalog skutečných slov** popsaný níže. Ten je záměrně provozní a průběžně opravitelnou lexikální autoritou, nikoli neměnnou součástí `rules_version`.
 
 ## Výklad vs. změna
 Bez nové verze jsou v pravidlových artefaktech přípustné pouze čistě redakční nebo vysvětlující úpravy, které nemění soutěžní pravidlo.
@@ -36,6 +36,15 @@ Při revalidaci se znovu posuzuje obsah řešení podle nové jazykové/pravidlo
 
 Pokud se mezi verzemi změní scoring semantics, skóre je výsledkem validace konkrétní revize vůči konkrétní `rules_version`; nesmí se přepsat historické skóre jiné verze.
 
+## Dvě oddělené katalogové vrstvy
+
+Projekt používá dvě **výslovně oddělené** katalogové vrstvy:
+
+1. **Spravovaný katalog skutečných slov** je lexikální autorita pro otázku, zda je konkrétní úplná soutěžní identita a konkrétní použitý tvar uznaným skutečným slovem. Není obecně vázán na `rules_version` a hráč k němu smí použít pouze exact-match kontrolu kompletního vlastního návrhu.
+2. **Interní morfologická review cache** je neveřejná provozní paměť předchozích morfologických posouzení. Je vyhodnocována ve vztahu ke konkrétní `rules_version` a slouží ke zrychlení rozhodcovského review. Hráč k ní nemá membership lookup.
+
+Tyto dvě vrstvy mají odlišný účel, lifecycle, viditelnost i pravidla verzování. Technická implementace je nesmí slít do jedné autority nebo jednoho významově nejasného katalogového stavu.
+
 ## Katalog skutečných slov
 
 Pro soutěžní status **skutečného slova** je autoritou ručně spravovaný katalog skutečných slov a tvarů.
@@ -56,10 +65,10 @@ Hráč může požádat pouze o kontrolu **vlastního kompletního návrhu**. P�
 
 Částečné údaje se proti katalogu nevyhodnocují způsobem, který by hráči napovídal možnou identitu nebo jiný kandidát. Není-li přesná kombinace potvrzena, neznamená to samo o sobě zamítnutí; hráč ji může předložit k ručnímu posouzení a případnému doplnění katalogu.
 
-## Interní morfologický katalog
-Interní morfologický katalog je provozní znalostní báze a paměť předchozích morfologických posouzení, nikoli vyšší autorita než pravidla. Je vyhodnocován ve vztahu ke konkrétní `rules_version`.
+## Interní morfologická review cache
+Interní morfologická review cache je provozní znalostní báze a paměť předchozích morfologických posouzení, nikoli vyšší autorita než pravidla ani katalog skutečných slov. Je vyhodnocována ve vztahu ke konkrétní `rules_version`.
 
-Pro novou `rules_version` začíná automatické schvalování morfologickým katalogem prázdné. Historické katalogové znalosti starších verzí se nemažou, ale automaticky se nepřenášejí jako schválení do nové verze.
+Pro novou `rules_version` začíná automatické schvalování z review cache prázdné. Historické znalosti starších verzí se nemažou, ale automaticky se nepřenášejí jako schválení do nové verze.
 
 Po uzamčení podání má konkrétní soutěžní identita/tvar vůči dané verzi jednu z těchto semantik:
 
@@ -71,7 +80,7 @@ Po uzamčení podání má konkrétní soutěžní identita/tvar vůči dané ve
 
 Schválení dosud neznámé identity vytváří znalost použitelnou pro další shodné výskyty v téže `rules_version`. Zamítnutí slova/identity nezbytné pro deklarovanou analýzu vede k zamítnutí dané revize věty.
 
-Katalogové rozhodnutí má uchovat dostatečnou auditní stopu, aby bylo zřejmé, co bylo rozhodnuto a proč; projekt však z této evidence nedělá samostatný formální jazykový právní systém.
+Rozhodnutí review cache má uchovat dostatečnou auditní stopu, aby bylo zřejmé, co bylo rozhodnuto a proč; projekt však z této evidence nedělá samostatný formální jazykový právní systém.
 
 ## Autorství, spolupráce a navazování
 
@@ -128,7 +137,4 @@ Provozní limity aplikace jsou nenormativní a samy o sobě nesmějí vytvořit 
 ## Kvaziautorita
 Kvaziautorita rozhoduje jazykovou a pravidlovou platnost řešení, interpretační spory a námitky proti katalogu skutečných slov. Nevede disciplinární řízení o tom, jak hráč řešení vytvořil.
 
-Nemůže odmítnout řádné, platné řešení pouze proto, že se jí způsob využití pravidel nelíbí.
-
-## Kvazicena
-Kvazicena je subjektivní ocenění oddělené od objektivního rekordu.
+Nemůže odmítnout řádné, platné řešení pouze proto, že se jí způsob využití pravidel nelíbí. Pokud platné řešení odhalí nežádoucí důsledek pravidel, změna se provede až v budoucí verzi pravidel.
