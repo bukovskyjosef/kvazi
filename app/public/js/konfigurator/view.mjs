@@ -1,5 +1,5 @@
-import { sentenceTypes, relationShapes, getModel, wordFields, getPath, isFunctional, CONFIRMATION, publicSchema, genders, cases, numbers } from './schema.mjs';
-import { partsOfSpeechLabels, functionsLabels, gendersLabels, casesLabels, numbersLabels, translateOptions, buttonLabel } from './terms.mjs';
+import { sentenceTypes, relationShapes, getModel, wordFields, getPath, isFunctional, publicSchema } from './schema.mjs';
+import { partsOfSpeechLabels, functionsLabels, translateOptions, buttonLabel } from './terms.mjs';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const options = (values, selected) => '<option value="">— vyberte —</option>' + Object.entries(values).map(([key, value]) => `<option value="${esc(key)}"${key === selected ? ' selected' : ''}>${esc(value)}</option>`).join('');
 function field(path, label, value, values, scope = 'word', disabled = false, multiline = false) {
@@ -13,44 +13,6 @@ function check(path, label, value, scope = 'word') {
   return `<div class="fld"><label class="check-label"><input type="checkbox" id="${id}" data-scope="${scope}" data-path="${esc(path)}"${value ? ' checked' : ''}> ${esc(label)}</label></div>`;
 }
 const list = items => `<ul class="status-list">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
-function renderMorphoCells(w, model) {
-  if (!model?.cells.length) return '<p class="notice">Úplné paradigma této větve zatím není specifikováno. Editor buněk bude dostupný po doplnění veřejného schematu.</p>';
-  const notice = `<p class="notice">${model.complete ? 'Vyplňte všechny buňky schematu.' : 'Pracovní tabulka základních kategorií. Přesný rozsah povolených realizací ještě není uzavřen; potvrzení této tabulky neodstraňuje blokaci formuláře.'}</p>`;
-  const isPre = id => w.morphology.prefilled.includes(id);
-  const cellInput = (cellId, idx) => `<input type="text" id="cell-${idx}" data-cell="${esc(cellId)}" value="${esc(w.morphology.cells[cellId] || '')}" class="${isPre(cellId) ? 'mf-pre' : ''}">`;
-  if (w.pos === 'adjective') {
-    const gdLabels = gendersLabels();
-    const cLabels = casesLabels();
-    const nLabels = numbersLabels();
-    const genList = Object.keys(genders).map(k => [k, gdLabels[k]]);
-    const caseList = Object.keys(cases).map(k => [k, cLabels[k]]);
-    const renderTable = (numKey) => {
-      const thead = `<tr><th></th>${genList.map(([, gl]) => `<th scope="col">${esc(gl)}</th>`).join('')}</tr>`;
-      const tbody = caseList.map(([cNum, cLabel]) =>
-        `<tr><th scope="row">${esc(cLabel)}</th>${genList.map(([gKey]) => {
-          const cellId = `${gKey}-${numKey}-${cNum}`;
-          const idx = model.cells.findIndex(c => c.id === cellId);
-          return idx < 0 ? '<td>—</td>' : `<td>${cellInput(cellId, idx)}</td>`;
-        }).join('')}</tr>`
-      ).join('');
-      return `<p class="mt-section-title">${esc(nLabels[numKey])}</p><div class="morfo-wrap"><table class="mt adj-grid"><caption>Šedé buňky jsou předvyplněné — zkontrolujte a opravte každý tvar.</caption><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
-    };
-    return notice + Object.keys(numbers).map(numKey => renderTable(numKey)).join('');
-  }
-  const nLabels = numbersLabels();
-  const cLabels = casesLabels();
-  // Cell id format: "{numKey}-{caseNum}" — reconstruct a dynamic label.
-  const cellLabel = (c) => {
-    const parts = c.id.split('-');
-    const caseKey = parts[parts.length - 1];
-    const numKey = parts.slice(0, -1).join('-');
-    return `${nLabels[numKey] || numKey}, ${cLabels[caseKey] || caseKey}`;
-  };
-  const rows = model.cells.map((c, i) =>
-    `<tr><th scope="row"><label for="cell-${i}">${esc(cellLabel(c))}</label></th><td>${cellInput(c.id, i)}</td></tr>`
-  ).join('');
-  return `${notice}<div class="morfo-wrap"><table class="mt"><caption>Šedé buňky jsou předvyplněné — zkontrolujte a opravte každý tvar.</caption><thead><tr><th scope="col">Kategorie</th><th scope="col">Váš tvar</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
 export function renderSentence(draft, state) {
   const detailsOpen = document.getElementById('sentenceFields')?.querySelector('details')?.open ?? false;
   const preview = document.getElementById('sentencePreview');
@@ -96,13 +58,19 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
   const relationLabels = { head: 'Řídící slovo', predicate: 'Přísudek', nominal: w.role === 'preposition' ? 'Řízené jmenné slovo' : 'Podmět nebo předmět', left: 'První spojovaná část', right: 'Druhá spojovaná část' };
   const others = Object.fromEntries(draft.tokens.filter(t => t.id !== w.id).map(t => [t.id, `${draft.tokens.indexOf(t) + 1}. ${t.surface}`]));
   const functional = isFunctional(w);
+  const formCheckHtml = !functional ? (() => {
+    const fc = status.formCheck;
+    if (fc.ok && fc.expected !== null) return `<p class="status-ok">✓ Morfologická shoda: použitý tvar odpovídá deklaraci (očekáváno „${esc(fc.expected)}").${fc.expected === w.surface ? '' : ' <em>Pozor: povrchový tvar se liší od očekávaného — zkontrolujte zápis.</em>'}</p>`;
+    if (!fc.ok && fc.message) return `<p class="status-missing">Chybí: ${esc(fc.message)}</p>`;
+    return '';
+  })() : '';
   container.innerHTML = `<h2 class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Deklarace slova ${esc(w.surface)}</span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><small style="font-size:10px;font-weight:400;opacity:.55;letter-spacing:.02em">Odborné termíny se přeloží do hovorových</small><button id="termToggle" type="button" style="font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:inherit;font-family:inherit">${esc(buttonLabel())}</button></span></h2><div class="card-body">
     <fieldset><legend>Identita a použitý tvar</legend><div class="config-grid">
       ${field('pos', 'Slovní druh', w.pos, functional ? posLabels : Object.fromEntries(Object.entries(posLabels).filter(([k]) => !['preposition', 'conjunction'].includes(k))), 'word', functional)}
       ${!functional ? field('lemma', w.pos === 'verb' ? 'Neurčitek / základní tvar' : 'Základní tvar', w.lemma) + field('lexicalStatus', 'Deklarovaná identita', w.lexicalStatus, w.pos === 'pronoun' ? { real: 'Skutečné slovo' } : { real: 'Skutečné slovo', quasi: 'Kvazislovo' }) + field('model', w.pos === 'verb' ? 'Soutěžní časovací typ' : 'Soutěžní vzor', w.model, models, 'word', !Object.keys(models).length) : '<p>Slovní druh a role jsou určeny pravidlem jednopísmenné výjimky.</p>'}
       ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? translateOptions(f.options) : null, 'word', false, f.multiline)).join('')}
     </div>${w.pos === 'noun' && model ? `<p>Rod: ${esc({ masculine: 'mužský', feminine: 'ženský', neuter: 'střední' }[w.identity.gender])}${w.identity.animacy ? `, ${w.identity.animacy === 'animate' ? 'životný' : 'neživotný'}` : ''} (určeno zvoleným vzorem).</p>` : ''}
-    ${status.gates.length ? `<div class="notice">${list(status.gates)}</div>` : ''}
+    ${formCheckHtml}
     </fieldset>
     <fieldset><legend>Větná funkce a vazby</legend>
       ${field('role', functional ? 'Technická role' : 'Větná funkce', w.role, functional ? { [w.role]: w.role === 'preposition' ? 'Předložka – bez hlavní větné funkce' : 'Spojení souřadných částí' } : Object.fromEntries(Object.entries(funcLabels).filter(([key]) => key !== 'coordination')), 'word', functional)}
@@ -115,20 +83,19 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
     ${!functional ? `<fieldset><legend>Podklady pro posouzení</legend>
       ${field('evidence.morphology', 'Morfologická obhajoba a odkaz na model', w.evidence.morphology)}
       ${w.lexicalStatus === 'real' ? field('evidence.source', 'Zdroj dokládající existenci', w.evidence.source, { IJP: 'Slovníková část IJP', 'ASSČ': 'Zveřejněné heslo ASSČ' }) + field('evidence.reference', 'Konkrétní heslo / odkaz a doklad použitého tvaru', w.evidence.reference) : ''}
-    </fieldset>
-    <fieldset><legend>Celý morfologický návrh</legend>
-      <p>Jde o váš návrh, nikoli jazykové schválení. Kopie povrchového tvaru je pouze pomůcka pro vyplňování.</p>
-      ${renderMorphoCells(w, model)}
-      <button type="button" data-action="confirm" ${!status.canConfirm ? 'disabled' : ''}>${CONFIRMATION}</button>
-      <p>${status.confirmed ? 'Aktuální návrh je potvrzen uživatelem.' : 'Aktuální návrh není potvrzen.'}</p>
     </fieldset>` : ''}
-    <h3>Co zbývá u tohoto slova</h3>${list([...status.issues, ...status.missing, ...status.gates, ...(!status.confirmed ? ['Potvrzení aktuálního morfologického návrhu.'] : [])])}
+    <h3>Co zbývá u tohoto slova</h3>${list([...status.issues, ...status.missing, ...(status.formCheck && !status.formCheck.ok && status.formCheck.message ? [status.formCheck.message] : [])])}
     </div>`;
 }
 export function renderValidation(draft, state) {
-  const rows = [[state.sequence.ok, 'Znaková kontrola'], [state.syntax.ok && state.sentenceOk, 'Větná struktura a syntaktické vazby'], [state.structureOk, 'Strukturované údaje úplné'], [state.morphologyOk, 'Morfologický návrh potvrzen uživatelem'], [state.submitReady, 'Připraveno k odeslání']];
+  const rows = [[state.sequence.ok, 'Znaková kontrola'], [state.syntax.ok && state.sentenceOk, 'Větná struktura a syntaktické vazby'], [state.structureOk, 'Strukturované údaje úplné'], [state.morphologyOk, 'Morfologická shoda ověřena'], [state.submitReady, 'Připraveno k odeslání']];
   document.getElementById('validation').innerHTML = rows.map(([ok, label]) => `<p class="${ok ? 'status-ok' : 'status-missing'}">${ok ? '✓' : 'Chybí:'} ${label}</p>`).join('')
     + `<p>Slov: ${state.wordCount} · Písmen bez mezer: ${state.charCount} (Q = 1, KV = 2)</p>`
     + list([...state.sentenceIssues, ...state.sequence.issues.map(i => i.message), ...state.syntax.issues.map(i => `${draft.tokens.find(w => w.id === i.id)?.surface || ''}: ${i.message}`)])
-    + draft.tokens.map((w, i) => `<details><summary>${i + 1}. ${esc(w.surface)} – ${state.tokens[w.id].complete ? 'úplné' : 'chybějící údaje'}</summary>${list([...state.tokens[w.id].missing, ...state.tokens[w.id].gates, ...(!state.tokens[w.id].confirmed ? ['Aktuální morfologické potvrzení.'] : [])])}</details>`).join('');
+    + draft.tokens.map((w, i) => {
+      const t = state.tokens[w.id];
+      const items = [...t.missing];
+      if (t.formCheck && !t.formCheck.ok && t.formCheck.message) items.push(t.formCheck.message);
+      return `<details><summary>${i + 1}. ${esc(w.surface)} – ${t.complete ? 'úplné' : 'chybějící údaje'}</summary>${list(items)}</details>`;
+    }).join('');
 }

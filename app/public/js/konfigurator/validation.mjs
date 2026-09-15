@@ -1,5 +1,6 @@
 import { relationShapes, punctuation, partsOfSpeech, getPath, getModel, wordFields, isFunctional, publicSchema } from './schema.mjs';
-import { nfc, folded, isConfirmed, canConfirm } from './state.mjs';
+import { nfc, folded } from './state.mjs';
+import { validateForm } from './morpho.mjs';
 
 const singles = ['k', 'v', 'z', 'a', 'i'];
 function transition(state, c) {
@@ -97,7 +98,8 @@ export function deriveValidationState(draft, schema = publicSchema) {
   const tokens = {};
   const identities = new Map();
   for (const w of draft.tokens) {
-    const missing = [], gates = [], s = folded(w.surface);
+    const missing = [];
+    const s = folded(w.surface);
     if (!Object.hasOwn(partsOfSpeech, w.pos)) missing.push('Slovní druh.');
     if ((['k', 'v', 'z'].includes(s) !== (w.pos === 'preposition')) || (['a', 'i'].includes(s) !== (w.pos === 'conjunction'))) missing.push('Jednopísmenná výjimka a slovní druh si odporují.');
     if (w.pos === 'preposition' && w.role !== 'preposition') missing.push('Předložka má technickou roli bez hlavní větné funkce.');
@@ -109,7 +111,6 @@ export function deriveValidationState(draft, schema = publicSchema) {
       if (w.pos === 'pronoun' && w.lexicalStatus !== 'real') missing.push('Nová zájmena nelze vytvářet.');
       const model = getModel(w, schema);
       if (!model) missing.push('Povolený soutěžní model.');
-      if (!model?.complete) gates.push(model?.gate || (w.pos === 'verb' ? 'Časovací typ, kategorie použitého tvaru a paradigma čekají na dokončení (#2).' : 'Model a úplná pole této větve čekají na specifikaci (#1/#4/#5).'));
       if (model?.identity && Object.entries(model.identity).some(([key, value]) => w.identity[key] !== value)) missing.push('Rod nebo životnost neodpovídá zvolenému modelu.');
       for (const f of wordFields(w, schema)) {
         const value = getPath(w, f.path);
@@ -122,20 +123,20 @@ export function deriveValidationState(draft, schema = publicSchema) {
         if (identities.has(identity)) { missing.push('Soutěžní identita už je ve větě použita.'); tokens[identities.get(identity)].missing.push('Soutěžní identita už je ve větě použita.'); }
         identities.set(identity, w.id);
       }
-      if (!canConfirm(w, schema)) missing.push('Vyplňte všechny právě požadované údaje a buňky morfologického návrhu.');
     }
     if (w.evidence.needsAnalogy && (!w.evidence.explanation.trim() || !w.evidence.analogy.trim())) missing.push('Obhajoba nejasného/fiktivního vztahu a běžná česká analogie.');
-    tokens[w.id] = { missing, gates, confirmed: isConfirmed(w, schema), canConfirm: canConfirm(w, schema) };
+    const formCheck = validateForm(w);
+    tokens[w.id] = { missing, formCheck };
   }
   const idsOk = new Set(draft.tokens.map(w => w.id)).size === draft.tokens.length && draft.tokens.every(w => typeof w.id === 'string' && !!w.id);
   if (!idsOk) sentenceIssues.push('Interní ID slov musejí být neprázdná a jedinečná.');
-  const structureOk = draft.tokens.length > 0 && Object.values(tokens).every(t => !t.missing.length && !t.gates.length);
-  const morphologyOk = draft.tokens.length > 0 && Object.values(tokens).every(t => t.confirmed);
+  const structureOk = draft.tokens.length > 0 && Object.values(tokens).every(t => !t.missing.length);
+  const morphologyOk = draft.tokens.length > 0 && Object.values(tokens).every(t => t.formCheck.ok);
   const sentenceOk = !sentenceIssues.length;
   for (const w of draft.tokens) {
     const t = tokens[w.id];
     t.issues = [...sequence.issues.filter(i => i.id === null || i.id === w.id), ...syntax.issues.filter(i => i.id === w.id)].map(i => i.message);
-    t.complete = !t.missing.length && !t.gates.length && !t.issues.length && t.confirmed;
+    t.complete = !t.missing.length && !t.issues.length && t.formCheck.ok;
   }
   const previewSurfaces = draft.tokens.map((w, i) => {
     const s = nfc(w.surface);

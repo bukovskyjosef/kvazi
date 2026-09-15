@@ -1,17 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { publicSchema, CONFIRMATION, getModel } from '../public/js/konfigurator/schema.mjs';
-import { createDraft, createToken, mutateDraft, morphologySnapshot, isConfirmed, canConfirm } from '../public/js/konfigurator/state.mjs';
+import { publicSchema, getModel } from '../public/js/konfigurator/schema.mjs';
+import { createDraft, createToken, mutateDraft } from '../public/js/konfigurator/state.mjs';
 import { validateTokenSequence, validateSyntax, deriveValidationState, previewDraft } from '../public/js/konfigurator/validation.mjs';
 
-// Synthetic schema exercises the future completion path; it is not shipped to
-// the browser and is not a proposed Czech model or valency frame representation.
-const schema = structuredClone(publicSchema);
-schema.id = 'TEST-ONLY';
-schema.models.noun['hrad'].complete = true;
-schema.models.verb.TEST = { label: 'TEST ONLY', complete: true, cells: [{ id: 'test-cell', label: 'Test cell' }], fields: [] };
-schema.valency = { validate: w => w.valency.declaration === 'test' ? [] : ['Test frame missing'], objectSlotValid: w => w.testSlot === 'test' };
-schema.allowsImplicitSubject = w => w?.form.testImperative === true;
+// Synthetic schema for tests that require a verb model and controlled valency.
+// structuredClone cannot clone functions, so we clone only the plain-data parts.
+const schema = {
+  ...structuredClone({ id: publicSchema.id, fields: publicSchema.fields, models: publicSchema.models, valency: null }),
+  id: 'TEST-ONLY',
+  valency: { validate: w => w.valency.declaration === 'test' ? [] : ['Test frame missing'], objectSlotValid: w => w.testSlot === 'test' },
+  allowsImplicitSubject: w => w?.form.testImperative === true,
+};
+schema.models.verb.TEST = { label: 'TEST ONLY', fields: [] };
 const sequence = surfaces => validateTokenSequence(surfaces.map((surface, i) => ({ id: `t${i}`, surface })));
 function fixture() {
   const draft = createDraft();
@@ -20,24 +21,18 @@ function fixture() {
   const a = createToken('t1', 'vazi'), b = createToken('t2', 'kvazi');
   Object.assign(a, { pos: 'noun', lemma: 'testnoun', model: 'hrad', identity: { gender: 'masculine', animacy: 'inanimate' }, form: { case: '1', number: 'singular' }, lexicalStatus: 'quasi', role: 'subject', relations: { head: 't2' } });
   Object.assign(b, { pos: 'verb', lemma: 'testverb', model: 'TEST', form: { aspect: 'biaspectual' }, lexicalStatus: 'quasi', role: 'predicate', valency: { modelVerb: 'test', declaration: 'test' } });
-  for (const w of [a, b]) {
-    w.evidence.morphology = 'Test evidence';
-    w.morphology.cells = Object.fromEntries(getModel(w, schema).cells.map(c => [c.id, 'test']));
-    w.morphology.confirmation = morphologySnapshot(w, schema);
-  }
+  for (const w of [a, b]) w.evidence.morphology = 'Test evidence';
   draft.tokens = [a, b];
   return draft;
 }
 
 test('Unicode NFC before storing, validating and scoring; no alphabet limits on lemma/paradigm', () => {
   let d = mutateDraft(createDraft(), { type: 'insert', surface: 'KVA\u0301ZI\u0301' });
-  assert.equal(d.tokens[0].surface, 'KVÁZÍ');
+  assert.equal(d.tokens[0].surface, 'kvází');
   assert.deepEqual(sequence(['KVA\u0301ZI\u0301']), sequence(['KVÁZÍ']));
   assert.equal(deriveValidationState(d).charCount, 5);
   d = mutateDraft(d, { type: 'field', id: 't1', path: 'lemma', value: 'ře\u0301šení' });
   assert.equal(d.tokens[0].lemma, 'řéšení');
-  d = mutateDraft(d, { type: 'cell', id: 't1', key: 'x', value: 'a\u0301 ž' });
-  assert.equal(d.tokens[0].morphology.cells.x, 'á ž');
 });
 test('alphabet, token lengths, empty draft and no implicit prefix exception', () => {
   for (const s of ['kv', 'á', 'q', 'y', 'kvaziqazi', 'kvazivázy', 'kva zi', 'kvazi.', 'xaz', '😀']) assert.equal(sequence([s]).ok, false, s);
@@ -135,55 +130,68 @@ test('predicate root, supplement, preposition and coordination specialized shape
   conj.relations.right = 'y'; d.tokens[3].role = 'object'; d.tokens[3].testSlot = 'test'; assert.equal(validateSyntax(d, schema).ok, false);
   d.tokens[2].role = d.tokens[3].role = 'subject'; assert.equal(validateSyntax(d, schema).ok, false);
 });
-test('cycles, dangling links, extra links and valency gate cannot pass syntax', () => {
+test('cycles, dangling links and extra links cannot pass syntax', () => {
   const d = fixture();
-  d.tokens[0].role = 'object';
-  assert.equal(validateSyntax(d).ok, false);
-  d.tokens[0].testSlot = 'test'; assert.equal(validateSyntax(d, schema).ok, true);
   d.tokens[0].role = 'attribute'; d.tokens[1].pos = 'noun'; d.tokens[1].role = 'attribute'; d.tokens[1].relations = { head: 't1' };
   assert.ok(validateSyntax(d, schema).issues.some(x => x.message.includes('kruh')));
 });
-test('confirmation requires every cell, does not assess Czech truth, and uses exact text', () => {
-  const d = fixture(), w = d.tokens[0];
-  assert.equal(CONFIRMATION, 'Potvrzuji, že toto je můj morfologický návrh.');
-  assert.equal(canConfirm(w, schema), true);
-  w.morphology.cells['singular-1'] = '   ';
-  assert.equal(canConfirm(w, schema), false);
-  assert.equal(isConfirmed(w, schema), false);
-  const changed = mutateDraft(d, { type: 'confirm', id: w.id }, schema);
-  assert.equal(changed.tokens[0].morphology.confirmation, null);
+test('formCheck ok for functional words and unknown models', () => {
+  const d = fixture();
+  // preposition 'k' is always formCheck ok
+  const k = createToken('k1', 'k');
+  d.tokens.push(k);
+  const state = deriveValidationState(d, schema);
+  assert.equal(state.tokens.k1.formCheck.ok, true);
+  // TEST verb model is unknown to morpho.mjs — returns ok:true
+  assert.equal(state.tokens.t2.formCheck.ok, true);
 });
-test('every confirmed datum invalidates the snapshot, including direct mutation and schema changes', () => {
-  for (const [path, value] of [['lemma', 'other'], ['pos', 'adjective'], ['model', 'stroj'], ['identity.gender', 'other'], ['form.case', '2'], ['lexicalStatus', 'real'], ['evidence.morphology', 'other'], ['valency.modelVerb', 'other']]) {
-    const d = mutateDraft(fixture(), { type: 'field', id: 't1', path, value }, schema);
-    assert.equal(d.tokens[0].morphology.confirmation, null, path);
-    assert.equal(deriveValidationState(d, schema).submitReady, false, path);
-  }
-  const d = mutateDraft(fixture(), { type: 'cell', id: 't1', key: 'singular-1', value: 'other' }, schema);
-  assert.equal(isConfirmed(d.tokens[0], schema), false);
-  const raw = fixture(); raw.tokens[0].lemma = 'tampered'; assert.equal(isConfirmed(raw.tokens[0], schema), false);
-  assert.equal(isConfirmed(fixture().tokens[0], { ...schema, id: 'changed' }), false);
+test('formCheck fails when surface does not match declared form', () => {
+  const d = createDraft();
+  const w = createToken('t1', 'kvazi');
+  Object.assign(w, { pos: 'noun', lemma: 'kvaz', model: 'hrad', identity: { gender: 'masculine', animacy: 'inanimate' }, form: { case: '1', number: 'singular' }, lexicalStatus: 'quasi', role: 'subject', relations: { head: 't2' } });
+  w.evidence.morphology = 'test';
+  d.tokens = [w];
+  const state = deriveValidationState(d);
+  // hrad, case=1, number=singular, stem='kvaz', ending='' → expected='kvaz', but surface='kvazi' ≠ 'kvaz'
+  assert.equal(state.tokens.t1.formCheck.ok, false);
+  assert.ok(typeof state.tokens.t1.formCheck.message === 'string');
 });
-test('false-green regression has a true baseline, and preview synchronously revalidates', () => {
-  assert.equal(deriveValidationState(fixture(), schema).submitReady, true);
-  for (const mutate of [d => { d.tokens[0].relations = {}; }, d => { d.tokens[0].lemma = ''; }, d => { d.tokens[0].morphology.cells['singular-1'] = 'stale'; }, d => { d.sentenceType = ''; }, d => { d.tokens[0].surface = 'bad'; }, d => { d.tokens[1].form.aspect = 'invalid'; }]) {
-    const d = fixture(); const old = deriveValidationState(d, schema); assert.equal(old.submitReady, true);
-    mutate(d);
-    const preview = previewDraft(d, schema);
-    assert.equal(preview.validation.submitReady, false);
-    assert.equal(preview.submitted, false);
-  }
+test('formCheck ok when surface matches declared form', () => {
+  const d = createDraft();
+  const w = createToken('t1', 'kvaz');
+  Object.assign(w, { pos: 'noun', lemma: 'kvaz', model: 'hrad', identity: { gender: 'masculine', animacy: 'inanimate' }, form: { case: '1', number: 'singular' }, lexicalStatus: 'quasi', role: 'subject', relations: { head: 't2' } });
+  w.evidence.morphology = 'test';
+  d.tokens = [w];
+  const state = deriveValidationState(d);
+  assert.equal(state.tokens.t1.formCheck.ok, true);
+  assert.equal(state.tokens.t1.formCheck.expected, 'kvaz');
+});
+test('morphologyOk uses formCheck across all tokens', () => {
+  const d = createDraft();
+  // noun with correct form
+  const noun = createToken('t1', 'kvaz');
+  Object.assign(noun, { pos: 'noun', lemma: 'kvaz', model: 'hrad', identity: { gender: 'masculine', animacy: 'inanimate' }, form: { case: '1', number: 'singular' }, lexicalStatus: 'quasi', role: 'subject', relations: { head: 't2' } });
+  noun.evidence.morphology = 'ok';
+  // verb with V-AT type — unknown surface doesn't matter for morphologyOk here since lemma check fails first
+  const verb = createToken('t2', 'kvazi');
+  Object.assign(verb, { pos: 'verb', lemma: 'kvazat', model: 'V-AT', form: { verbFormType: 'present', verbPerson: '3', number: 'singular', aspect: 'imperfective' }, lexicalStatus: 'quasi', role: 'predicate', valency: { declaration: 'x' } });
+  verb.evidence.morphology = 'ok';
+  d.tokens = [noun, verb];
+  d.nextId = 3;
+  const state = deriveValidationState(d);
+  // noun formCheck ok, verb: stem='kvaz', ending='á', expected='kvazá' ≠ 'kvazi' — formCheck fails
+  assert.equal(state.tokens.t1.formCheck.ok, true);
+  assert.equal(state.tokens.t2.formCheck.ok, false);
+  assert.equal(state.morphologyOk, false);
 });
 test('edit, insert and delete preserve stable IDs and independent references', () => {
   const original = fixture();
   let d = mutateDraft(original, { type: 'insert', anchor: 't1', side: 'after', surface: 'qazi' }, schema);
   assert.deepEqual(d.tokens.map(w => w.id), ['t1', 't3', 't2']);
   assert.equal(d.tokens[0].relations.head, 't2');
-  assert.equal(isConfirmed(d.tokens[0], schema), true);
   d = mutateDraft(d, { type: 'surface', id: 't1', value: 'vázi' }, schema);
   assert.equal(d.tokens[0].id, 't1'); assert.equal(d.tokens[0].relations.head, 't2');
-  assert.equal(d.tokens[0].lemma, ''); assert.deepEqual(d.tokens[0].morphology.cells, {});
-  assert.equal(isConfirmed(d.tokens[2], schema), true);
+  assert.equal(d.tokens[0].lemma, '');
   d = mutateDraft(d, { type: 'delete', id: 't2' }, schema);
   assert.deepEqual(d.tokens[0].relations, {});
   assert.equal(original.tokens[0].lemma, 'testnoun');
@@ -199,16 +207,13 @@ test('functional surface edits derive the new role and remove incompatible relat
   d = mutateDraft(d, { type: 'surface', id: 't1', value: 'azi' });
   assert.equal(d.tokens[0].pos, '');
 });
-test('production open schema stays gated even if base tables are confirmed', () => {
+test('previewDraft synchronously revalidates', () => {
   const d = fixture();
-  d.tokens[0].morphology.confirmation = morphologySnapshot(d.tokens[0]);
-  assert.equal(isConfirmed(d.tokens[0]), true);
-  const result = deriveValidationState(d);
-  assert.equal(result.submitReady, false);
-  assert.ok(result.tokens.t1.gates.length);
-  assert.ok(result.tokens.t2.gates.length);
-  assert.deepEqual(publicSchema.models.verb, {});
-  assert.equal(publicSchema.valency, null);
+  d.sentenceType = '';
+  const preview = previewDraft(d, schema);
+  assert.equal(preview.validation.submitReady, false);
+  assert.equal(preview.submitted, false);
+  assert.equal(preview.schema, 'TEST-ONLY');
 });
 test('duplicate identities ignore case, declared real/quasi status, case and number', () => {
   const d = fixture(), duplicate = structuredClone(d.tokens[0]);

@@ -1,5 +1,5 @@
 // Public structural data only; this is not a released normative rules package.
-export const CONFIRMATION = 'Potvrzuji, že toto je můj morfologický návrh.';
+// Normativní morfologická paradigmata jsou v morpho.mjs.
 export const sentenceTypes = { declarative: 'Oznamovací', interrogative: 'Tázací', imperative: 'Rozkazovací' };
 export const punctuation = { declarative: '.', interrogative: '?', imperative: '!' };
 export const partsOfSpeech = { noun: 'Podstatné jméno', adjective: 'Přídavné jméno', verb: 'Sloveso', pronoun: 'Zájmeno', preposition: 'Předložka', conjunction: 'Spojka' };
@@ -10,60 +10,103 @@ export const cases = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [Str
 export const numbers = { singular: 'Jednotné', plural: 'Množné' };
 const field = (path, label, options, multiline = false) => ({ path, label, options, multiline });
 const nominalFields = [field('form.case', 'Pád použitého tvaru', cases), field('form.number', 'Číslo použitého tvaru', numbers)];
-// Editable base grids, without endings or variant claims. Completeness of the
-// final normative paradigm remains gated, even after the user confirms this grid.
-const cells = (groups) => groups.flatMap(([prefix, label]) => Object.entries(cases).map(([c, name]) => ({ id: `${prefix}-${c}`, label: `${label}, ${name}` })));
-const nounCells = cells(Object.entries(numbers));
-const adjectiveCells = cells(Object.entries(genders).flatMap(([g, label]) => Object.entries(numbers).map(([n, number]) => [`${g}-${n}`, `${label}, ${number}`])));
-// Provisional verb paradigm cells — present, past, imperative.
-// Final normative set is gated on reachability audit (#2); prototype marks complete:true to enable submission flow.
-const verbCells = [
-  { id: 'pres-1sg', label: 'Přítomný čas, 1. os. j.č.' },
-  { id: 'pres-2sg', label: 'Přítomný čas, 2. os. j.č.' },
-  { id: 'pres-3sg', label: 'Přítomný čas, 3. os. j.č.' },
-  { id: 'pres-1pl', label: 'Přítomný čas, 1. os. mn.č.' },
-  { id: 'pres-2pl', label: 'Přítomný čas, 2. os. mn.č.' },
-  { id: 'pres-3pl', label: 'Přítomný čas, 3. os. mn.č.' },
-  { id: 'past-sg-m', label: 'Minulý čas, j.č. mužský' },
-  { id: 'past-sg-f', label: 'Minulý čas, j.č. ženský' },
-  { id: 'past-sg-n', label: 'Minulý čas, j.č. střední' },
-  { id: 'past-pl',   label: 'Minulý čas, mn.č.' },
-  { id: 'imp-2sg',   label: 'Rozkazovací způsob, 2. os. j.č.' },
-  { id: 'imp-1pl',   label: 'Rozkazovací způsob, 1. os. mn.č.' },
-  { id: 'imp-2pl',   label: 'Rozkazovací způsob, 2. os. mn.č.' },
-];
-const nounModels = [
-  ['pán', 'masculine', 'animate'], ['muž', 'masculine', 'animate'], ['předseda', 'masculine', 'animate'], ['soudce', 'masculine', 'animate'],
+
+const nounModelList = [
+  ['pán', 'masculine', 'animate'], ['muž', 'masculine', 'animate'],
+  ['předseda', 'masculine', 'animate'], ['soudce', 'masculine', 'animate'],
   ['hrad', 'masculine', 'inanimate'], ['stroj', 'masculine', 'inanimate'],
   ...['žena', 'růže', 'píseň', 'kost'].map(x => [x, 'feminine', '']),
   ...['město', 'moře', 'kuře', 'stavení'].map(x => [x, 'neuter', '']),
 ];
+const nounModelOptions = Object.fromEntries(nounModelList.map(([name]) => [name, name]));
+
+const verbModels = Object.fromEntries([
+  ['V-AT', 'typ V-AT (dělat)'], ['V-IT', 'typ V-IT (prosit)'],
+  ['V-NOUT', 'typ V-NOUT (tisknout)'], ['V-ÝT', 'typ V-ÝT (krýt)'],
+  ['V-OVAT', 'typ V-OVAT (kupovat)'],
+].map(([key, label]) => [key, { label, fields: [] }]));
+
 export const publicSchema = {
-  id: 'configurator-structural-prototype-1',
+  id: 'configurator-v2',
   fields: {
-    noun: nominalFields,
-    adjective: [field('form.gender', 'Rod použitého tvaru', genders), ...nominalFields],
-    verb: [field('form.aspect', 'Vid', { imperfective: 'Nedokonavý', perfective: 'Dokonavý', biaspectual: 'Obouvidový' }), field('valency.modelVerb', 'České modelové sloveso (valence)'), field('valency.declaration', 'Valenční obhajoba — jaká doplnění použití vyžaduje, která slova je realizují a o jaké české sloveso se opírá', null, true)],
+    noun: [
+      ...nominalFields,
+      field('kvaziPrefix', 'Prefix kvazi-', { '': 'Bez prefixu', 'true': 'Použit prefix kvazi- (podstatné jméno)' }),
+    ],
+    adjective: [
+      field('form.gender', 'Rod použitého tvaru', genders),
+      ...nominalFields,
+    ],
+    verb: [
+      field('form.verbFormType', 'Druh slovesného tvaru', { present: 'Přítomný/budoucí', imperative: 'Rozkazovací způsob', lParticiple: 'L-příčestí' }),
+      field('form.aspect', 'Vid', { imperfective: 'Nedokonavý', perfective: 'Dokonavý', biaspectual: 'Obouvidový' }),
+      field('valency.declaration', 'Valenční obhajoba — jaká doplnění použití vyžaduje, která slova je realizují a o jaké české sloveso se opírá', null, true),
+    ],
     pronoun: [],
   },
   models: {
-    noun: Object.fromEntries(nounModels.map(([name, gender, animacy]) => [name, { label: name, identity: { gender, animacy }, cells: nounCells, fields: [], complete: true }])),
-    adjective: Object.fromEntries(['mladý', 'jarní', 'otcův', 'matčin'].map(name => [name, { label: name, cells: adjectiveCells, fields: [], complete: true }])),
-    // Provisional types based on governance candidates (#2). Final set requires reachability audit.
-    verb: Object.fromEntries([
-      ['V-AT', 'typ V-AT (vázat)'], ['V-IT', 'typ V-IT (vázit)'],
-      ['KV-AT', 'typ KV-AT (kvázat)'], ['KV-IT', 'typ KV-IT (kvázit)'],
-      ['Q-AT', 'typ Q-AT (qázat)'],   ['Q-IT', 'typ Q-IT (qázit)'],
-    ].map(([key, label]) => [key, { label, cells: verbCells, fields: [], complete: true }])),
+    noun: Object.fromEntries(nounModelList.map(([name, gender, animacy]) => [name, { label: name, identity: { gender, animacy }, fields: [] }])),
+    adjective: {
+      'mladý': { label: 'mladý', fields: [field('form.degree', 'Stupeň', { '1': '1. stupeň', '2': '2. stupeň (S+ější)', '3': '3. stupeň (nejS+ější)' })] },
+      'jarní':  { label: 'jarní', fields: [field('form.degree', 'Stupeň', { '1': '1. stupeň', '2': '2. stupeň (S+ější)', '3': '3. stupeň (nejS+ější)' })] },
+      'otcův':  { label: 'otcův', fields: [
+        field('identity.sourceNounLemma', 'Lemma zdrojového substantiva'),
+        field('identity.sourceNounModel', 'Vzor zdrojového substantiva', nounModelOptions),
+      ]},
+      'matčin': { label: 'matčin', fields: [
+        field('identity.sourceNounLemma', 'Lemma zdrojového substantiva'),
+        field('identity.sourceNounModel', 'Vzor zdrojového substantiva', nounModelOptions),
+      ]},
+    },
+    verb: verbModels,
     pronoun: {},
   },
-  // Deliberately absent: a final frame/slot data structure (#5). A future
-  // adapter owns its fields, validation and slot-reference checks together.
   valency: null,
-  allowsImplicitSubject: (verb, draft) => !!verb?.model && draft.sentenceType === 'imperative',
+  allowsImplicitSubject: (verb, draft) =>
+    draft.sentenceType === 'imperative' && Object.hasOwn(verbModels, verb?.model ?? ''),
 };
-export const getModel = (w, schema = publicSchema) => Object.hasOwn(schema.models, w.pos) && Object.hasOwn(schema.models[w.pos], w.model) ? schema.models[w.pos][w.model] : undefined;
-export const wordFields = (w, schema = publicSchema) => [...(schema.fields[w.pos] || []), ...(getModel(w, schema)?.fields || [])];
+
+export const getModel = (w, schema = publicSchema) =>
+  Object.hasOwn(schema.models, w.pos) && Object.hasOwn(schema.models[w.pos], w.model)
+    ? schema.models[w.pos][w.model] : undefined;
+
+// Vrátí pole formulářových deskriptorů relevantních pro konkrétní stav tokenu.
+// Pro slovesa zahrnuje kontextové pole dle form.verbFormType.
+export function wordFields(w, schema = publicSchema) {
+  const base = [...(schema.fields[w.pos] || [])];
+  const modelFields = [...(getModel(w, schema)?.fields || [])];
+
+  if (w.pos === 'verb') {
+    const vft = w.form?.verbFormType;
+    const personOpts = { '1': '1.', '2': '2.', '3': '3.' };
+    if (vft === 'present') {
+      return [...base,
+        field('form.verbPerson', 'Osoba', personOpts),
+        field('form.number', 'Číslo', numbers),
+        ...modelFields];
+    }
+    if (vft === 'imperative') {
+      return [...base,
+        field('form.verbPerson', 'Osoba (2.sg / 1.pl / 2.pl)', { '2sg': '2. sg', '1pl': '1. pl', '2pl': '2. pl' }),
+        ...modelFields];
+    }
+    if (vft === 'lParticiple') {
+      const extra = [
+        field('form.verbGender', 'Rod l-příčestí', { masculine: 'Mužský', feminine: 'Ženský', neuter: 'Střední' }),
+        field('form.number', 'Číslo l-příčestí', numbers),
+      ];
+      if (w.form?.verbGender === 'masculine' && w.form?.number === 'plural') {
+        extra.push(field('form.verbAnimacy', 'Životnost l-příčestí', { animate: 'Životný', inanimate: 'Neživotný' }));
+      }
+      return [...base, ...extra, ...modelFields];
+    }
+    // verbFormType not yet set — return only base fields so user can pick the form type
+    return [...base, ...modelFields];
+  }
+
+  return [...base, ...modelFields];
+}
+
 export const isFunctional = w => ['preposition', 'conjunction'].includes(w.pos);
 export const getPath = (obj, path) => path.split('.').reduce((value, key) => value?.[key], obj);
 export function setPath(obj, path, value) {

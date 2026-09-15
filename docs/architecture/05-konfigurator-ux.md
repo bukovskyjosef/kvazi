@@ -132,9 +132,19 @@ jako obsah `#editor` karty.
 - **Základní tvar** – text input (neurčitek pro slovesa).
 - **Deklarovaná identita** – select (Skutečné slovo / Kvazislovo).
 - **Soutěžní vzor / časovací typ** – select ze vzorů definovaných v `schema.mjs`.
-- **Pád, Číslo, Rod** použitého tvaru (podle POS) – selecty s dynamickými termíny.
-- **Vid** (jen pro slovesa) – select.
-- **Modelové sloveso** (pro slovesa) – text input.
+- **Pád, Číslo** (podstatná jména, zájmena) a **Rod, Pád, Číslo** (přídavná jména)
+  použitého tvaru – selecty.
+- **Prefix kvazi-** (podstatná jména) – select.
+- **Druh slovesného tvaru** (slovesa) – select: přítomný/budoucí, rozkazovací způsob,
+  l-příčestí. Podle vybrané hodnoty se kontextově zobrazí:
+  - *přítomný/budoucí* → Osoba (1/2/3), Číslo.
+  - *rozkazovací způsob* → Osoba/číslo (2.sg / 1.pl / 2.pl).
+  - *l-příčestí* → Rod (mužský/ženský/střední), Číslo, a pokud maskulinum plurál,
+    pak i Životnost.
+- **Vid** – select (Nedokonavý / Dokonavý / Obouvidový).
+- **Valenční obhajoba** – multiline text area.
+
+Pod formulářem se zobrazí výsledek morfologické kontroly tvaru (viz sekce 8).
 
 ### 6.2 Sekce: Větná funkce a vazby
 
@@ -150,14 +160,10 @@ jako obsah `#editor` karty.
 - **Zdroj** (jen pro skutečná slova) – select (IJP / ASSČ).
 - **Konkrétní heslo a doklad** – text input.
 
-### 6.4 Sekce: Celý morfologický návrh
+### 6.4 Přehled zbývajícího
 
-Viz sekce 8 (morfo tabulka).
-
-### 6.5 Přehled zbývajícího
-
-Na konci editoru je shrnutí všeho, co u tokenu chybí (issues, missing, gates,
-stav potvrzení).
+Na konci editoru je shrnutí všeho, co u tokenu chybí (issues, missing,
+chyba morfologické shody).
 
 ---
 
@@ -209,52 +215,43 @@ a řádcích morfologické tabulky, selectech pádu/čísla/rodu/vidu.
 
 ---
 
-## 8. Morfologická tabulka
+## 8. Morfologická shoda
 
-### 8.1 Předvyplnění
+Modul `morpho.mjs` obsahuje normativní paradigmatické tabulky pro všechny soutěžní vzory a modely
+a exportuje funkci `validateForm(w)`. Ta dostane token a synchronně vrátí:
 
-Při zvolení vzoru/modelu se všechny buňky tabulky **automaticky vyplní**
-povrchovým tvarem tokenu (`w.surface`). Předvyplněné buňky jsou označeny
-třídou `mf-pre` → zobrazují se **oranžově, kurzívou**.
+```js
+{ ok: boolean, expected: string | null, message: string | null }
+```
 
-Toto předvyplnění je pouze UX zkratka; nijak netvrdí, že daný tvar je jazykově
-správný.
+- `ok: true, expected: 'kvaz'` — deklarovaný tvar byl deterministicky odvozen a povrchový tvar
+  tokenu mu odpovídá (nebo se liší jen nefunkčně, v tom případě se zobrazí poznámka).
+- `ok: false, message: '…'` — tvar nelze ověřit nebo povrchový tvar neodpovídá očekávanému.
+- `ok: true, expected: null` — ověření nebylo možné (neznámý vzor, funkční slovo): bere se jako OK.
 
-### 8.2 Přechod předvyplněné → editované buňky
+### 8.1 Pokrytí paradigmat
 
-Kliknutím (focusin) na oranžovou buňku se ihned odešle akce `cell`, která buňku
-odebere ze seznamu `prefilled` → buňka zezelná (ztratí `mf-pre`) a stane se
-černou. Tím se i předvyplněná hodnota ponechaná beze změny transformuje na
-„uživatelem záměrně ponechané pole".
+| Kategorie         | Vzory / modely                                         |
+|-------------------|--------------------------------------------------------|
+| Podstatná jména   | 14 vzorů (pán, muž, předseda, soudce, hrad, stroj, žena, růže, píseň, kost, město, moře, kuře, stavení) |
+| Přídavná jména    | mladý, jarní, otcův, matčin (+ gradace 1.–3. stupně)  |
+| Slovesa           | V-AT, V-IT, V-NOUT, V-ÝT, V-OVAT × {přítomný, rozkazovací, l-příčestí} |
 
-### 8.3 Potvrzení morfologického návrhu
+### 8.2 Zobrazení výsledku v editoru
 
-Tlačítko „Potvrzuji, že toto je můj morfologický návrh." je dostupné (enabled),
-jakmile jsou vyplněna povinná pole tokenu a všechny buňky tabulky.
+Ve fieldsettu „Identita a použitý tvar" se pod formulářovými poli zobrazí:
 
-Po kliknutí:
-- Uloží se snapshot aktuálního stavu jako `morphologySnapshot` (JSON hash).
-- Všechny buňky v `prefilled` se vyprázdní (oranžová barva zmizí).
-- Token je v potvrzeném stavu.
+- **✓ Morfologická shoda** (zelený odstavec) – tvar odpovídá deklaraci, uveden očekávaný tvar.
+  Pokud se povrchový tvar liší od očekávaného (liší se diakritika apod.), zobrazí se upozornění.
+- **Chybí: …** (červený odstavec) – konkrétní chybová hláška (např. „Pád nebo číslo není nastaveno.",
+  „Očekávaný tvar je ‚kvaz', ale povrchový tvar je ‚kvazi'.").
+- Pro funkční slova (předložka, spojka) a pro neznámé vzory se výsledek nezobrazuje.
 
-Kdykoli se změní jakákoli hodnota, která vstupuje do snapshotu (povrchový tvar,
-lemma, vzor, morfologické kategorie, buňky tabulky), potvrzení se **automaticky
-zneplatní**. Toto se děje centrálně na konci každé mutace v `mutateDraft()`.
+### 8.3 Agregace do morfologyOk
 
-### 8.4 Tabulka pro podstatná jména
-
-Jednoduché tabulka: řádky = kombinace číslo × pád (Singulár Nominativ …
-Plurál Instrumentál). Štítky řádků jsou dynamicky generovány z ID buňky
-(formát `{numKey}-{caseKey}`) a překládány přes `numbersLabels()` a `casesLabels()`.
-
-### 8.5 Tabulka pro přídavná jména
-
-**Dvě oddělené tabulky** (Singulár / Plurál). V každé:
-- Řádky = pády (Nominativ … Instrumentál).
-- Sloupce = rody (M živ / M neživ / F / N).
-
-Záhlaví sloupců i štítky řádků jsou dynamicky překládány terminologickým
-přepínačem.
+`deriveValidationState()` agreguje `formCheck.ok` přes všechny tokeny do `morphologyOk`.
+Validační panel zobrazuje „Morfologická shoda ověřena" (✓) nebo „Morfologická shoda ověřena" (Chybí:).
+`submitReady` je `false`, dokud není `morphologyOk === true`.
 
 ---
 
@@ -265,7 +262,7 @@ Zobrazuje se v `#validation`. Zobrazuje:
 1. Znaková kontrola (DFA motivů, délky, výjimky) – ✓ / Chybí.
 2. Větná struktura a syntaktické vazby – ✓ / Chybí.
 3. Strukturované údaje úplné – ✓ / Chybí.
-4. Morfologický návrh potvrzen uživatelem – ✓ / Chybí.
+4. Morfologická shoda ověřena – ✓ / Chybí.
 5. Připraveno k odeslání – ✓ / Chybí.
 6. Počet slov a znaků (Q = 1, KV = 2).
 7. Seznam aktuálních problémů na úrovni věty.
@@ -295,7 +292,6 @@ a rozsah textové selekce. Po přepsání se focus i selekce obnoví na stejný 
 | Akcent (focus/link) | `#3b82f6`     |
 | Úspěch              | `#16a34a`     |
 | Chyba               | `#fca5a5`     |
-| Předvyplněná buňka  | `#f97316` (oranžová) |
 
 ### 11.2 Typografie
 
@@ -322,8 +318,8 @@ Pod 600 px se header zalamuje, container má menší padding, preview má menš�
 ## 12. Aktuální omezení prototypu (záměrná)
 
 - Žádný backend submit – pouze local JSON preview.
-- Slovesná paradigmata nejsou dostupná (čeká na #2).
-- Valenční rámec (`valency.declaration`) je prázdný placeholder (#5).
-- Hraniční tvary přídavných jmen čekají na #1/#4.
-- `submitReady` bude `false`, dokud nejsou potřebná schemata úplná.
+- Valenční rámec (`valency.declaration`) je textový popis; sémantická validace
+  valenčního slotu pro předmět je jen zástupný bod (#5).
+- `submitReady` bude `false`, dokud nejsou potřebná data úplná a morfologická
+  shoda ověřena.
 - Bez přihlášení, autorizace ani perzistence.

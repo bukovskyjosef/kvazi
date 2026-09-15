@@ -24,7 +24,7 @@ function render() {
   element('newSurface').hidden = !!draft.closingPunct;
   const submitBtn = element('submitButton');
   if (submitBtn) submitBtn.disabled = !state.submitReady;
-  const summary = `${state.wordCount} slov. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologické návrhy ${state.morphologyOk ? 'potvrzeny' : 'nepotvrzeny'}. ${state.submitReady ? 'Připraveno k odeslání.' : 'Zatím není připraveno k odeslání.'}`;
+  const summary = `${state.wordCount} slov. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologická shoda ${state.morphologyOk ? 'ověřena' : 'neověřena'}. ${state.submitReady ? 'Připraveno k odeslání.' : 'Zatím není připraveno k odeslání.'}`;
   if (element('liveStatus').textContent !== summary) element('liveStatus').textContent = summary;
 }
 function dispatch(action) {
@@ -34,17 +34,11 @@ function dispatch(action) {
   render();
 }
 function updateField(target) {
-  if (target.dataset.cell) dispatch({ type: 'cell', id: selectedId, key: target.dataset.cell, value: target.value });
-  else if (target.dataset.path) {
+  if (target.dataset.path) {
     const value = target.type === 'checkbox' ? target.checked : target.value;
     dispatch({ type: target.dataset.scope === 'sentence' ? 'sentence' : target.dataset.path === 'surface' ? 'surface' : 'field', id: selectedId, path: target.dataset.path, value });
   }
 }
-document.addEventListener('focusin', e => {
-  if (e.target.classList.contains('mf-pre') && e.target.dataset.cell) {
-    dispatch({ type: 'cell', id: selectedId, key: e.target.dataset.cell, value: e.target.value });
-  }
-});
 document.addEventListener('compositionstart', () => { composing = true; });
 document.addEventListener('compositionend', e => { composing = false; updateField(e.target); });
 document.addEventListener('input', e => {
