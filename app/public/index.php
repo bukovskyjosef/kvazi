@@ -45,8 +45,8 @@ $activePage = 'home';
     <div class="hero-eyebrow">česká kvazilingvistická soutěž</div>
     <h1>Sestav nejdelší<br>českou větu<em>.</em></h1>
     <p class="hero-sub">
-      Ale jen ze slov sestavených ze znaků&nbsp;<strong>K, V, A, Z, I</strong>.
-      Jde to? A jak dlouho?
+      Ale jen ze soutěžních znaků&nbsp;<strong>K, V, Q, A, Á, Z, I, Í, Y, Ý</strong>
+      uspořádaných podle motivu KVAZI. Jde to? A jak dlouho?
     </p>
     <div class="hero-cta">
       <a class="btn btn-accent btn-lg" href="/konfigurator.php">Konfigurátor &rarr;</a>
@@ -54,12 +54,12 @@ $activePage = 'home';
     </div>
     <div class="hero-stats">
       <div class="hero-stat">
-        <div class="hero-stat-num">5</div>
-        <div class="hero-stat-label">základních znaků</div>
+        <div class="hero-stat-num">10</div>
+        <div class="hero-stat-label">soutěžních znaků</div>
       </div>
       <div class="hero-stat">
-        <div class="hero-stat-num">K, V, A, Z, I</div>
-        <div class="hero-stat-label">kvazimotiv</div>
+        <div class="hero-stat-num">KVAZI</div>
+        <div class="hero-stat-label">základní motiv</div>
       </div>
       <div class="hero-stat">
         <div class="hero-stat-num">∞</div>
@@ -105,7 +105,7 @@ $activePage = 'home';
         <div class="step-num">2</div>
         <h3>Slova z motivu</h3>
         <p>
-          Každé slovo má <strong>3–5 znaků</strong> a musí celé ležet
+          Běžné slovo má <strong>3–5 soutěžních znaků</strong> a musí celé ležet
           uvnitř jednoho opakování motivu. Hranici dvou motivů nesmí překročit.
           Pět jednopísmenných výjimek: <code>k</code>&thinsp;<code>v</code>&thinsp;<code>z</code>&thinsp;<code>a</code>&thinsp;<code>i</code> — každé nejvýše jednou.
           Podstatné jméno může navíc nést doslovný prefix <code>kvazi-</code>; jeho pět znaků tvoří zvláštní výjimku a <strong>nezapočítává se do sekundárního skóre</strong>.
@@ -117,8 +117,8 @@ $activePage = 'home';
         <h3>Skutečná nebo kvazi</h3>
         <p>
           Smíš použít skutečné české slovo (potvrzené <strong>spravovaným katalogem</strong> soutěže)
-          nebo vymyšlené <strong>kvazislovo</strong> —
-          ale každé musíš morfologicky obhájit a zařadit do soutěžního modelu.
+          nebo v produktivních kategoriích vymyšlené <strong>kvazislovo</strong>.
+          Deklarace musí odpovídat příslušnému soutěžnímu modelu a konkrétnímu použití ve větě.
         </p>
       </div>
 
@@ -126,8 +126,9 @@ $activePage = 'home';
         <div class="step-num">4</div>
         <h3>Česká věta</h3>
         <p>
-          Ze slov sestavíš jednu větu s <strong>jedním podmětem, jedním přísudkem</strong>
-          a právě <strong>jedním výskytem plnovýznamového slovesa</strong>.
+          Ze slov sestavíš jednu větu s <strong>jedním přísudkem</strong> a právě
+          <strong>jedním plnovýznamovým slovesným tokenem</strong>. Podmět je právě jeden;
+          pouze u dovoleného imperativu může být pravidelně nevyjádřený.
           Vyhrává <strong>více slov</strong>; při shodě rozhoduje
           <strong>více soutěžních znaků</strong> bez mezer
           (<code>Q&nbsp;=&nbsp;1</code>, <code>KV&nbsp;=&nbsp;2</code>).
@@ -152,7 +153,7 @@ $activePage = 'home';
         <div class="rule-icon">&#128211;</div>
         <div>
           <h4>Vlastní hlava</h4>
-          <p>Řešení musíš vytvořit sám. Skripty, solvery ani AI nesmí generovat, hledat ani filtrovat kandidátní slova.</p>
+          <p>Řešení má vzniknout lidskou prací. Lidé mohou spolupracovat, ale skripty, solvery ani AI nesmí generovat, hledat ani filtrovat soutěžní kandidáty.</p>
         </div>
       </div>
 
@@ -167,8 +168,8 @@ $activePage = 'home';
       <div class="rule-card">
         <div class="rule-icon">&#9997;&#65039;</div>
         <div>
-          <h4>Morfologická obhajoba</h4>
-          <p>Při odevzdání ke každému slovu vyplníš slovní druh, vzor, pád, číslo a větnou funkci. Formulář provede technickou kontrolu.</p>
+          <h4>Morfologická deklarace</h4>
+          <p>U produktivního slova deklaruješ soutěžní identitu, vlastnosti konkrétního použití a skutečně použitý tvar. Celé paradigma ani nepoužité tvary ručně nevyplňuješ; formulář může konkrétní deklaraci deterministicky zkontrolovat.</p>
         </div>
       </div>
 
@@ -176,10 +177,14 @@ $activePage = 'home';
         <div class="rule-icon">&#128336;</div>
         <div>
           <h4>Živá pravidla</h4>
-          <p>Pokud najdeš díru v pravidlech a řešení je podle aktuální verze platné, musí být uznáno. Díru zavřeme až v další verzi.</p>
+          <p>Pokud najdeš díru v pravidlech a řešení je podle aktuální verze platné, musí být uznáno. Díru lze zavřít až v další verzi pravidel.</p>
         </div>
       </div>
 
+    </div>
+    <div style="margin-top:28px;text-align:center">
+      <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">Tato stránka je stručný veřejný úvod. Přesná pravidla a jejich autoritu určuje kanonický normativní balík projektu.</p>
+      <a class="btn btn-ghost" href="/prirucka.php">Veřejná rozhodcovská příručka &rarr;</a>
     </div>
   </div>
 </section>
