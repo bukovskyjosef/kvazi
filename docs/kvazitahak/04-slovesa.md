@@ -72,7 +72,11 @@ Rod/životnost/číslo příčestí se musí shodovat s podmětem podle běžný
 
 ## NORMATIVNÍ: pomocné sloveso `být`
 
-Pomocné `být` je uzavřená zvláštní **reálná pomocná sada**, nikoli šestý produktivní model kvazislovesa. Jeho token není druhým plnovýznamovým slovesem a spolu s plnovýznamovým tvarem tvoří jediný přísudek. Každý pomocný token však musí sám projít obecnými povrchovými pravidly hry; pravidla jej neskrývají jen proto, že může být prakticky nedosažitelný.
+Pomocné `být` je uzavřená zvláštní **reálná pomocná sada**, nikoli šestý produktivní model kvazislovesa. Jeho token není druhým plnovýznamovým slovesem a spolu s plnovýznamovým tvarem tvoří jediný přísudek.
+
+Každý skutečně zapsaný pomocný token je však samostatné soutěžní slovo: musí sám projít obecnými povrchovými pravidly hry, počítá se jako jedno slovo do primárního skóre a jeho skutečně zapsané znaky se standardně počítají do sekundárního skóre.
+
+Všechny níže povolené pomocné tvary mají jedinou soutěžní identitu **`být`**. Osoba, číslo, čas ani způsob novou identitu nevytvářejí. Uzavřená pomocná sada je normativně povolena přímo tímto modulem a **nepodléhá katalogu skutečných slov**.
 
 Pro v1 jsou povoleny pouze následující pomocné tvary:
 
@@ -81,6 +85,8 @@ Pro v1 jsou povoleny pouze následující pomocné tvary:
 - kondicionál přítomný: `bych`, `bys`, `by`, `bychom`, `byste`, `by`.
 
 Jiné tvary pomocného `být`, kondicionál minulý, opisné pasivum a další složené slovesné konstrukce nejsou v první rules verzi součástí soutěžního systému.
+
+Normativní morfologie a povrchová použitelnost jsou oddělené vrstvy. Tvar z této uzavřené sady zůstává morfologicky povolený i tehdy, když jeho konkrétní token dnes nemůže projít aktuální znakovou nebo motivovou sekvencí. Pokud se v budoucí rules verzi změní soutěžní sada znaků nebo pravidla sekvence, může se stát povrchově použitelným bez změny tohoto morfologického pravidla.
 
 ### Minulý čas
 
@@ -114,4 +120,4 @@ Pro produktivní sloveso musí být možné mechanicky vyhodnotit:
 
 `infinitiv + typ + vid + způsob/čas + osoba + číslo + případný rod/životnost → právě jeden plnovýznamový tvar (+ přesně určený pomocný tvar, pokud jej konstrukce vyžaduje)`.
 
-Pomocný token se eviduje jako součást stejného přísudku, nikoli jako další soutěžní slovesná identita. Celá věta stále obsahuje právě jeden plnovýznamový slovesný token.
+Pomocný token se eviduje jako součást stejného přísudku, ale jako samostatné soutěžní slovo s jedinou sdílenou identitou `být`. Celá věta stále obsahuje právě jeden plnovýznamový slovesný token.
