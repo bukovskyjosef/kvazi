@@ -1,9 +1,22 @@
 # Konfigurátor kvazivěty – funkční a vzhledová specifikace
 
-> **Status:** živý dokument reflektující aktuální stav prototypu `app/public/konfigurator.html`
-> a jeho modulů v `app/public/js/konfigurator/`.
-> Produktové požadavky a auditní nálezy jsou v `docs/audit/2026-09-14-audit-konfiguratoru.md`.
-> Tento dokument popisuje implementovanou UX vrstvu, nikoli soutěžní pravidla.
+> **Status:** nenormativní UX a funkční specifikace konfigurátoru. Shrnuje cílové chování, uživatelské požadavky a podle potřeby také stav existujícího prototypu. Soutěžní pravidla sama neurčuje a musí být vždy v souladu s aktuálním normativním balíkem podle `docs/README.md`.
+
+## 0. Jak tento dokument číst
+
+Tento dokument je přehledový pracovní kontrakt pro **UX a funkční chování konfigurátoru**: co má uživatel při vkládání kvazivěty vidět, zadávat a co má aplikace dělat. Smí současně popisovat již implementované chování i cílový stav.
+
+Jednotlivé části mohou být výslovně označené jako **BLOCKED** a uvést, jakým nerozhodnutým pravidlem, závislostí nebo implementačním předpokladem jsou blokované. Takové označení je užitečný snapshot pro orientaci; **nenahrazuje živý stav GitHub Issue, jeho prioritu ani `open/closed` stav**. Jediným živým backlogem zůstávají GitHub Issues.
+
+Před tím, než se tento dokument použije jako zadání pro implementaci, musí proběhnout cílený audit/synchronizace proti:
+
+1. aktuálnímu normativnímu balíku pravidel,
+2. aktuálním GitHub Issues a přijatým rozhodnutím,
+3. skutečnému stavu implementace konfigurátoru.
+
+Teprve po takovém ověření lze konkrétní části považovat za aktuální implementační zadání.
+
+> **Upozornění k současnému obsahu:** Detailní specifikace níže vznikla nad starším stavem prototypu a **nebyla ještě kompletně re-auditována po pozdějších rozhodnutích projektu**. Může proto obsahovat zastaralé prvky. Historické auditní Markdown soubory nejsou zdrojem aktuálních produktových požadavků; aktuální požadavky se při auditu odvozují z normativních pravidel, přijatých rozhodnutí a GitHub Issues.
 
 ---
 
