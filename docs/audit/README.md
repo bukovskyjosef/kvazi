@@ -2,6 +2,21 @@
 
 Tento adresář definuje způsob, jakým má nezávislý auditor posoudit repozitář.
 
+## Datované auditní zprávy jsou historické snapshoty
+
+Každá datovaná auditní zpráva uložená v tomto adresáři je **historický, nenormativní snapshot stavu k datu uvedenému v názvu nebo záhlaví zprávy**.
+
+Taková zpráva:
+
+- zachycuje tehdejší stav repozitáře, tehdejší otevřené otázky, nálezy, priority, gates a celkový verdikt,
+- **není zdrojem aktuálního backlogu, aktuálního stavu issues ani současného celkového verdiktu projektu**,
+- nesmí přebít aktuální normativní balík, současnou architekturu ani pozdější rozhodnutí,
+- má svůj historický obsah zachovat; po změně projektu se nepřepisuje tak, aby předstírala dnešní stav.
+
+Aktuální stav práce se vždy ověřuje přímo v **GitHub Issues**. Aktuální soutěžní pravidla se vždy ověřují v současném **normativním balíku podle `docs/README.md`**.
+
+**Každá budoucí datovaná auditní zpráva musí mít bezprostředně na začátku výrazný historical/superseded snapshot banner**, který toto omezení výslovně připomíná ještě před samotným historickým obsahem zprávy.
+
 ## Cíl auditu
 
 Audit nemá potvrdit záměr autora. Má aktivně hledat:
@@ -44,6 +59,10 @@ Posuď zejména:
 Audituj:
 - `docs/architecture/`
 - `db/schema-draft.sql`
+- `docker-compose.yml`
+- `docker/db/init/`
+
+Při DB/runtime auditu vždy rozlišuj návrhový `db/schema-draft.sql` od executable bootstrap/runtime schema-init vrstvy v `docker/db/init/`, kterou připojuje `docker-compose.yml`.
 
 Hledej:
 - chybnou kardinalitu,
