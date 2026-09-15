@@ -2,6 +2,10 @@
 
 > **Status:** základní vztahy, jejich rozhodovací testy a minimální globální podmínky jedné věty jsou normativně uzavřené; hráčskou grafickou podobu lze dále zjednodušovat.
 
+## Místo v normativním balíku
+
+Tento modul je autoritativní **pro povolenou syntaxi, její rozhodovací testy a globální syntaktické invarianty jedné věty**. Obecná pravidla platnosti řeší `../rules/02-rozhodcovska-specifikace.md`; morfologii, valenci a další přesnou mechaniku řeší ostatní NORMATIVNÍ moduly `02-07`; AI a verzování mají vlastní dokumenty v `../rules/`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 ## NORMATIVNÍ: uzavřený seznam hlavních vztahů
 
 V kvazivětě jsou přípustné pouze tyto hlavní syntaktické funkce a vztahy:
