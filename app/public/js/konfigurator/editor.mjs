@@ -24,7 +24,7 @@ function render() {
   element('newSurface').hidden = !!draft.closingPunct;
   const submitBtn = element('submitButton');
   if (submitBtn) submitBtn.disabled = !state.submitReady;
-  const summary = `${state.wordCount} slov. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologická shoda ${state.morphologyOk ? 'ověřena' : 'neověřena'}. ${state.submitReady ? 'Připraveno k odeslání.' : 'Zatím není připraveno k odeslání.'}`;
+  const summary = `${state.wordCount} slov, skóre ${state.charScore}. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologická shoda ${state.morphologyOk ? 'ověřena' : 'neověřena'}. ${state.submitReady ? 'Připraveno k odeslání.' : 'Zatím není připraveno k odeslání.'}`;
   if (element('liveStatus').textContent !== summary) element('liveStatus').textContent = summary;
 }
 function dispatch(action) {

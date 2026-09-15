@@ -9,15 +9,20 @@ if ($user === null) {
     exit;
 }
 
-// Load user's submissions
+// Load user's sentences with their current process status and active revision
 $submissions = [];
 try {
     $db   = kvazi_db();
     $stmt = $db->prepare(
-        'SELECT id, rules_version, draft_json, status, submitted_at
-           FROM kvazi.submission
-          WHERE user_id = :uid
-          ORDER BY submitted_at DESC'
+        'SELECT s.id, sr.rules_version, sr.draft_json,
+                COALESCE(sp.status, \'pending\') AS status,
+                sr.created_at AS submitted_at
+           FROM kvazi.sentence s
+           JOIN kvazi.sentence_revision sr ON sr.sentence_id = s.id
+           LEFT JOIN kvazi.sentence_process sp ON sp.sentence_id = s.id
+                AND sp.revision_id = sr.id
+          WHERE s.user_id = :uid
+          ORDER BY sr.created_at DESC'
     );
     $stmt->execute([':uid' => $user['id']]);
     $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);

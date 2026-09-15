@@ -23,7 +23,7 @@ $csrf = auth_csrf_token();
    style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap"></p>
 
 <main class="container" style="padding-top:20px;padding-bottom:60px">
-  <p class="notice">⚠︎ Pracovní verze konfigurátoru. Tlačítko „Odeslat přihlášku“ odešle aktuální přihlášku na server a uloží její záznam k přihlášenému účtu; náhled JSON nic neodesílá. Automatická kontrola ověřuje jen deterministické části deklarace, jazykové posouzení probíhá až v review.</p>
+  <p class=”notice”>⚠︎ Pracovní verze konfigurátoru. Tlačítko „Odeslat přihlášku” odešle aktuální přihlášku na server a uloží její záznam k přihlášenému účtu; náhled JSON nic neodesílá. Automatická kontrola ověřuje jen deterministické části deklarace, jazykové posouzení probíhá až v review.</p>
   <section class="card" aria-labelledby="sentenceHeading">
     <div id="sentencePreview" class="sentence-preview"></div>
     <h2 id="sentenceHeading" class="card-header">Zadání věty</h2>
@@ -46,7 +46,7 @@ $csrf = auth_csrf_token();
     <div id="validation" class="card-body"></div>
   </section>
   <section class="card"><div class="card-body">
-    <p>Jazykové posouzení proběhne až po odeslání přihlášky; uznání či zamítnutí závisí na review rozhodčího.</p>
+    <p>Uznání či zamítnutí závisí na review rozhodčího; tato stránka provádí pouze mechanické kontroly.</p>
     <div class="actions" style="gap:10px;flex-wrap:wrap">
       <button id="submitButton" type="button" class="btn btn-accent" disabled>Odeslat přihlášku</button>
       <button id="previewButton" type="button" class="btn btn-ghost" style="font-size:12px;opacity:.7">Zobrazit náhled JSON (neodesílá)</button>

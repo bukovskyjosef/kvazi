@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { publicSchema, getModel } from '../public/js/konfigurator/schema.mjs';
-import { createDraft, createToken, mutateDraft } from '../public/js/konfigurator/state.mjs';
+import { createDraft, createToken, mutateDraft, inferKvaziPrefix } from '../public/js/konfigurator/state.mjs';
 import { validateTokenSequence, validateSyntax, deriveValidationState, previewDraft } from '../public/js/konfigurator/validation.mjs';
+import { validateForm } from '../public/js/konfigurator/morpho.mjs';
 
 // Synthetic schema for tests that require a verb model and controlled valency.
 // structuredClone cannot clone functions, so we clone only the plain-data parts.
@@ -30,15 +31,50 @@ test('Unicode NFC before storing, validating and scoring; no alphabet limits on 
   let d = mutateDraft(createDraft(), { type: 'insert', surface: 'KVA\u0301ZI\u0301' });
   assert.equal(d.tokens[0].surface, 'kvází');
   assert.deepEqual(sequence(['KVA\u0301ZI\u0301']), sequence(['KVÁZÍ']));
-  assert.equal(deriveValidationState(d).charCount, 5);
+  assert.equal(deriveValidationState(d).charScore, 5);
   d = mutateDraft(d, { type: 'field', id: 't1', path: 'lemma', value: 'ře\u0301šení' });
   assert.equal(d.tokens[0].lemma, 'řéšení');
 });
-test('alphabet, token lengths, empty draft and no implicit prefix exception', () => {
-  for (const s of ['kv', 'á', 'q', 'y', 'kvaziqazi', 'kvazivázy', 'kva zi', 'kvazi.', 'xaz', '😀']) assert.equal(sequence([s]).ok, false, s);
+test('alphabet, token lengths and prefix exception', () => {
+  for (const s of ['kv', 'á', 'q', 'y', 'kvazivázy', 'kva zi', 'kvazi.', 'xaz', '😀']) assert.equal(sequence([s]).ok, false, s);
   for (const s of ['k', 'v', 'z', 'a', 'i', 'azi', 'qázi', 'kvázý']) assert.equal(sequence([s]).ok, true, s);
+  // kvazi- prefix exception: kvaziqazi = KVAZI (motif) + QAZI (valid base, 4 chars)
+  assert.equal(sequence(['kvaziqazi']).ok, true, 'kvaziqazi: valid prefixed token');
+  // invalid base: kvazivázy base=vázy fails DFA (V not a valid motif start)
+  assert.equal(sequence(['kvazivázy']).ok, false, 'kvazivázy: base vázy invalid motif');
+  // base too short (2 chars)
+  assert.equal(sequence(['kvazika']).ok, false, 'kvazika: base ka too short');
+  // base too long (6 chars)
+  assert.equal(sequence(['kvaziqaziqaz']).ok, false, 'kvaziqaziqaz: base qaziqaz too long');
   assert.equal(sequence([]).ok, false);
   assert.equal(deriveValidationState(createDraft()).submitReady, false);
+});
+test('prefix inference: createToken auto-sets kvaziPrefix and pos for >5-char kvazi prefix', () => {
+  const w = createToken('x', 'kvaziqazi');
+  assert.equal(w.kvaziPrefix, 'kvazi');
+  assert.equal(w.pos, 'noun');
+  // surface must still be lowercased NFC
+  assert.equal(w.surface, 'kvaziqazi');
+  // non-prefix tokens: no kvaziPrefix
+  assert.equal(createToken('y', 'kvazi').kvaziPrefix, '');   // exactly 5 chars — not prefixed
+  assert.equal(createToken('z', 'qaziqazi').kvaziPrefix, ''); // doesn't start with kvazi
+  assert.equal(createToken('a', 'kvázi').kvaziPrefix, '');    // kvázi not exact kvazi
+  // POS change is blocked for prefixed tokens
+  let d = mutateDraft(createDraft(), { type: 'insert', surface: 'kvaziqazi' });
+  assert.equal(d.tokens[0].kvaziPrefix, 'kvazi');
+  assert.equal(d.tokens[0].pos, 'noun');
+  d = mutateDraft(d, { type: 'field', id: d.tokens[0].id, path: 'pos', value: 'verb' });
+  assert.equal(d.tokens[0].pos, 'noun', 'POS locked for prefixed token');
+});
+test('charScore applies zero-scoring for valid kvazi- prefix chars', () => {
+  // A valid prefixed token: kvaziqazi = KVAZI (0 points) + QAZI (4 chars × 1 = 4 points)
+  let d = mutateDraft(createDraft(), { type: 'insert', surface: 'kvaziqazi' });
+  // kvaziqazi has 9 chars, but prefix (5) = 0, base (4) = 4
+  const state = deriveValidationState(d);
+  assert.equal(state.charScore, 4, 'prefix chars score 0, base counts normally');
+  // A non-prefixed token: kvazi = 5 chars = 5 score
+  d = mutateDraft(createDraft(), { type: 'insert', surface: 'kvazi' });
+  assert.equal(deriveValidationState(d).charScore, 5);
 });
 test('token boundaries matter even for the identical valid joined string', () => {
   assert.equal(sequence(['vazi', 'kvazi']).ok, true);
@@ -183,6 +219,22 @@ test('morphologyOk uses formCheck across all tokens', () => {
   assert.equal(state.tokens.t1.formCheck.ok, true);
   assert.equal(state.tokens.t2.formCheck.ok, false);
   assert.equal(state.morphologyOk, false);
+});
+test('auxiliary být: formCheck validates against normative closed set', () => {
+  // Normative forms must pass; anything else must fail.
+  const normative = ['jsem', 'jsi', 'jsme', 'jste', 'budu', 'budeš', 'bude', 'budeme', 'budete', 'budou', 'bych', 'bys', 'by', 'bychom', 'byste'];
+  for (const f of normative) {
+    const w = createToken('x', f);
+    Object.assign(w, { pos: 'verb', role: 'auxiliary', lemma: 'být', lexicalStatus: 'real' });
+    assert.equal(validateForm(w).ok, true, `normative form ${f} should pass`);
+  }
+  const bad = createToken('y', 'bylo');
+  Object.assign(bad, { pos: 'verb', role: 'auxiliary', lemma: 'být', lexicalStatus: 'real' });
+  assert.equal(validateForm(bad).ok, false, 'bylo is not in normative auxiliary set for v1');
+  // Case-insensitive match (token surfaces are stored lowercase by createToken)
+  const jsiUpper = createToken('z', 'JSI');
+  Object.assign(jsiUpper, { pos: 'verb', role: 'auxiliary', lemma: 'být', lexicalStatus: 'real' });
+  assert.equal(validateForm(jsiUpper).ok, true, 'normative form matching is case-insensitive');
 });
 test('edit, insert and delete preserve stable IDs and independent references', () => {
   const original = fixture();

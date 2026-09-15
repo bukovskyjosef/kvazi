@@ -1,5 +1,5 @@
 import { relationShapes, punctuation, partsOfSpeech, getPath, getModel, wordFields, isFunctional, publicSchema } from './schema.mjs';
-import { nfc, folded } from './state.mjs';
+import { nfc, folded, inferKvaziPrefix } from './state.mjs';
 import { validateForm } from './morpho.mjs';
 
 const singles = ['k', 'v', 'z', 'a', 'i'];
@@ -15,19 +15,38 @@ export function validateTokenSequence(tokens) {
   for (const w of tokens) {
     const s = nfc(w.surface), length = [...s].length;
     if (!/^[KVQAÁZIÍYÝ]+$/iu.test(s)) add(w.id, 'Použijte pouze znaky K V Q A Á Z I Í Y Ý, bez mezer a znamének.');
-    if (!singles.includes(folded(s)) && (length < 3 || length > 5)) add(w.id, 'Běžné slovo musí mít 3–5 znaků; výjimky jsou pouze k/v/z/a/i.');
+    const hasPrefix = inferKvaziPrefix(s);
+    if (!singles.includes(folded(s))) {
+      if (hasPrefix) {
+        const baseLen = length - 5;
+        if (baseLen < 3 || baseLen > 5) add(w.id, 'Základ za prefixem kvazi- musí mít 3–5 znaků.');
+      } else if (length < 3 || length > 5) {
+        add(w.id, 'Běžné slovo musí mít 3–5 znaků; výjimky jsou pouze k/v/z/a/i.');
+      }
+    }
     if (singles.includes(folded(s))) {
       if (used.has(folded(s))) { add(w.id, 'Jednopísmennou výjimku lze použít jen jednou.'); add(used.get(folded(s)), 'Jednopísmenná výjimka je ve větě opakovaná.'); }
       used.set(folded(s), w.id);
     }
   }
+  // For the DFA, a prefixed token is split into the KVAZI motif and its base,
+  // so each part independently satisfies the word-boundary constraint.
+  const segments = [];
+  for (const w of tokens) {
+    const upper = nfc(w.surface).toUpperCase();
+    if (inferKvaziPrefix(w.surface)) {
+      segments.push([...upper.slice(0, 5)]);
+      segments.push([...upper.slice(5)]);
+    } else {
+      segments.push([...upper]);
+    }
+  }
   const fits = tokens.length > 0 && [0, 1, 2, 3, 4].some(start => {
     let state = start;
-    for (const w of tokens) {
-      const chars = [...nfc(w.surface).toUpperCase()];
-      for (let i = 0; i < chars.length; i++) {
-        state = transition(state, chars[i]);
-        if (state < 0 || (state === 0 && i < chars.length - 1)) return false;
+    for (const seg of segments) {
+      for (let i = 0; i < seg.length; i++) {
+        state = transition(state, seg[i]);
+        if (state < 0 || (state === 0 && i < seg.length - 1)) return false;
       }
     }
     return true;
@@ -51,6 +70,10 @@ export function validateSyntax(draft, schema = publicSchema) {
     for (const key of expected) if (!byId(w.relations[key]) || w.relations[key] === w.id) add('Každá vazba musí mířit na jiné existující slovo této věty.');
     const head = byId(w.relations.head);
     if (w.role === 'predicate' && !predicate(w)) add('Přísudek musí být plnovýznamové sloveso.');
+    if (w.role === 'auxiliary') {
+      if (w.pos !== 'verb' || folded(w.lemma) !== 'být') add('Pomocné být musí mít slovní druh sloveso a lemma „být".');
+      if (!predicate(byId(w.relations.predicate))) add('Pomocné být musí odkazovat na přísudek — plnovýznamové sloveso.');
+    }
     if (['subject', 'object', 'adverbial'].includes(w.role) && !predicate(head)) add('Řídícím slovem musí být přísudek.');
     if (['agreeingAttribute', 'attribute'].includes(w.role) && !nominal(head)) add('Přívlastek musí odkazovat na jmenný člen.');
     if (w.role === 'preposition' && (!nominal(byId(w.relations.nominal)) || w.pos !== 'preposition')) add('Předložka vyžaduje právě jednu vazbu na řízené jmenné slovo.');
@@ -87,8 +110,10 @@ export function deriveValidationState(draft, schema = publicSchema) {
   const predicates = draft.tokens.filter(w => w.role === 'predicate');
   const subjects = draft.tokens.filter(w => w.role === 'subject');
   const verbs = draft.tokens.filter(w => w.pos === 'verb');
+  const auxiliaries = draft.tokens.filter(w => w.role === 'auxiliary');
+  const fullContentVerbs = verbs.filter(w => w.role !== 'auxiliary');
   if (!Object.hasOwn(punctuation, draft.sentenceType)) sentenceIssues.push('Vyberte typ věty.');
-  const fullVerbOk = verbs.length === 1;
+  const fullVerbOk = fullContentVerbs.length === 1;
   if (!fullVerbOk) sentenceIssues.push('Věta musí obsahovat právě jeden plnovýznamový slovesný token.');
   if (predicates.length !== 1) sentenceIssues.push('Věta musí mít právě jeden přísudek.');
   if (draft.implicitSubject) {
@@ -106,22 +131,27 @@ export function deriveValidationState(draft, schema = publicSchema) {
     if (w.pos === 'conjunction' && w.role !== 'coordination') missing.push('Spojka má roli koordinace.');
     if (isFunctional(w) && (w.lexicalStatus !== 'real' || folded(w.lemma) !== s)) missing.push('Identita funkčního slova musí odpovídat jednopísmenné výjimce.');
     if (!isFunctional(w)) {
-      if (!w.lemma.trim()) missing.push('Základní tvar / neurčitek.');
-      if (!['real', 'quasi'].includes(w.lexicalStatus)) missing.push('Skutečné slovo nebo kvazislovo podle celé identity.');
-      if (w.pos === 'pronoun' && w.lexicalStatus !== 'real') missing.push('Nová zájmena nelze vytvářet.');
-      const model = getModel(w, schema);
-      if (!model) missing.push('Povolený soutěžní model.');
-      if (model?.identity && Object.entries(model.identity).some(([key, value]) => w.identity[key] !== value)) missing.push('Rod nebo životnost neodpovídá zvolenému modelu.');
-      for (const f of wordFields(w, schema)) {
-        const value = getPath(w, f.path);
-        if (f.options ? !Object.hasOwn(f.options, value) : typeof value !== 'string' || !value.trim()) missing.push(f.label + '.');
-      }
-      if (!w.evidence.morphology.trim()) missing.push('Morfologická obhajoba a odkaz na použitý model.');
-      if (w.lexicalStatus === 'real' && (!['IJP', 'ASSČ'].includes(w.evidence.source) || !w.evidence.reference.trim())) missing.push('Doklad existence: IJP nebo ASSČ a konkrétní heslo/odkaz.');
-      if (['noun', 'adjective'].includes(w.pos) && w.lemma.trim() && model) {
-        const identity = JSON.stringify([w.pos, folded(w.lemma), w.model, ...(w.pos === 'noun' ? [w.identity.gender, w.identity.animacy] : [])]);
-        if (identities.has(identity)) { missing.push('Soutěžní identita už je ve větě použita.'); tokens[identities.get(identity)].missing.push('Soutěžní identita už je ve větě použita.'); }
-        identities.set(identity, w.id);
+      if (w.role === 'auxiliary') {
+        // Auxiliary být: closed normative set, no soutěžní model, no catalog lookup.
+        if (folded(w.lemma) !== 'být') missing.push('Pomocné sloveso musí mít lemma „být".');
+        if (w.lexicalStatus !== 'real') missing.push('Pomocné „být" má lexikální status skutečného slova.');
+      } else {
+        if (!w.lemma.trim()) missing.push('Základní tvar / neurčitek.');
+        if (!['real', 'quasi'].includes(w.lexicalStatus)) missing.push('Skutečné slovo nebo kvazislovo podle celé identity.');
+        if (w.pos === 'pronoun' && w.lexicalStatus !== 'real') missing.push('Nová zájmena nelze vytvářet.');
+        const model = getModel(w, schema);
+        if (!model) missing.push('Povolený soutěžní model.');
+        if (model?.identity && Object.entries(model.identity).some(([key, value]) => w.identity[key] !== value)) missing.push('Rod nebo životnost neodpovídá zvolenému modelu.');
+        for (const f of wordFields(w, schema)) {
+          const value = getPath(w, f.path);
+          if (f.options ? !Object.hasOwn(f.options, value) : typeof value !== 'string' || !value.trim()) missing.push(f.label + '.');
+        }
+        if (!w.evidence.morphology.trim()) missing.push('Morfologická obhajoba a odkaz na použitý model.');
+        if (['noun', 'adjective'].includes(w.pos) && w.lemma.trim() && model) {
+          const identity = JSON.stringify([w.pos, folded(w.lemma), w.model, ...(w.pos === 'noun' ? [w.identity.gender, w.identity.animacy] : [])]);
+          if (identities.has(identity)) { missing.push('Soutěžní identita už je ve větě použita.'); tokens[identities.get(identity)].missing.push('Soutěžní identita už je ve větě použita.'); }
+          identities.set(identity, w.id);
+        }
       }
     }
     if (w.evidence.needsAnalogy && (!w.evidence.explanation.trim() || !w.evidence.analogy.trim())) missing.push('Obhajoba nejasného/fiktivního vztahu a běžná česká analogie.');
@@ -143,10 +173,18 @@ export function deriveValidationState(draft, schema = publicSchema) {
     return i === 0 && s.length > 0 ? s[0].toUpperCase() + s.slice(1) : s;
   });
   const termPunct = draft.closingPunct ?? (Object.hasOwn(punctuation, draft.sentenceType) ? punctuation[draft.sentenceType] : '');
+  // charScore: each char counts as 1; exactly 5 prefix chars of a system-inferred and
+  // sequence-valid kvazi- prefix count as 0 (normative scoring exception).
+  const tokenIssueIds = new Set(sequence.issues.filter(i => i.id !== null).map(i => i.id));
+  const charScore = draft.tokens.reduce((sum, w) => {
+    const len = [...nfc(w.surface)].length;
+    if (w.kvaziPrefix === 'kvazi' && !tokenIssueIds.has(w.id)) return sum + (len - 5);
+    return sum + len;
+  }, 0);
   return { sequence, syntax, sentenceIssues, tokens, structureOk, morphologyOk, sentenceOk, fullVerbOk,
     submitReady: sequence.ok && syntax.ok && sentenceOk && structureOk && morphologyOk,
     text: previewSurfaces.join(' ') + termPunct,
-    wordCount: draft.tokens.length, charCount: draft.tokens.reduce((sum, w) => sum + [...nfc(w.surface)].length, 0) };
+    wordCount: draft.tokens.length, charScore };
 }
 
 // Preview is always explicit and always recomputed. No backend submission here.

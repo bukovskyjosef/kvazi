@@ -436,6 +436,29 @@ function validateVerb(w) {
 // PUBLIC API
 // ═══════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════
+// POMOCNÉ SLOVESO BÝT
+// ═══════════════════════════════════════════════════════════
+
+// Normativně povolená uzavřená sada pomocných tvarů `být` pro v1.
+// Zdroj: docs/kvazitahak/04-slovesa.md — sekce "Pomocné sloveso být".
+const AUX_BYT_FORMS = new Set([
+  // minulý čas (1.sg, 2.sg, 1.pl, 2.pl — 3. osoba je nulový tvar)
+  'jsem', 'jsi', 'jsme', 'jste',
+  // analytické futurum nedokonavých sloves
+  'budu', 'budeš', 'bude', 'budeme', 'budete', 'budou',
+  // kondicionál přítomný
+  'bych', 'bys', 'by', 'bychom', 'byste',
+]);
+
+function validateAuxiliary(w) {
+  const surface = String(w.surface || '').toLowerCase();
+  if (!AUX_BYT_FORMS.has(surface)) {
+    return { ok: false, expected: null, message: `„${surface}" není v normativní uzavřené sadě pomocných tvarů být.` };
+  }
+  return { ok: true, expected: surface, message: null };
+}
+
 /**
  * Deterministicky ověří, zda `w.surface` odpovídá normativnímu modelu a
  * deklarovaným morfologickým hodnotám konkrétního použití.
@@ -445,6 +468,7 @@ function validateVerb(w) {
  */
 export function validateForm(w) {
   if (!w || ['preposition', 'conjunction'].includes(w.pos)) return { ok: true, expected: null, message: null };
+  if (w.role === 'auxiliary') return validateAuxiliary(w);
   if (w.pos === 'noun') return validateNoun(w);
   if (w.pos === 'adjective') return validateAdjective(w);
   if (w.pos === 'verb') return validateVerb(w);

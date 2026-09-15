@@ -18,6 +18,7 @@ const TERMS = {
   // Grammatical functions
   subject:            ['Subjekt',           'Podmět'],
   predicate:          ['Predikát',          'Přísudek'],
+  auxiliary:          ['Auxiliár',          'Pomocné být'],
   object:             ['Objekt',            'Předmět'],
   agreeingAttribute:  ['Atribut shodný',    'Přívlastek shodný'],
   attribute:          ['Atribut neshodný',  'Přívlastek neshodný'],
@@ -53,7 +54,7 @@ export const partsOfSpeechLabels = () => Object.fromEntries(
   ['noun', 'adjective', 'verb', 'pronoun', 'preposition', 'conjunction'].map(k => [k, T(k)])
 );
 export const functionsLabels = () => Object.fromEntries(
-  ['subject', 'predicate', 'object', 'agreeingAttribute', 'attribute', 'adverbial', 'supplement', 'coordination'].map(k => [k, T(k)])
+  ['subject', 'predicate', 'auxiliary', 'object', 'agreeingAttribute', 'attribute', 'adverbial', 'supplement', 'coordination'].map(k => [k, T(k)])
 );
 export const gendersLabels = () => Object.fromEntries(
   ['masculineAnimate', 'masculineInanimate', 'feminine', 'neuter'].map(k => [k, T(k)])

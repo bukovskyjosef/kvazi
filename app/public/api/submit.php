@@ -5,6 +5,9 @@ auth_session_start();
 
 header('Content-Type: application/json; charset=utf-8');
 
+// Server-side rules version — never taken from the client payload.
+const RULES_VERSION = 'public-1';
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['ok' => false, 'error' => 'Method not allowed']);
@@ -41,25 +44,72 @@ if (!is_array($draft) || empty($draft['tokens']) || !is_array($draft['tokens']))
     exit;
 }
 
-$rulesVersion = is_string($payload['schema'] ?? null)
-    ? substr($payload['schema'], 0, 80)
-    : 'configurator-structural-prototype-1';
+// NFC normalisation is mandatory. The intl extension (docker/php/Dockerfile) must provide
+// Normalizer. A missing extension is a deployment error, not a graceful fallback case.
+if (!class_exists('Normalizer')) {
+    http_response_code(503);
+    echo json_encode(['ok' => false, 'error' => 'Chyba konfigurace serveru: chybí Unicode normalizátor.']);
+    exit;
+}
+
+// Basic structural validation + NFC normalisation of each surface.
+// Allowed surface characters: K V Q A Á Z I Í Y Ý (case-insensitive, Unicode).
+foreach ($draft['tokens'] as &$token) {
+    if (!is_array($token) || !isset($token['surface']) || !is_string($token['surface'])) {
+        http_response_code(422);
+        echo json_encode(['ok' => false, 'error' => 'Každé slovo musí mít řetězcový povrchový tvar (surface).']);
+        exit;
+    }
+    $surface = \Normalizer::normalize($token['surface'], \Normalizer::FORM_C);
+    if ($surface === false || $surface === '') {
+        http_response_code(422);
+        echo json_encode(['ok' => false, 'error' => 'Povrchový tvar nesmí být prázdný.']);
+        exit;
+    }
+    if (!preg_match('/^[KVQAÁZIÍYÝ]+$/iu', $surface)) {
+        http_response_code(422);
+        echo json_encode(['ok' => false, 'error' => 'Povrchový tvar obsahuje nepovolené znaky.']);
+        exit;
+    }
+    $token['surface'] = $surface;
+}
+unset($token);
 
 try {
-    $db   = kvazi_db();
+    $db = kvazi_db();
+    $db->beginTransaction();
+
+    // 1. Create long-lived sentence container
+    $stmt = $db->prepare('INSERT INTO kvazi.sentence (user_id) VALUES (:uid) RETURNING id');
+    $stmt->execute([':uid' => $user['id']]);
+    $sentenceId = (int)$stmt->fetchColumn();
+
+    // 2. Create immutable revision snapshot
     $stmt = $db->prepare(
-        'INSERT INTO kvazi.submission (user_id, rules_version, draft_json)
-         VALUES (:uid, :rv, :dj)
-         RETURNING id, submitted_at'
+        'INSERT INTO kvazi.sentence_revision (sentence_id, rules_version, draft_json)
+         VALUES (:sid, :rv, :dj)
+         RETURNING id, created_at'
     );
     $stmt->execute([
-        ':uid' => $user['id'],
-        ':rv'  => $rulesVersion,
+        ':sid' => $sentenceId,
+        ':rv'  => RULES_VERSION,
         ':dj'  => json_encode($draft, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
     ]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    echo json_encode(['ok' => true, 'id' => (int)$row['id'], 'submittedAt' => $row['submitted_at']]);
+    $revision = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // 3. Create mutable process row (tracks review status for the active revision)
+    $stmt = $db->prepare(
+        'INSERT INTO kvazi.sentence_process (sentence_id, revision_id)
+         VALUES (:sid, :rid)'
+    );
+    $stmt->execute([':sid' => $sentenceId, ':rid' => (int)$revision['id']]);
+
+    $db->commit();
+    echo json_encode(['ok' => true, 'id' => $sentenceId, 'submittedAt' => $revision['created_at']]);
 } catch (Throwable $e) {
+    if (isset($db) && $db->inTransaction()) {
+        $db->rollBack();
+    }
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'Chyba při ukládání přihlášky. Zkuste znovu.']);
 }
