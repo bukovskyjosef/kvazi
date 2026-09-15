@@ -9,13 +9,16 @@ Databáze pokrývá:
 1. verze pravidel a immutable manifest normativního balíku,
 2. verzované normativní morfologické/syntaktické modely,
 3. uživatelské účty, session/recovery data a role,
-4. interní učící se katalog znalostí pro konkrétní `rules_version`,
-5. věty, editovatelné drafty a immutable revize,
-6. výskyty slov a uživatelské deklarované analýzy,
-7. specializovanou syntaxi,
-8. zdroje a obhajobu,
-9. validační běhy, obsahové verdicty a procesní compliance,
-10. administrativní rozhodnutí a audit.
+4. **spravovaný katalog skutečných slov** jako samostatnou lexikální autoritu,
+5. **interní morfologickou review cache** pro konkrétní `rules_version`,
+6. věty, editovatelné drafty a immutable revize,
+7. výskyty slov a uživatelské deklarované analýzy,
+8. specializovanou syntaxi,
+9. zdroje a obhajobu,
+10. validační běhy, obsahové verdicty a procesní compliance,
+11. administrativní rozhodnutí a audit.
+
+Katalog skutečných slov a interní review cache jsou dvě oddělené domény s odlišným lifecyclem a nesmějí být implementovány jako jeden významově nejasný katalogový stav.
 
 Komentáře, komentářové identity a magic linky nejsou součástí MVP.
 
@@ -62,15 +65,41 @@ Logický model musí umět reprezentovat pro konkrétní `rule_version` zejména
 - kategorie a hodnoty,
 - které vlastnosti tvoří soutěžní identitu,
 - které kombinace tvoří jednotlivé buňky normativního paradigmatu,
-- jednu nebo více explicitně povolených realizací každé kombinace.
+- právě povolené realizace každé kombinace.
 
 Obecná existence české dublety mimo normativní data nesmí sama vytvořit další povolenou realizaci.
 
 Datový návrh musí zabránit kombinaci hodnot z nesouvisejících kategorií. Kde je kategorie jednoznačně odvoditelná z hodnoty, nemá se ukládat redundantně bez odpovídajícího DB invariantu.
 
-## Interní katalog
+## Katalog skutečných slov
 
-Katalog je provozní znalostní báze podřízená pravidlům, nikoli normativní whitelist všeho myslitelného.
+Katalog skutečných slov je samostatná lexikální autorita pro status **skutečné slovo / kvazislovo**. Není obecně scoped na jednu `rules_version` a jeho průběžná oprava sama o sobě nevytváří novou verzi pravidel.
+
+### Semantika
+Katalog rozhoduje exact match nad:
+- úplnou soutěžní identitou,
+- konkrétním použitým tvarem.
+
+Záznam musí umožnit jednoznačně určit, že přesně tato kombinace je uznána jako skutečné slovo. Stejný povrchový zápis s jinou soutěžní identitou není automaticky stejná katalogová položka.
+
+### Veřejné rozhraní
+Hráč smí po zadání kompletního vlastního návrhu získat pouze exact-match odpověď, zda tato kombinace již je schválena jako skutečné slovo.
+
+Katalog nesmí poskytovat:
+- browse/export,
+- prefixové hledání,
+- autocomplete,
+- podobné položky,
+- nabídku možných identit nebo alternativních tvarů.
+
+Nenalezený exact match neznamená automatické zamítnutí; kandidát může jít k ručnímu review a případnému doplnění katalogu.
+
+### Historie a audit
+Správa katalogu musí být auditovatelná: kdo záznam změnil, kdy, na základě jakého důvodu/zdrojů a jaký byl předchozí stav. Katalog se však záměrně nechová jako immutable součást `rules_version`.
+
+## Interní morfologická review cache
+
+Review cache je neveřejná provozní znalostní báze podřízená pravidlům. Je oddělena od katalogu skutečných slov.
 
 ### Základní semantika
 Pro konkrétní soutěžní identitu/tvar a konkrétní `rules_version` existuje rozhodující stav:
@@ -78,10 +107,10 @@ Pro konkrétní soutěžní identitu/tvar a konkrétní `rules_version` existuje
 - `REJECTED`,
 - `UNKNOWN` = neexistuje rozhodný záznam.
 
-Katalog začíná pro novou `rules_version` z hlediska automatického schvalování prázdný. Historická znalost starších verzí se zachová, ale nepřenáší se automaticky.
+Review cache začíná pro novou `rules_version` z hlediska automatického schvalování prázdná. Historická znalost starších verzí se zachová, ale nepřenáší se automaticky.
 
-### Katalogové rozhodnutí
-Každé finální katalogové rozhodnutí musí uchovat:
+### Rozhodnutí review cache
+Každé finální rozhodnutí musí uchovat:
 - přesný rozhodovaný objekt/identitu/tvar,
 - `rules_version`,
 - výsledek,
@@ -90,9 +119,9 @@ Každé finální katalogové rozhodnutí musí uchovat:
 - důvod a navázané zdroje,
 - dostatečnou historickou/provenance informaci pro reprodukci pozdější validace.
 
-Implementace může používat samostatné `catalog_version` nebo intervalové/eventové historizování. Technická reprezentace je otevřená, ale jedna zaznamenaná validační provenance musí jednoznačně určit tehdejší kompletní stav katalogové znalosti.
+Implementace může používat samostatnou `review_cache_revision` nebo eventové historizování. Technická reprezentace je otevřená, ale validační provenance musí jednoznačně určit tehdejší rozhodnou znalost.
 
-Status skutečné slovo / kvazislovo se posuzuje nad celou soutěžní identitou, nikoli nad samotným zápisem. Stejný zápis může mít různé identity; doloženou skutečnou identitu nelze pouze přeznačit na kvazislovo.
+Review cache není veřejný membership oracle a nerozhoduje status skutečné slovo / kvazislovo.
 
 ## Věta, draft a immutable revize
 
@@ -108,11 +137,13 @@ Neměnný snapshot vytvořený každým submittem. Obsahuje nebo jednoznačně v
 - typ věty,
 - závěrečnou interpunkci,
 - uživatelské morfologické a syntaktické deklarace,
-- navržená paradigmata a jejich potvrzený snapshot,
+- morfologické vlastnosti konkrétního použití podle #86,
 - zdroje/obhajobu,
 - fiktivní význam / kvazietymologii, pokud jsou součástí podání,
 - autora a čas submitu,
 - verzi pravidel platnou při původním podání.
+
+Nepoužité tvary celého paradigmatu nejsou povinnou součástí hráčovy revize; jsou deterministicky odvoditelné z normativního modelu.
 
 Vrácení k doplnění nepřepisuje revizi. Nový submit vytvoří revizi další.
 
@@ -124,11 +155,11 @@ Submission/review stav a všechna rozhodnutí musí být jednoznačně svázána
 Technický identifikátor konkrétního výskytu slova v jedné revizi. Uchovává pořadí a povrchový tvar. Token je technická reference; jazykové vlastnosti náležejí deklaraci konkrétního výskytu slova.
 
 ### Uživatelská deklarace
-Musí být datově oddělena od pozdějšího interního katalogového rozpoznání. Uživatelská deklarace sama nevytváří autoritativní morfologickou pravdu.
+Musí být datově oddělena od pozdějšího výsledku katalogu skutečných slov i od interní review cache. Uživatelská deklarace sama nevytváří autoritativní morfologickou nebo lexikální pravdu.
 
-Podle POS/modelu zachycuje minimálně úplnou soutěžní identifikaci, lemma/základní tvar, morfologické hodnoty, vlastní paradigma, syntaktickou funkci/technickou roli, povinné vztahy a evidence.
+Podle POS/modelu zachycuje minimálně úplnou soutěžní identitu, lemma/základní tvar, morfologické hodnoty konkrétního použití, použitý povrchový tvar, syntaktickou funkci/technickou roli, povinné vztahy a evidence.
 
-Resolved katalogové odkazy patří do výsledku katalogové/validační vrstvy, ne do stejné semantické vrstvy jako původní tvrzení hráče.
+Resolved odkazy katalogu skutečných slov a výsledky review cache patří do samostatných semantických vrstev, ne do původního tvrzení hráče.
 
 ## Syntaxe
 
@@ -153,7 +184,7 @@ Datový/validační model musí tento invariant vynutit. Režim nevyjádřeného
 
 ## Evidence
 
-Zdroj nesmí existovat jen jako globální bibliografický záznam bez vazby na tvrzení. Pro MVP stačí strukturovaný seznam zdrojů/obhajoby navázaný alespoň na konkrétní uživatelskou analýzu nebo katalogové rozhodnutí. Jemnější claim-level evidence lze přidat později.
+Zdroj nesmí existovat jen jako globální bibliografický záznam bez vazby na tvrzení. Pro MVP stačí strukturovaný seznam zdrojů/obhajoby navázaný alespoň na konkrétní uživatelskou analýzu, rozhodnutí katalogu skutečných slov nebo rozhodnutí review cache. Jemnější claim-level evidence lze přidat později.
 
 ## Validace a tři oddělené osy
 
@@ -169,10 +200,12 @@ Procesní compliance je historický fakt svázaný s podáním a tehdy platnou p
 Každý rozhodující validační záznam musí jednoznačně uvádět minimálně:
 - `sentence_revision`,
 - `rules_version`,
-- katalogový snapshot/revision/provenance použitý při rozhodnutí,
+- relevantní provenance interní review cache,
 - `validator_version`,
 - automatický vs. ruční původ výsledku,
 - čas a případného rozhodujícího admina.
+
+Pokud rozhodnutí záviselo na tehdejším statusu skutečného slova, musí být dohledatelná i použitá katalogová položka/revize katalogu skutečných slov. To z katalogu skutečných slov nedělá součást `rules_version`.
 
 Nová `rules_version` může vytvořit nový validační výsledek nad stejnou immutable revizí.
 
@@ -197,13 +230,14 @@ Citlivé administrativní zásahy se auditují minimálně údaji:
 2. verdikt/review vždy míří na konkrétní revizi.
 3. revalidace vůči nové rules version nevytváří novou revizi.
 4. historický verdikt se nepřepisuje novým verdiktem.
-5. katalog je podřízen pravidlům a je oddělený podle rules version.
-6. absence katalogového záznamu znamená `UNKNOWN`, ne neplatnost.
-7. katalog se před submittem uživateli neprozrazuje.
-8. uživatelská deklarace je oddělena od katalogově resolved pravdy.
-9. syntaktické reference nesmějí překročit hranici revize.
-10. normativní modely a číselníky jsou reprodukovatelné pro konkrétní rules version.
-11. typ věty a interpunkce tvoří deterministický invariant.
-12. text a skóre nesmějí driftovat od kanonické tokenové reprezentace.
-13. administrátor je `user_account` s rolí `ADMIN`, ne samostatná identita.
-14. komentáře a magic-link identity nejsou součástí MVP.
+5. katalog skutečných slov a interní review cache jsou dvě oddělené domény.
+6. katalog skutečných slov není obecně scoped na `rules_version`; review cache ano.
+7. absence review-cache záznamu znamená `UNKNOWN`, ne neplatnost.
+8. hráč smí exact-match dotaz pouze do katalogu skutečných slov nad kompletním vlastním návrhem; review cache se před submittem neprozrazuje.
+9. uživatelská deklarace je oddělena od obou resolved vrstev.
+10. syntaktické reference nesmějí překročit hranici revize.
+11. normativní modely a číselníky jsou reprodukovatelné pro konkrétní rules version.
+12. typ věty a interpunkce tvoří deterministický invariant.
+13. text a skóre nesmějí driftovat od kanonické tokenové reprezentace.
+14. administrátor je `user_account` s rolí `ADMIN`, ne samostatná identita.
+15. komentáře a magic-link identity nejsou součástí MVP.
