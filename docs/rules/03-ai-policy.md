@@ -2,6 +2,10 @@
 
 > **Status:** normativní pravidlo férového hraní.
 
+## Místo v normativním balíku
+
+Tento dokument je autoritativní **pouze pro používání AI, nástrojů a fair-play hranici lidské práce**. Obecnou soutěžní platnost řeší `02-rozhodcovska-specifikace.md`, přesnou mechaniku jednotlivých oblastí NORMATIVNÍ moduly `../kvazitahak/01-07` a lifecycle pravidel `04-verzovani-a-sprava.md`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 ## 1. Hraj fér
 
 Kvazi je hra založená na důvěře. Soutěžní řešení má vzniknout lidskou hlavou.
