@@ -1,6 +1,6 @@
 # Kvazitahák – substantiva
 
-> **Status:** seznam vzorů je rozhodnut. Přesná normativní paradigmata je nutné ještě sestavit.
+> **Status:** seznam vzorů i jejich přesná normativní paradigmata jsou pro první rules verzi zmrazeny.
 
 ## NORMATIVNÍ: princip soutěžního modelu
 
@@ -8,139 +8,242 @@ Názvy `pán`, `muž`, `předseda`, `soudce`, `hrad`, `stroj`, `žena`, `růže`
 
 Název modelu není otevřeným odkazem na všechny varianty, dublety, kmenové alternace nebo lexikální výjimky, které se mohou vyskytovat u českých slov tradičně řazených ke stejnojmennému vzoru.
 
-Pro každý soutěžní model normativní tabulka přesně určí:
+Pro každý soutěžní model normativní tabulka přesně určuje podmínku lemmatu, mechanické pravidlo určení soutěžního kmene a právě jednu kanonickou realizaci každé buňky. Co v normativním modelu výslovně uvedeno není, nelze převzít jen proto, že taková varianta existuje v češtině.
 
-1. podmínku lemmatu / základního tvaru,
-2. mechanické pravidlo určení soutěžního kmene, pokud jej model používá,
-3. právě jednu kanonickou realizaci pro každou soutěžně přípustnou kombinaci morfologických hodnot.
+**Soutěžní kmen je vždy odvozen deterministicky z lemmatu a zvoleného modelu. Hráč jej nevolí ani neobhajuje vlastní analogií.** V první zmrazené rules verzi platí **jedna morfologická buňka = právě jedna kanonická realizace**; morfologické dublety se nepovolují.
 
-Co v normativním modelu výslovně uvedeno není, nelze do něj převzít jen proto, že taková varianta existuje v obecné češtině. Hráč si soutěžní kmen ani další alternaci nevytváří volně; musí plynout z pravidla konkrétního modelu.
+**Obecné české hláskové alternace se automaticky nepoužívají.** Jestliže model pracuje se vztahem `kmen + koncovka`, použije se mechanicky kmen určený modelem bez další fonologické změny. Změna kmene je dovolena pouze tehdy, když je deterministicky zabudována přímo do konkrétního soutěžního modelu.
 
-**Soutěžní kmen je vždy odvozen deterministicky z lemmatu a zvoleného modelu. Hráč jej nevolí ani neobhajuje vlastní analogií.** Pokud model používá více kmenových podob, jejich vznik a použití musí být mechanicky popsány přímo v modelu.
+Výsledný model musí umožnit mechanickou kontrolu `lemma + model + morfologické hodnoty → právě jeden povolený tvar`.
 
-V první zmrazené rules verzi platí **jedna morfologická buňka = právě jedna kanonická realizace**. Morfologické dublety se v této verzi nepovolují, ani když jsou obě varianty v obecné češtině standardní. Případnou další realizaci lze zavést až explicitní změnou budoucí verze pravidel.
-
-**Obecné české hláskové alternace se automaticky nepoužívají.** Jestliže model pracuje se vztahem `kmen + koncovka`, použije se mechanicky kmen určený modelem bez další fonologické změny jen proto, že by ji obecná čeština v podobném prostředí znala. Změna kmene je dovolena pouze tehdy, když je jako deterministické pravidlo výslovně zabudována do konkrétního soutěžního modelu a model určuje i buňky, ve kterých se použije. Taková změna není volbou hráče.
-
-Výsledný model tedy musí umožnit mechanickou kontrolu vztahu:
-
-`lemma + model + morfologické hodnoty → právě jeden povolený tvar`.
-
-**Reachability není kritériem existence modelu.** Všechny níže uvedené normativní modely zůstávají součástí pravidel i tehdy, pokud se později ukáže, že některý z nich při aktuálních znakových a motivových omezeních nemá žádný použitelný povrchový tvar. Hráčské materiály takovou případnou slepou cestu nemají předem označovat.
+**Reachability není kritériem existence modelu.** Model zůstává součástí pravidel i tehdy, pokud nemá při aktuálních znakových a motivových omezeních žádný použitelný povrchový tvar. Hráčské materiály případnou slepou cestu předem neoznačují.
 
 ## NORMATIVNÍ: základní odvození kmene
 
-U běžných substantivních modelů se soutěžní kmen odvodí od lemmatu čistě mechanicky podle nominativní koncovky modelu:
+U běžných modelů:
 
-- modely s lemmatem zakončeným souhláskou: **kmen = celé lemma**,
-- modely na `-a`: odeber poslední `a`,
-- modely na `-e`: odeber poslední `e`,
-- modely na `-o`: odeber poslední `o`,
-- model `stavení` na `-í`: odeber poslední `í`.
+- lemma zakončené souhláskou: `S = celé lemma`,
+- lemma na `-a`: `S = lemma bez posledního a`,
+- lemma na `-e`: `S = lemma bez posledního e`,
+- lemma na `-o`: `S = lemma bez posledního o`,
+- model `stavení` na `-í`: `S = lemma bez posledního í`.
 
-Nominativ singuláru je vždy přímo lemma. Ostatní buňky se standardně tvoří jako `kmen + kanonická koncovka` z normativní tabulky.
+Nominativ singuláru je přímo lemma. Ostatní buňky se tvoří přesně podle tabulek níže. Výjimkou s vlastní konstrukcí kmenů je pouze explicitně popsaný model `kuře`.
 
-Pokud charakter konkrétního modelu vyžaduje další kmenovou podobu, musí ji tento model definovat jako vlastní explicitní deterministické pravidlo včetně přesného určení buněk, ve kterých se použije. Takovou výjimku nevytváří jednotlivé slovo ani hráčova analogie.
-
-## NORMATIVNÍ: soutěžní vzory
+## NORMATIVNÍ: úplná paradigmata substantiv
 
 ### Mužský rod
 
-| Vzor | Životnost | Podmínka lemmatu |
+| Model | Životnost | Podmínka lemmatu |
 |---|---|---|
-| pán | životný | končí na souhlásku |
-| muž | životný | končí na souhlásku |
-| předseda | životný | končí na `-a` |
-| soudce | životný | končí na `-e` |
-| hrad | neživotný | končí na souhlásku |
-| stroj | neživotný | končí na souhlásku |
+| pán | životný | souhláska |
+| muž | životný | souhláska |
+| předseda | životný | `-a` |
+| soudce | životný | `-e` |
+| hrad | neživotný | souhláska |
+| stroj | neživotný | souhláska |
 
-U dvojic `pán/muž` a `hrad/stroj` se u kvazislova nezkoumá přirozená fonologická preference tvrdosti nebo měkkosti. Rozhoduje výhradně zvolený uzavřený soutěžní model.
+U dvojic `pán/muž` a `hrad/stroj` se nezkoumá fonologická preference tvrdosti či měkkosti; rozhoduje zvolený soutěžní model.
+
+#### `pán` — `S = lemma`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S` | `S+i` |
+| 2. | `S+a` | `S+ů` |
+| 3. | `S+ovi` | `S+ům` |
+| 4. | `S+a` | `S+y` |
+| 5. | `S+e` | `S+i` |
+| 6. | `S+ovi` | `S+ech` |
+| 7. | `S+em` | `S+y` |
+
+#### `muž` — `S = lemma`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S` | `S+i` |
+| 2. | `S+e` | `S+ů` |
+| 3. | `S+i` | `S+ům` |
+| 4. | `S+e` | `S+e` |
+| 5. | `S+i` | `S+i` |
+| 6. | `S+i` | `S+ích` |
+| 7. | `S+em` | `S+i` |
+
+#### `předseda` — lemma `S+a`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S+a` | `S+ové` |
+| 2. | `S+y` | `S+ů` |
+| 3. | `S+ovi` | `S+ům` |
+| 4. | `S+u` | `S+y` |
+| 5. | `S+o` | `S+ové` |
+| 6. | `S+ovi` | `S+ech` |
+| 7. | `S+ou` | `S+y` |
+
+#### `soudce` — lemma `S+e`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S+e` | `S+i` |
+| 2. | `S+e` | `S+ů` |
+| 3. | `S+i` | `S+ům` |
+| 4. | `S+e` | `S+e` |
+| 5. | `S+e` | `S+i` |
+| 6. | `S+i` | `S+ích` |
+| 7. | `S+em` | `S+i` |
+
+#### `hrad` — `S = lemma`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S` | `S+y` |
+| 2. | `S+u` | `S+ů` |
+| 3. | `S+u` | `S+ům` |
+| 4. | `S` | `S+y` |
+| 5. | `S+e` | `S+y` |
+| 6. | `S+u` | `S+ech` |
+| 7. | `S+em` | `S+y` |
+
+#### `stroj` — `S = lemma`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S` | `S+e` |
+| 2. | `S+e` | `S+ů` |
+| 3. | `S+i` | `S+ům` |
+| 4. | `S` | `S+e` |
+| 5. | `S+i` | `S+e` |
+| 6. | `S+i` | `S+ích` |
+| 7. | `S+em` | `S+i` |
 
 ### Ženský rod
 
-| Vzor | Podmínka lemmatu |
+| Model | Podmínka lemmatu |
 |---|---|
 | žena | `-a` |
 | růže | `-e` |
 | píseň | souhláska |
 | kost | souhláska |
 
+#### `žena` — lemma `S+a`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S+a` | `S+y` |
+| 2. | `S+y` | `S` |
+| 3. | `S+ě` | `S+ám` |
+| 4. | `S+u` | `S+y` |
+| 5. | `S+o` | `S+y` |
+| 6. | `S+ě` | `S+ách` |
+| 7. | `S+ou` | `S+ami` |
+
+#### `růže` — lemma `S+e`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S+e` | `S+e` |
+| 2. | `S+e` | `S+í` |
+| 3. | `S+i` | `S+ím` |
+| 4. | `S+i` | `S+e` |
+| 5. | `S+e` | `S+e` |
+| 6. | `S+i` | `S+ích` |
+| 7. | `S+í` | `S+emi` |
+
+#### `píseň` — `S = lemma`
+
+Model je v první rules verzi **jednokmenný**. Pohyblivé `e`, vypouštění samohlásky ani jiná lexikální změna skutečného slova `píseň` se nepřenáší.
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S` | `S+e` |
+| 2. | `S+e` | `S+í` |
+| 3. | `S+i` | `S+ím` |
+| 4. | `S` | `S+e` |
+| 5. | `S+i` | `S+e` |
+| 6. | `S+i` | `S+ích` |
+| 7. | `S+í` | `S+emi` |
+
+#### `kost` — `S = lemma`
+
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S` | `S+i` |
+| 2. | `S+i` | `S+í` |
+| 3. | `S+i` | `S+em` |
+| 4. | `S` | `S+i` |
+| 5. | `S+i` | `S+i` |
+| 6. | `S+i` | `S+ech` |
+| 7. | `S+í` | `S+mi` |
+
 ### Střední rod
 
-| Vzor | Podmínka lemmatu |
+| Model | Podmínka lemmatu |
 |---|---|
 | město | `-o` |
 | moře | `-e` |
-| kuře | `-e`, rozšířené kmeny podle normativního modelu |
+| kuře | `-e`, vlastní rozšířené kmeny |
 | stavení | `-í` |
 
-## NORMATIVNÍ: model `píseň`
+#### `město` — lemma `S+o`
 
-Model `píseň` je v první rules verzi **jednokmenný souhláskový model**. Pro lemma `S` platí `kmen = S`.
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S+o` | `S+a` |
+| 2. | `S+a` | `S` |
+| 3. | `S+u` | `S+ům` |
+| 4. | `S+o` | `S+a` |
+| 5. | `S+o` | `S+a` |
+| 6. | `S+ě` | `S+ech` |
+| 7. | `S+em` | `S+y` |
 
-Pohyblivé `e`, vypouštění samohlásky ani jiná lexikální kmenová změna známá ze skutečného českého slova `píseň` se do soutěžního modelu nepřenáší. Název modelu zde označuje inspirační český skloňovací typ a jeho normativní sadu koncovek, nikoli lexikální alternaci vzorového slova.
+#### `moře` — lemma `S+e`
 
-## NORMATIVNÍ: paradigma modelu `kuře`
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S+e` | `S+e` |
+| 2. | `S+e` | `S+í` |
+| 3. | `S+i` | `S+ím` |
+| 4. | `S+e` | `S+e` |
+| 5. | `S+e` | `S+e` |
+| 6. | `S+i` | `S+ích` |
+| 7. | `S+em` | `S+i` |
 
-Model `kuře` je explicitní modelová výjimka z obecného jednokmenného pravidla. Jeho charakteristické rozšířené kmeny jsou součástí samotného soutěžního modelu, nikoli obecnou českou alternací.
+#### `kuře` — lemma `S+e`
 
-Je-li lemma ve tvaru `S+e`, model deterministicky používá tyto tři podoby:
+Model `kuře` je explicitní výjimka z jednokmenného pravidla. Deterministicky používá základ `S`, singulárový rozšířený kmen `S+et` a plurálový rozšířený kmen `S+at`.
 
-- základ `S`,
-- singulárový rozšířený kmen `S+et`,
-- plurálový rozšířený kmen `S+at`.
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S+e` | `S+ata` |
+| 2. | `S+ete` | `S+at` |
+| 3. | `S+eti` | `S+atům` |
+| 4. | `S+e` | `S+ata` |
+| 5. | `S+e` | `S+ata` |
+| 6. | `S+eti` | `S+atech` |
+| 7. | `S+etem` | `S+aty` |
 
-Hráč mezi nimi nevolí. Použití je určeno tabulkou:
+#### `stavení` — lemma `S+í`
 
-| Číslo | Pád | Kanonický tvar |
-|---|---:|---|
-| sg | 1. | `S+e` |
-| sg | 2. | `S+ete` |
-| sg | 3. | `S+eti` |
-| sg | 4. | `S+e` |
-| sg | 5. | `S+e` |
-| sg | 6. | `S+eti` |
-| sg | 7. | `S+etem` |
-| pl | 1. | `S+ata` |
-| pl | 2. | `S+at` |
-| pl | 3. | `S+atům` |
-| pl | 4. | `S+ata` |
-| pl | 5. | `S+ata` |
-| pl | 6. | `S+atech` |
-| pl | 7. | `S+aty` |
+| Pád | sg | pl |
+|---|---|---|
+| 1. | `S+í` | `S+í` |
+| 2. | `S+í` | `S+í` |
+| 3. | `S+í` | `S+ím` |
+| 4. | `S+í` | `S+í` |
+| 5. | `S+í` | `S+í` |
+| 6. | `S+í` | `S+ích` |
+| 7. | `S+ím` | `S+ími` |
 
-Tato tabulka je úplná pro první rules verzi; žádná další dubleta nebo lexikální alternace modelu `kuře` se nepřenáší.
+Žádná tabulka nepovoluje další implicitní dubletu nebo lexikální alternaci.
 
 ## NORMATIVNÍ: skutečné slovo versus kvazislovo
 
-O zařazení nerozhoduje samotný zápis, ale úplná soutěžní identita substantiva: základní tvar, rod, životnost a vzor.
+O zařazení nerozhoduje samotný zápis, ale úplná soutěžní identita substantiva: základní tvar, rod, životnost a model.
 
-- Odpovídá-li tato celá identita a použitý tvar schválené položce katalogu skutečných slov, musí být použita jako skutečné slovo a nelze tutéž identitu znovu prohlásit za kvazislovo.
+- Odpovídá-li celá identita a použitý tvar schválené položce katalogu skutečných slov, musí být použita jako skutečné slovo a nelze tutéž identitu znovu prohlásit za kvazislovo.
 - Stejný základní tvar může být kvazislovem, pokud se jeho identita liší od každé odpovídající schválené skutečné identity a splní jiné normativní paradigma.
 
-Příklad: `VAZ + mužský neživotný + hrad` a `VAZ + mužský životný + pán` jsou dvě různé soutěžní identity. O tom, zda je některá z nich skutečným slovem, rozhoduje katalog skutečných slov.
+Konkrétní skutečný tvar je přípustný jen tehdy, když jeho úplná identita a deklarované morfologické hodnoty odpovídají schválené položce spravovaného katalogu skutečných slov, použitý tvar je pro tuto identitu schválený a současně jej lze mechanicky odvodit podle jednoho z uzavřených soutěžních modelů.
 
-## TODO – NORMATIVNÍ PARADIGMATA
-
-Pro každý dosud nezmrazený vzor sestavit úplnou tabulku:
-
-- singulár: 1.–7. pád,
-- plurál: 1.–7. pád,
-- přesné případné modelové odchylky od základního pravidla kmene,
-- právě jednu kanonickou realizaci každé buňky,
-- žádné implicitní lexikální výjimky jednotlivých slov.
-
-To, co bude v normativní tabulce, platí. Externí dubleta nebo alternace mimo tabulku se do soutěžního modelu nepřenáší.
-
-## Skutečná slova
-
-Konkrétní skutečný tvar je pro soutěž přípustný jen tehdy, když:
-
-1. jeho úplná identita a deklarované morfologické hodnoty odpovídají schválené položce spravovaného katalogu skutečných slov,
-2. konkrétní použitý tvar je v katalogu pro tuto identitu schválený,
-3. současně jej lze mechanicky odvodit podle jednoho z výše uvedených uzavřených soutěžních modelů.
-
-IJP, ASSČ a jiné jazykové zdroje mohou kvaziautoritě sloužit jako podklad při správě katalogu, nejsou však samy přímým soutěžním whitelistem hráče.
-
-Atypické skutečné tvary mimo soutěžní modely se nepoužívají.
+IJP, ASSČ a jiné jazykové zdroje mohou kvaziautoritě sloužit jako podklad při správě katalogu, nejsou však samy přímým soutěžním whitelistem hráče. Atypické skutečné tvary mimo soutěžní modely se nepoužívají.
