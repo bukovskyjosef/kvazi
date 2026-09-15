@@ -2,6 +2,10 @@
 
 > **Status:** tato kapitola je určena pro pravidlově výjimečné nebo vysvětlovací okrajové situace; reachability není důvodem k přesunu mechanismu do této kapitoly.
 
+## Místo v normativním balíku
+
+Tento modul je autoritativní **pro výslovně vymezené hraniční a strukturálně výjimečné mechanismy, které nepatří přirozeně do ostatních modulů**. Obecná pravidla platnosti řeší `../rules/02-rozhodcovska-specifikace.md`; běžnou syntaxi, morfologii, valenci a prefix `kvazi-` řeší NORMATIVNÍ moduly `01-05` a `07`; AI a verzování mají vlastní dokumenty v `../rules/`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 Tato kapitola může obsahovat normativní pravidla pro situace, které jsou strukturálně výjimečné, vyžadují zvláštní vysvětlení nebo by zbytečně zatěžovaly základní návod.
 
 Nejde o seznam tipů pro hráče, katalog možných řešení ani seznam známých slepých cest.
