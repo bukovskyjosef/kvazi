@@ -1,15 +1,11 @@
 // morpho.mjs — Deterministický morfologický validátor
-// Čte normativní data z globalThis.__normative (nastaveno aplikací před prvním voláním).
-// Prohlížeč: window.__normative je vložen inline skriptem z konfigurator.php.
-// Node.js testy: global.__normative = JSON.parse(readFileSync(normative.json)) před prvním voláním.
+// Všechna normativní data jsou čtena přes rules-data.mjs (lazy accessory).
 // Jediný normativní zdroj: app/data/rules/<verze>/normative.json.
-
-function nd() {
-  if (!globalThis.__normative) {
-    throw new Error('Normativní data nejsou inicializována. Nastavte globalThis.__normative před prvním voláním morpho funkcí.');
-  }
-  return globalThis.__normative;
-}
+import {
+  nounModels, adjModels, adjTables,
+  verbModels, verbPresent, verbImperative, verbLParticiple,
+  auxBytForms,
+} from './rules-data.mjs';
 
 const isVowel = c => /[aeiouyáéíóúůýě]/i.test(c);
 const endsConsonant = l => l.length > 0 && !isVowel(l.slice(-1));
@@ -39,7 +35,7 @@ function doNounStem(stemName, lemma) {
 // ─────────────────────────────────────────────────────────────
 
 export function nounStem(lemma, modelName) {
-  const model = nd().noun_models[modelName];
+  const model = nounModels()[modelName];
   if (!model) return null;
   if (!nounCond(model.cond, lemma)) return null;
   return doNounStem(model.stem, lemma);
@@ -50,9 +46,8 @@ export function nounStem(lemma, modelName) {
 // ─────────────────────────────────────────────────────────────
 
 function validateNoun(w) {
-  const normative = nd();
   const modelName = w.model;
-  const m = normative.noun_models[modelName];
+  const m = nounModels()[modelName];
   if (!m) return { ok: true, expected: null, message: null };
 
   let lemma = String(w.lemma || '').toLowerCase();
@@ -89,9 +84,8 @@ function validateNoun(w) {
 // ─────────────────────────────────────────────────────────────
 
 function validateAdjective(w) {
-  const normative = nd();
   const modelName = w.model;
-  const adjDef = normative.adj_models[modelName];
+  const adjDef = adjModels()[modelName];
   if (!adjDef) return { ok: true, expected: null, message: null };
 
   const form = w.form || {};
@@ -104,7 +98,7 @@ function validateAdjective(w) {
   if (!caseNum || !number || !gender) return { ok: false, expected: null, message: 'Chybí rod, číslo nebo pád použitého tvaru.' };
 
   const tableKey = `${gender}-${number}-${caseNum}`;
-  const tables = normative.adj_tables;
+  const tables = adjTables();
 
   // Přivlastňovací adjektiva
   if (adjDef.type === 'possessive_m' || adjDef.type === 'possessive_f') {
@@ -112,7 +106,7 @@ function validateAdjective(w) {
     const srcModelName = identity.sourceNounModel;
     if (!srcLemma || !srcModelName) return { ok: false, expected: null, message: 'Chybí lemma nebo vzor zdrojového substantiva.' };
 
-    const srcM = normative.noun_models[srcModelName];
+    const srcM = nounModels()[srcModelName];
     if (!srcM) return { ok: false, expected: null, message: `Zdrojový substantivní model „${srcModelName}" není v normativní sadě.` };
     if (!nounCond(srcM.cond, srcLemma)) return { ok: false, expected: null, message: `Lemma zdrojového substantiva „${srcLemma}" nesplňuje podmínku vzoru ${srcModelName}.` };
 
@@ -175,9 +169,8 @@ function validateAdjective(w) {
 // ─────────────────────────────────────────────────────────────
 
 function validateVerb(w) {
-  const normative = nd();
   const modelName = w.model;
-  const verbDef = normative.verb_models[modelName];
+  const verbDef = verbModels()[modelName];
   if (!verbDef) return { ok: true, expected: null, message: null };
 
   const lemma = String(w.lemma || '').toLowerCase();
@@ -198,7 +191,7 @@ function validateVerb(w) {
     const n = number === 'plural' ? 3 : 0;
     const idx = p + n;
     if (idx < 0 || idx > 5) return { ok: false, expected: null, message: 'Neplatná kombinace osoby a čísla.' };
-    const ending = normative.verb_present[modelName]?.[idx];
+    const ending = verbPresent()[modelName]?.[idx];
     if (ending === undefined) return { ok: false, expected: null, message: `Přítomné tvary modelu ${modelName} nejsou v normativních datech.` };
     const expected = stem + ending;
     return expected === surface ? { ok: true, expected, message: null }
@@ -211,7 +204,7 @@ function validateVerb(w) {
     const impIdx = { '2sg': 0, '1pl': 1, '2pl': 2 };
     const idx = impIdx[vp];
     if (idx === undefined) return { ok: false, expected: null, message: 'Rozkazovací způsob dovoluje jen 2.sg, 1.pl, 2.pl.' };
-    const ending = normative.verb_imperative[modelName]?.[idx];
+    const ending = verbImperative()[modelName]?.[idx];
     if (ending === undefined) return { ok: false, expected: null, message: `Imperativní tvary modelu ${modelName} nejsou v normativních datech.` };
     const expected = stem + ending;
     return expected === surface ? { ok: true, expected, message: null }
@@ -237,7 +230,7 @@ function validateVerb(w) {
         idx = 5;
       } else return { ok: false, expected: null, message: 'Neznámý rod.' };
     }
-    const ending = normative.verb_lparticiple[modelName]?.[idx];
+    const ending = verbLParticiple()[modelName]?.[idx];
     if (ending === undefined) return { ok: false, expected: null, message: `L-příčestí modelu ${modelName} nejsou v normativních datech.` };
     const expected = stem + ending;
     return expected === surface ? { ok: true, expected, message: null }
@@ -253,7 +246,7 @@ function validateVerb(w) {
 
 function validateAuxiliary(w) {
   const surface = String(w.surface || '').toLowerCase();
-  const allowed = nd().aux_byt_forms;
+  const allowed = auxBytForms();
   if (!allowed.includes(surface)) {
     return { ok: false, expected: null, message: `„${surface}" není v normativní uzavřené sadě pomocných tvarů být.` };
   }
@@ -279,9 +272,9 @@ export function validateForm(w) {
 }
 
 // Re-export seznamů modelů pro testy (lazy — čtou z normativních dat za běhu).
-export const getNounModels = () => Object.keys(nd().noun_models);
-export const getAdjModels  = () => Object.keys(nd().adj_models);
-export const getVerbModels = () => Object.keys(nd().verb_models);
+export const getNounModels = () => Object.keys(nounModels());
+export const getAdjModels  = () => Object.keys(adjModels());
+export const getVerbModels = () => Object.keys(verbModels());
 // Aliasy pro zpětnou kompatibilitu s morpho.test.mjs (vrací pole stejně jako dříve).
 export const _NOUN_MODELS = { [Symbol.iterator]() { return getNounModels()[Symbol.iterator](); }, get length() { return getNounModels().length; }, sort() { return getNounModels().sort(); } };
 export const _ADJ_MODELS  = { [Symbol.iterator]() { return getAdjModels()[Symbol.iterator](); },  get length() { return getAdjModels().length; },  sort() { return getAdjModels().sort(); } };

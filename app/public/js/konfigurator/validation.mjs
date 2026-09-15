@@ -1,27 +1,47 @@
-import { relationShapes, punctuation, partsOfSpeech, getPath, getModel, wordFields, isFunctional, publicSchema } from './schema.mjs';
+import { partsOfSpeech, getPath, getModel, wordFields, isFunctional, publicSchema } from './schema.mjs';
 import { nfc, folded, inferKvaziPrefix } from './state.mjs';
 import { validateForm } from './morpho.mjs';
+import {
+  singleTokens, singlePrepositions, singleConjunctions,
+  punctuation as ndPunctuation,
+  relationShapes as ndRelationShapes,
+  surfaceCharset, tokenMinChars, tokenMaxChars, prefixLen,
+  prepositionGovt, nounModels as ndNounModels,
+} from './rules-data.mjs';
 
-const singles = ['k', 'v', 'z', 'a', 'i'];
+// DFA for valid token character sequences: each token must form one complete
+// KVAZ{I/Í/Y/Ý} motif (or be a single-char exception). The automaton is the
+// structural implementation of the motif boundary rule.
 function transition(state, c) {
   return [() => c === 'K' ? 1 : c === 'Q' ? 2 : -1, () => c === 'V' ? 2 : -1,
     () => 'AÁ'.includes(c) ? 3 : -1, () => c === 'Z' ? 4 : -1, () => 'IÍYÝ'.includes(c) ? 0 : -1][state]();
 }
+
+// Cached charset regex — built once from normative release data.
+let _charsetRe = null;
+function getCharsetRe() {
+  return _charsetRe ??= new RegExp(surfaceCharset(), 'iu');
+}
+
 export function validateTokenSequence(tokens) {
   const issues = [];
   const add = (id, message) => issues.push({ id, message });
   if (!tokens.length) add(null, 'Věta zatím neobsahuje slova.');
+  const singles = singleTokens();
+  const minChars = tokenMinChars();
+  const maxChars = tokenMaxChars();
+  const pfxLen   = prefixLen();
   const used = new Map();
   for (const w of tokens) {
     const s = nfc(w.surface), length = [...s].length;
-    if (!/^[KVQAÁZIÍYÝ]+$/iu.test(s)) add(w.id, 'Použijte pouze znaky K V Q A Á Z I Í Y Ý, bez mezer a znamének.');
+    if (!getCharsetRe().test(s)) add(w.id, 'Použijte pouze znaky K V Q A Á Z I Í Y Ý, bez mezer a znamének.');
     const hasPrefix = inferKvaziPrefix(s);
     if (!singles.includes(folded(s))) {
       if (hasPrefix) {
-        const baseLen = length - 5;
-        if (baseLen < 3 || baseLen > 5) add(w.id, 'Základ za prefixem kvazi- musí mít 3–5 znaků.');
-      } else if (length < 3 || length > 5) {
-        add(w.id, 'Běžné slovo musí mít 3–5 znaků; výjimky jsou pouze k/v/z/a/i.');
+        const baseLen = length - pfxLen;
+        if (baseLen < minChars || baseLen > maxChars) add(w.id, `Základ za prefixem kvazi- musí mít ${minChars}–${maxChars} znaků.`);
+      } else if (length < minChars || length > maxChars) {
+        add(w.id, `Běžné slovo musí mít ${minChars}–${maxChars} znaků; výjimky jsou pouze ${singles.join('/')}.`);
       }
     }
     if (singles.includes(folded(s))) {
@@ -35,8 +55,8 @@ export function validateTokenSequence(tokens) {
   for (const w of tokens) {
     const upper = nfc(w.surface).toUpperCase();
     if (inferKvaziPrefix(w.surface)) {
-      segments.push([...upper.slice(0, 5)]);
-      segments.push([...upper.slice(5)]);
+      segments.push([...upper.slice(0, pfxLen)]);
+      segments.push([...upper.slice(pfxLen)]);
     } else {
       segments.push([...upper]);
     }
@@ -61,9 +81,10 @@ export function validateSyntax(draft, schema = publicSchema) {
   const byId = id => words.find(w => w.id === id);
   const nominal = w => w && ['noun', 'adjective', 'pronoun'].includes(w.pos);
   const predicate = w => w?.role === 'predicate' && w.pos === 'verb';
+  const relShapes = ndRelationShapes();
   for (const w of words) {
     const add = message => issues.push({ id: w.id, message });
-    const expected = Object.hasOwn(relationShapes, w.role) ? relationShapes[w.role] : undefined;
+    const expected = Object.hasOwn(relShapes, w.role) ? relShapes[w.role] : undefined;
     if (!expected) { add('Chybí povolená větná funkce nebo technická role.'); continue; }
     const actual = Object.keys(w.relations).filter(key => w.relations[key] != null && w.relations[key] !== '');
     if (actual.length !== expected.length || actual.some(key => !expected.includes(key))) add('Počet nebo druh vazeb neodpovídá zvolené funkci.');
@@ -81,7 +102,7 @@ export function validateSyntax(draft, schema = publicSchema) {
       const nomTarget = byId(w.relations.nominal);
       if (nomTarget) {
         const prep = folded(w.surface);
-        const govRules = (globalThis.__normative?.preposition_case_government) ?? {};
+        const govRules = prepositionGovt();
         const governed = govRules[prep];
         if (governed) {
           const nomCase = nomTarget.form?.case;
@@ -119,12 +140,13 @@ export function deriveValidationState(draft, schema = publicSchema) {
   const sequence = validateTokenSequence(draft.tokens);
   const syntax = validateSyntax(draft, schema);
   const sentenceIssues = [];
+  const punct = ndPunctuation();
   const predicates = draft.tokens.filter(w => w.role === 'predicate');
   const subjects = draft.tokens.filter(w => w.role === 'subject');
   const verbs = draft.tokens.filter(w => w.pos === 'verb');
   const auxiliaries = draft.tokens.filter(w => w.role === 'auxiliary');
   const fullContentVerbs = verbs.filter(w => w.role !== 'auxiliary');
-  if (!Object.hasOwn(punctuation, draft.sentenceType)) sentenceIssues.push('Vyberte typ věty.');
+  if (!Object.hasOwn(punct, draft.sentenceType)) sentenceIssues.push('Vyberte typ věty.');
   const fullVerbOk = fullContentVerbs.length === 1;
   if (!fullVerbOk) sentenceIssues.push('Věta musí obsahovat právě jeden plnovýznamový slovesný token.');
   if (predicates.length !== 1) sentenceIssues.push('Věta musí mít právě jeden přísudek.');
@@ -132,14 +154,15 @@ export function deriveValidationState(draft, schema = publicSchema) {
     if (draft.sentenceType !== 'imperative' || subjects.length !== 0) sentenceIssues.push('Nevyjádřený podmět je možný jen u rozkazovací věty bez explicitního podmětu.');
     if (!schema.allowsImplicitSubject?.(verbs[0], draft)) sentenceIssues.push('Dovolený imperativ pro nevyjádřený podmět musí určit dokončený slovesný model (#2/#4).');
   } else if (subjects.length !== 1) sentenceIssues.push('Věta musí mít právě jeden výslovný podmět.');
+
   // Subject/predicate agreement (deterministic where derivable from normative data)
   const subjectWord = subjects[0];
   const predicateWord = predicates[0];
   if (subjectWord && predicateWord && predicateWord.pos === 'verb') {
     const vft = predicateWord.form?.verbFormType;
-    const nounModels = (globalThis.__normative?.noun_models) ?? {};
+    const nounModelData = ndNounModels();
     if (subjectWord.pos === 'noun') {
-      const subjModel = nounModels[subjectWord.model];
+      const subjModel = nounModelData[subjectWord.model];
       if (vft === 'present') {
         const vPerson = predicateWord.form?.verbPerson;
         if (vPerson && vPerson !== '3') sentenceIssues.push('Podmět je podstatné jméno; přítomný/budoucí slovesný tvar musí být ve 3. osobě.');
@@ -151,22 +174,34 @@ export function deriveValidationState(draft, schema = publicSchema) {
         const verbNumber = predicateWord.form?.number;
         if (verbGender && subjGender && verbGender !== subjGender) sentenceIssues.push(`Rod l-příčestí (${verbGender}) neodpovídá rodu podmětu (${subjGender}).`);
         if (verbNumber && subjNumber && verbNumber !== subjNumber) sentenceIssues.push(`Číslo l-příčestí (${verbNumber}) neodpovídá číslu podmětu (${subjNumber}).`);
+        // For masculine plural l-participle, animacy of predicate must match subject noun model.
+        if (verbGender === 'masculine' && subjGender === 'masculine' &&
+            verbNumber === 'plural' && subjNumber === 'plural') {
+          const subjAnimacy = subjModel.animacy; // 'animate' | 'inanimate' | ''
+          const verbAnimacy = predicateWord.form?.verbAnimacy;
+          if (subjAnimacy && verbAnimacy && subjAnimacy !== verbAnimacy) {
+            sentenceIssues.push(`Životnost l-příčestí (${verbAnimacy}) neodpovídá životnosti podmětu (${subjAnimacy}).`);
+          }
+        }
       }
     }
   }
+
   const tokens = {};
   const identities = new Map();
+  const singles = singleTokens();
+  const preps = singlePrepositions();
+  const conjs = singleConjunctions();
   for (const w of draft.tokens) {
     const missing = [];
     const s = folded(w.surface);
     if (!Object.hasOwn(partsOfSpeech, w.pos)) missing.push('Slovní druh.');
-    if ((['k', 'v', 'z'].includes(s) !== (w.pos === 'preposition')) || (['a', 'i'].includes(s) !== (w.pos === 'conjunction'))) missing.push('Jednopísmenná výjimka a slovní druh si odporují.');
+    if ((preps.includes(s) !== (w.pos === 'preposition')) || (conjs.includes(s) !== (w.pos === 'conjunction'))) missing.push('Jednopísmenná výjimka a slovní druh si odporují.');
     if (w.pos === 'preposition' && w.role !== 'preposition') missing.push('Předložka má technickou roli bez hlavní větné funkce.');
     if (w.pos === 'conjunction' && w.role !== 'coordination') missing.push('Spojka má roli koordinace.');
     if (isFunctional(w) && (w.lexicalStatus !== 'real' || folded(w.lemma) !== s)) missing.push('Identita funkčního slova musí odpovídat jednopísmenné výjimce.');
     if (!isFunctional(w)) {
       if (w.role === 'auxiliary') {
-        // Auxiliary být: closed normative set, no soutěžní model, no catalog lookup.
         if (folded(w.lemma) !== 'být') missing.push('Pomocné sloveso musí mít lemma „být".');
         if (w.lexicalStatus !== 'real') missing.push('Pomocné „být" má lexikální status skutečného slova.');
       } else {
@@ -206,13 +241,14 @@ export function deriveValidationState(draft, schema = publicSchema) {
     const s = nfc(w.surface);
     return i === 0 && s.length > 0 ? s[0].toUpperCase() + s.slice(1) : s;
   });
-  const termPunct = draft.closingPunct ?? (Object.hasOwn(punctuation, draft.sentenceType) ? punctuation[draft.sentenceType] : '');
-  // charScore: each char counts as 1; exactly 5 prefix chars of a system-inferred and
+  const termPunct = draft.closingPunct ?? (Object.hasOwn(punct, draft.sentenceType) ? punct[draft.sentenceType] : '');
+  // charScore: each char counts as 1; exactly prefix_len prefix chars of a system-inferred and
   // sequence-valid kvazi- prefix count as 0 (normative scoring exception).
+  const pfxLen = prefixLen();
   const tokenIssueIds = new Set(sequence.issues.filter(i => i.id !== null).map(i => i.id));
   const charScore = draft.tokens.reduce((sum, w) => {
     const len = [...nfc(w.surface)].length;
-    if (inferKvaziPrefix(w.surface) && !tokenIssueIds.has(w.id)) return sum + (len - 5);
+    if (inferKvaziPrefix(w.surface) && !tokenIssueIds.has(w.id)) return sum + (len - pfxLen);
     return sum + len;
   }, 0);
   return { sequence, syntax, sentenceIssues, tokens, structureOk, morphologyOk, sentenceOk, fullVerbOk,

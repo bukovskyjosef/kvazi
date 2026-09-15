@@ -64,7 +64,9 @@ class KvaziValidator {
 
     private function inferKvaziPrefix(string $surface): bool {
         $s = $this->folded($surface);
-        return str_starts_with($s, 'kvazi') && $this->mbLen($s) > 5;
+        $prefix = $this->nd['kvazi_prefix'];
+        $prefixLen = $this->nd['kvazi_prefix_len'];
+        return str_starts_with($s, $prefix) && $this->mbLen($s) > $prefixLen;
     }
 
     // ─────────────────────────────────────────────────────────
@@ -115,10 +117,11 @@ class KvaziValidator {
                 if ($hasPrefix) {
                     $baseLen = $length - $prefixLen;
                     if ($baseLen < $minChars || $baseLen > $maxChars) {
-                        $issues[] = ['id' => $w['id'], 'message' => 'Základ za prefixem kvazi- musí mít 3–5 znaků.'];
+                        $issues[] = ['id' => $w['id'], 'message' => "Základ za prefixem kvazi- musí mít {$minChars}–{$maxChars} znaků."];
                     }
                 } elseif ($length < $minChars || $length > $maxChars) {
-                    $issues[] = ['id' => $w['id'], 'message' => 'Běžné slovo musí mít 3–5 znaků; výjimky jsou pouze k/v/z/a/i.'];
+                    $singlesStr = implode('/', $singles);
+                    $issues[] = ['id' => $w['id'], 'message' => "Běžné slovo musí mít {$minChars}–{$maxChars} znaků; výjimky jsou pouze {$singlesStr}."];
                 }
             }
 
@@ -866,6 +869,15 @@ class KvaziValidator {
                     }
                     if ($verbNumber && $subjNumber && $verbNumber !== $subjNumber) {
                         $sentenceIssues[] = "Číslo l-příčestí ({$verbNumber}) neodpovídá číslu podmětu ({$subjNumber}).";
+                    }
+                    // Animacy agreement for masculine plural l-participle.
+                    if ($verbGender === 'masculine' && $subjGender === 'masculine' &&
+                        $verbNumber === 'plural' && $subjNumber === 'plural') {
+                        $subjAnimacy = $subjModel['animacy'] ?? '';
+                        $verbAnimacy = $predicateWord['form']['verbAnimacy'] ?? '';
+                        if ($subjAnimacy && $verbAnimacy && $subjAnimacy !== $verbAnimacy) {
+                            $sentenceIssues[] = "Životnost l-příčestí ({$verbAnimacy}) neodpovídá životnosti podmětu ({$subjAnimacy}).";
+                        }
                     }
                 }
             }

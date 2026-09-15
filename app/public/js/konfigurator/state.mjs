@@ -1,21 +1,28 @@
 import { getModel, getPath, setPath, isFunctional, publicSchema } from './schema.mjs';
+import { singleTokens, singlePrepositions, prefixString, prefixLen } from './rules-data.mjs';
 
 export const nfc = value => String(value).normalize('NFC');
 export const folded = value => nfc(value).toLowerCase();
+
 // Returns true when surface triggers the normative kvazi- prefix rule:
-// more than 5 soutěžní chars and starts exactly with 'kvazi' (case-insensitive, NFC).
+// more than kvazi_prefix_len soutěžní chars and starts exactly with kvazi_prefix (NFC, lowercase).
+// Prefix string and length are read from the active normative release via rules-data.mjs.
 export const inferKvaziPrefix = surface => {
   const s = folded(nfc(surface));
-  return s.startsWith('kvazi') && [...s].length > 5;
+  const p = prefixString();
+  return s.startsWith(p) && [...s].length > prefixLen();
 };
+
 export function createDraft() {
   return { sentenceType: 'declarative', implicitSubject: false, meaning: '', defense: '', closingPunct: null, tokens: [], nextId: 1 };
 }
+
 export function createToken(id, surface) {
   const w = { id, surface: nfc(surface).toLowerCase(), lemma: '', pos: '', model: '', kvaziPrefix: '', identity: {}, form: {}, lexicalStatus: '', role: '', relations: {}, valency: { modelVerb: '', declaration: '' }, evidence: { source: '', reference: '', morphology: '', needsAnalogy: false, explanation: '', analogy: '' } };
   const s = folded(surface);
-  if (['k', 'v', 'z', 'a', 'i'].includes(s)) {
-    w.pos = ['k', 'v', 'z'].includes(s) ? 'preposition' : 'conjunction';
+  // Single-char tokens and their POS/role come from the normative single_tokens list.
+  if (singleTokens().includes(s)) {
+    w.pos = singlePrepositions().includes(s) ? 'preposition' : 'conjunction';
     w.role = w.pos === 'preposition' ? 'preposition' : 'coordination';
     w.lemma = s;
     w.lexicalStatus = 'real';

@@ -84,7 +84,7 @@ try {
    style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap"></p>
 
 <main class="container" style="padding-top:20px;padding-bottom:60px">
-  <p class=”notice”>⚠︎ Pracovní verze konfigurátoru. Tlačítko „Odeslat přihlášku” odešle aktuální přihlášku na server a uloží její záznam k přihlášenému účtu; náhled JSON nic neodesílá. Automatická kontrola ověřuje jen deterministické části deklarace, jazykové posouzení probíhá až v review.</p>
+  <p class="notice">⚠︎ Pracovní verze konfigurátoru. Tlačítko „Odeslat přihlášku” odešle aktuální přihlášku na server a uloží její záznam k přihlášenému účtu; náhled JSON nic neodesílá. Automatická kontrola ověřuje jen deterministické části deklarace, jazykové posouzení probíhá až v review.</p>
   <section class="card" aria-labelledby="sentenceHeading">
     <div id="sentencePreview" class="sentence-preview"></div>
     <h2 id="sentenceHeading" class="card-header">Zadání věty</h2>
