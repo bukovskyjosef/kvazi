@@ -91,6 +91,17 @@ Pokud pravidla dovolují případ, který veřejný formulář neumí reprezento
 
 Technické/resource limity formuláře jsou nenormativní a nesmějí vytvořit skrytý maximální počet slov.
 
+### Zjednodušená morfologická deklarace — rozhodnutí #86
+
+- Morfologická soutěžní identita se nemění.
+- Hráč už nevyplňuje celé paradigma ani tvary, které ve své větě nepoužil.
+- Povinně deklaruje pouze údaje potřebné k určení soutěžní identity, morfologické vlastnosti konkrétního použitého tvaru a skutečně použitý povrchový tvar.
+- Systém z normativních tabulek deterministicky ověřuje vztah `morfologická identita + vlastnosti konkrétního použití → právě jeden očekávaný tvar`.
+- Normativní paradigmata zůstávají úplná a beze změny; slouží jako autoritativní pravidlo pro odvození a validaci, ne jako formulář k ručnímu vyplnění.
+- Ruší se starší požadavek na celé editovatelné paradigma, jeho předvyplňování a snapshotové potvrzení `morfoConfirmed`.
+- Deterministická kontrola smí ověřit konkrétní hráčův návrh, ale nesmí hledat nebo navrhovat alternativní kandidáty.
+- Implementaci konfigurátoru řeší #87.
+
 ### Reachability — aktuální rozhodnutí #4
 
 Reachability je analytická informace, nikoli normativní filtr. Normativně povolený model, morfologická větev nebo jiný mechanismus zůstává součástí pravidel i tehdy, pokud se ukáže prakticky nebo prokazatelně nedosažitelný. UI ani hráčský tahák jej nesmějí skrýt jen kvůli reachability a hráčské materiály nemají známé slepé cesty předem prozrazovat.
