@@ -15,32 +15,32 @@ Uživatel explicitně deklaruje typ věty. Z něj plyne závěrečná interpunkc
 
 Aplikace může deterministicky kontrolovat:
 - Unicode NFC a povolené znaky,
-- délku běžného slova,
+- délku běžného slova a zvláštní pravidlo prefixu `kvazi-`,
 - jednopísmenné výjimky,
 - pořadí tokenů,
-- zda lze celou větu umístit do souvislé posloupnosti přípustných motivů tak, aby každý jednotlivý token celý ležel uvnitř jediného motivu a žádný token nepřekročil jeho vnitřní hranici,
+- globální motivovou posloupnost včetně normativní prefixové výjimky,
 - počet slov,
-- počet písmen,
+- sekundární skóre včetně nulové skórové hodnoty pěti znaků normativního prefixu `kvazi-`,
 - typ věty a odpovídající závěrečnou interpunkci.
 
 Hráč nezadává rozklad na motivy.
 
-Pouhá validita spojeného řetězce bez zohlednění hranic tokenů nestačí. Testovací sada musí obsahovat pozitivní i negativní případy, které odliší přípustné rozdělení slov od tokenu překračujícího jinak platnou hranici motivu.
-
 Interní implementace může použít regulární výraz, konečný automat, parser nebo jiný deterministický postup. Implementace není sama pravidlem hry; musí být ekvivalentní slovnímu normativnímu popisu.
 
-## Živá strukturální validace formuláře
+## Živá strukturální a morfologická validace formuláře
 
-Před konečným odesláním může formulář vedle znakové kontroly živě ověřovat pouze zveřejněnou strukturu podání:
+Před konečným odesláním může formulář živě ověřovat zveřejněnou strukturu podání a deterministicky odvoditelné vlastnosti konkrétního hráčova návrhu:
 - zda jsou vyplněna všechna povinná pole aktuálního field schema,
 - zda zvolené hodnoty patří do veřejných seznamů aktuální verze pravidel,
+- zda deklarovaná morfologická identita a morfologické hodnoty konkrétního použití podle normativní tabulky vytvářejí právě hráčem zadaný `surfaceForm`,
 - zda syntaktické odkazy míří na existující tokeny téhož draftu,
 - zda je vložen požadovaný počet strukturovaných vztahů a podkladů,
-- zda uživatelské potvrzení morfologického návrhu odpovídá aktuálnímu snapshotu potvrzovaných dat,
-- právě jeden plnovýznamový slovesný token podle aktuálního veřejného modelu,
-- deterministické invariants jednopísmenných výjimek a jejich veřejných rolí.
+- právě jeden plnovýznamový slovesný token a pouze normativně dovolené pomocné tokeny `být`,
+- deterministické invarianty jednopísmenných výjimek a jejich veřejných rolí.
 
-Počet a typ povinných odkazů se odvozuje od zvolené hlavní syntaktické funkce nebo technické role. Živá kontrola nevyžaduje odborný významový podtyp a sama neposuzuje, zda obhajoba skutečně splňuje jazykový rozhodovací test.
+Podle #86 se nevyžaduje celé uživatelsky editovatelné paradigma ani jeho snapshotové potvrzení. Normativní tabulka je zdrojem pravdy pro odvození konkrétního použitého tvaru.
+
+Počet a typ povinných syntaktických odkazů se odvozuje od zvolené hlavní syntaktické funkce nebo technické role. Živá kontrola sama neposuzuje, zda valenční nebo významová obhajoba skutečně obstojí.
 
 Pro MVP strukturální kontrola vyžaduje:
 - u běžného závislého členu právě jedno řídící slovo,
@@ -49,56 +49,68 @@ Pro MVP strukturální kontrola vyžaduje:
 - u koordinace právě dvě různé spojované části,
 - u předložek `k/v/z` technickou prepoziční roli a právě jednu vazbu na řízené jmenné slovo; předložka sama nemá hlavní větnou funkci.
 
-Volný text nemůže chybějící strukturovanou vazbu nahradit.
+Volný text nemůže chybějící strukturovanou syntaktickou vazbu nahradit.
 
-Tato kontrola potvrzuje úplnost a formální strukturu deklarace, nikoli její jazykovou správnost. Nesmí se při ní dotazovat interní katalog ani vracet informaci, zda katalog konkrétní slovo, tvar, identitu nebo analýzu zná.
+## Dva odlišné katalogové mechanismy
 
-## Jazyková validace
+Validace musí důsledně rozlišovat:
 
-Aplikace před konečným odesláním automaticky nerozhoduje jazykovou správnost deklarované morfologie, skloňování, časování, valence, syntaxe ani významové obhajoby. Kontrola, že deklarovaná hodnota patří do veřejného seznamu nebo že povinné pole není prázdné, není jazykovým schválením.
+### Katalog skutečných slov
+- samostatná lexikální autorita pro status skutečné slovo / kvazislovo,
+- není obecně scoped na jednu `rules_version`,
+- hráč smí po zadání kompletního vlastního návrhu použít pouze exact-match kontrolu úplné soutěžní identity + konkrétního použitého tvaru,
+- výsledek pouze potvrzuje nebo nepotvrzuje existující schválený exact match,
+- nenalezený exact match není sám o sobě zamítnutí,
+- žádný browse, prefix search, autocomplete, podobné položky nebo nabídka alternativ.
 
-UI musí významy stavů jasně odlišit:
-- znaková kontrola splněna,
-- strukturované údaje úplné,
-- morfologický návrh uživatelem potvrzen,
-- připraveno k odeslání,
-- čeká na jazykové posouzení,
-- uznáno / zamítnuto.
+### Interní morfologická review cache
+- neveřejná provozní paměť předchozích morfologických posouzení,
+- je scoped na konkrétní `rules_version`,
+- používá `APPROVED / REJECTED / UNKNOWN`,
+- membership této cache se hráči před submittem ani po exact-match dotazu katalogu skutečných slov neprozrazuje.
 
-Povinné znění potvrzení morfologického návrhu je:
+Tyto mechanismy mohou být oba použity v jednom review workflow, ale nesmějí být implementovány jako jeden významově smíšený lookup.
 
-> **Potvrzuji, že toto je můj morfologický návrh.**
+## Katalog skutečných slov – exact match hráče
+
+Po kompletním zadání identity a konkrétního použití může hráč požádat o exact-match ověření, zda je tato přesná kombinace v katalogu skutečných slov už uznána jako skutečné slovo.
+
+Kontrola nesmí doplňovat chybějící pole ani nabízet možné kandidáty. Z částečné deklarace se dotaz neprovádí.
+
+Negativní exact-match odpověď znamená pouze „tato přesná kombinace není aktuálně potvrzena katalogem“; neznamená automaticky „slovo je neplatné“ nebo „jde o kvazislovo“.
 
 ## Konečný submit
 
 Submit musí vždy provést autoritativní server-side přepočet všech deterministických blockerů nad aktuálním obsahem. Stav tlačítka nebo dřívější FE validace není důkazem přijatelnosti requestu.
 
-Úspěšný submit vytvoří immutable `sentence_revision`. Katalogová a administrativní kontrola probíhá výhradně nad touto uzamčenou revizí.
+Úspěšný submit vytvoří immutable `sentence_revision`.
 
-## Interní učící se katalog v MVP
+Backend u tokenů deklarovaných jako skutečná slova znovu vyhodnotí relevantní stav katalogu skutečných slov. Pokud exact match chybí, případ může jít k ručnímu posouzení a případné správě katalogu; samotná absence není automatickým jazykovým zamítnutím.
 
-Katalog je povinnou součástí MVP. Nejde však o předem úplný whitelist; je to znalostní báze předchozích rozhodnutí pro konkrétní `rules_version`.
+Následné rozhodcovské morfologické review může využít interní review cache.
 
-Pro každou relevantní deklarovanou soutěžní identitu/tvar backend po submitu interně zjistí:
-- `APPROVED` — lze automaticky znovu použít schválení v téže `rules_version`,
+## Interní morfologická review cache v MVP
+
+Review cache je povinnou provozní součástí MVP, nikoli však lexikálním katalogem skutečných slov.
+
+Pro každou relevantní deklarovanou soutěžní identitu/tvar backend po submitu interně zjistí pro konkrétní `rules_version`:
+- `APPROVED` — lze automaticky znovu použít předchozí morfologické schválení v téže `rules_version`,
 - `REJECTED` — admin dostane předchozí negativní rozhodnutí a jeho důvod,
 - `UNKNOWN` — musí následovat ruční posouzení.
 
 `UNKNOWN` je absence rozhodné znalosti, nikoli neplatnost.
 
-Schválením neznámého případu vzniká znalost použitelná pro budoucí shodné výskyty v téže rules verzi. Zamítnutím vzniká negativní znalost s důvodem. Zamítnutí kteréhokoli slova/identity nezbytné pro deklarovanou analýzu znamená zamítnutí dané revize věty.
+Schválením neznámého případu vzniká znalost použitelná pro budoucí shodné výskyty v téže rules verzi. Zamítnutím vzniká negativní znalost s důvodem.
 
-Nová `rules_version` nezačne automaticky používat schválení předchozí verze. Historie se zachová, ale nový validační prostor začíná bez přenesených schválení.
+Nová `rules_version` nezačne automaticky používat schválení předchozí verze. Historie se zachová, ale nový review prostor začíná bez přenesených schválení.
 
-## Porovnání deklarace s katalogem
+## Porovnání deklarace
 
-Porovnává se celá deklarovaná soutěžní identita. Samotná shoda zápisu s reálným slovem nesmí způsobit odmítnutí odlišné platné kvaziidentity; deklaraci shodnou s doloženou reálnou identitou naopak nelze přijmout jako kvazislovo.
+Deterministická morfologická kontrola porovnává deklarovanou soutěžní identitu, model a morfologické hodnoty konkrétního použití s hráčem zadaným tvarem. Pokud z normativních dat deklarovaný tvar neplyne, deklarace neprojde mechanickou morfologickou kontrolou.
 
-Kontrola musí umět z normativních dat ověřit, že deklarovaný základní tvar, zvolený model a morfologické hodnoty skutečně vytvářejí konkrétní použitý tvar. Volně zapsaná identita bez tohoto vztahu není platným katalogovým dokladem.
+Samotná shoda zápisu s reálným slovem nesmí způsobit odmítnutí odlišné platné kvaziidentity; deklaraci shodnou s katalogově potvrzenou skutečnou identitou naopak nelze přijmout jako kvazislovo.
 
-Výsledek katalogového lookupu je před administrativním rozhodnutím neveřejný. Autor nedostává okamžitou odpověď o katalogovém členství jednotlivých položek; dostane až výsledek administrativního posouzení a jeho odůvodnění.
-
-Hráč proto vždy předkládá úplnou minimální obhajobu požadovanou pravidly, i když může být stejná identita interně už `APPROVED`.
+Katalog skutečných slov řeší lexikální status. Interní review cache řeší opakované rozhodcovské morfologické posouzení. Výsledky těchto dvou vrstev se nesmějí zaměňovat.
 
 ## Revalidace
 
@@ -108,10 +120,10 @@ Při obsahové revalidaci se znovu neposuzuje historická procesní compliance p
 
 Pokud se změní scoring semantics, skóre se ukládá/odvozuje jako součást konkrétního validačního výsledku pro konkrétní rules verzi.
 
-Každý rozhodující validační výsledek musí mít úplnou provenance: revizi věty, rules verzi, použitý katalogový snapshot/revision, validator version, automatický/ruční původ, čas a případného rozhodujícího admina.
+Každý rozhodující validační výsledek musí mít úplnou provenance: revizi věty, rules verzi, validator version, relevantní review-cache provenance, automatický/ruční původ, čas a případného rozhodujícího admina. Pokud verdict závisel na tehdejším stavu katalogu skutečných slov, musí být dohledatelná i příslušná lexikální katalogová položka/revize.
 
 ## Bez generování řešení
 
-Validátor nesmí navrhovat jiné slovo, jiný tvar, jiné rozdělení slov, jinou analýzu ani jiné syntaktické vazby. Smí pouze vyhodnotit zadané řešení v rozsahu povolených deterministických kontrol.
+Validátor ani exact-match rozhraní nesmějí navrhovat jiné slovo, jiné lemma, jiný tvar, jiné rozdělení slov, jinou analýzu ani jiné syntaktické vazby. Smějí pouze vyhodnotit konkrétní zadaný návrh v rozsahu povolených deterministických kontrol.
 
-Rozhraní nesmí být navrženo pro dávkové nebo automatizované testování kandidátů ani pro vytěžování interního katalogu. Systematické iterativní zkoušení variant za účelem nalezení řešení není povoleným ověřením konkrétního lidského nápadu.
+Rozhraní nesmí být navrženo pro dávkové nebo automatizované testování kandidátů ani pro vytěžování katalogu skutečných slov nebo interní review cache. Systematické iterativní zkoušení variant za účelem nalezení řešení není povoleným ověřením konkrétního lidského nápadu.
