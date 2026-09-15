@@ -63,8 +63,10 @@
 --    - for prefixed nouns, persist canonical kvaziPrefix = none|kvazi (or equivalent)
 --      plus separately represented base noun identity
 --    - kvaziPrefix is NOT player-declared: when normalized surfaceForm is longer than
---      5 competition signs and begins with exact `kvazi` (case-insensitive only),
+--      5 competition signs and begins with exact `kvazi` ignoring letter case only,
 --      FE and BE deterministically derive POS = noun and kvaziPrefix = kvazi
+--    - variants with different spelling/diacritics (`kvázi`, `qazi`, `quasi`, etc.)
+--      do not trigger this inference
 --    - the derived prefix state must then pass the full normative validation from
 --      07-prefix-kvazi.md; inference alone does not make the token valid
 --    - a written auxiliary `byt` form is a real sentence token: surface-valid and
