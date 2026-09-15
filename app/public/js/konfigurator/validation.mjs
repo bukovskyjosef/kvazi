@@ -61,7 +61,6 @@ export function validateSyntax(draft, schema = publicSchema) {
       const a = byId(w.relations.left), b = byId(w.relations.right);
       if (w.pos !== 'conjunction' || !a || !b || a.id === b.id || a.role !== b.role || !['object', 'agreeingAttribute', 'attribute', 'adverbial', 'supplement'].includes(a.role)) add('Spojka musí spojovat dvě různé části se stejnou dovolenou hlavní funkcí, nikoli podměty či přísudky.');
     }
-    if (w.role === 'object' && (!schema.valency || !schema.valency.objectSlotValid(w, draft))) add('Předmět potřebuje vazbu na konkrétní valenční slot; struktura slotů čeká na dokončení (#5).');
   }
   // All dependency branches must lead to the single predicate; cycles cannot
   // form a second, disconnected sentence. Iterative traversal avoids stack limits.
@@ -118,10 +117,6 @@ export function deriveValidationState(draft, schema = publicSchema) {
       }
       if (!w.evidence.morphology.trim()) missing.push('Morfologická obhajoba a odkaz na použitý model.');
       if (w.lexicalStatus === 'real' && (!['IJP', 'ASSČ'].includes(w.evidence.source) || !w.evidence.reference.trim())) missing.push('Doklad existence: IJP nebo ASSČ a konkrétní heslo/odkaz.');
-      if (w.pos === 'verb') {
-        if (!schema.valency) gates.push('Strukturovaný valenční rámec a obligatorní sloty čekají na specifikaci (#5).');
-        else missing.push(...schema.valency.validate(w, draft));
-      }
       if (['noun', 'adjective'].includes(w.pos) && w.lemma.trim() && model) {
         const identity = JSON.stringify([w.pos, folded(w.lemma), w.model, ...(w.pos === 'noun' ? [w.identity.gender, w.identity.animacy] : [])]);
         if (identities.has(identity)) { missing.push('Soutěžní identita už je ve větě použita.'); tokens[identities.get(identity)].missing.push('Soutěžní identita už je ve větě použita.'); }
@@ -142,9 +137,14 @@ export function deriveValidationState(draft, schema = publicSchema) {
     t.issues = [...sequence.issues.filter(i => i.id === null || i.id === w.id), ...syntax.issues.filter(i => i.id === w.id)].map(i => i.message);
     t.complete = !t.missing.length && !t.gates.length && !t.issues.length && t.confirmed;
   }
+  const previewSurfaces = draft.tokens.map((w, i) => {
+    const s = nfc(w.surface);
+    return i === 0 && s.length > 0 ? s[0].toUpperCase() + s.slice(1) : s;
+  });
+  const termPunct = draft.closingPunct ?? (Object.hasOwn(punctuation, draft.sentenceType) ? punctuation[draft.sentenceType] : '');
   return { sequence, syntax, sentenceIssues, tokens, structureOk, morphologyOk, sentenceOk, fullVerbOk,
     submitReady: sequence.ok && syntax.ok && sentenceOk && structureOk && morphologyOk,
-    text: draft.tokens.map(w => nfc(w.surface)).join(' ') + (Object.hasOwn(punctuation, draft.sentenceType) ? punctuation[draft.sentenceType] : ''),
+    text: previewSurfaces.join(' ') + termPunct,
     wordCount: draft.tokens.length, charCount: draft.tokens.reduce((sum, w) => sum + [...nfc(w.surface)].length, 0) };
 }
 

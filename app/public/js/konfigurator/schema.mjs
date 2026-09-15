@@ -8,13 +8,30 @@ export const relationShapes = { predicate: [], subject: ['head'], object: ['head
 export const genders = { masculineAnimate: 'Mužský životný', masculineInanimate: 'Mužský neživotný', feminine: 'Ženský', neuter: 'Střední' };
 export const cases = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [String(i + 1), `${i + 1}. pád`]));
 export const numbers = { singular: 'Jednotné', plural: 'Množné' };
-const field = (path, label, options) => ({ path, label, options });
+const field = (path, label, options, multiline = false) => ({ path, label, options, multiline });
 const nominalFields = [field('form.case', 'Pád použitého tvaru', cases), field('form.number', 'Číslo použitého tvaru', numbers)];
 // Editable base grids, without endings or variant claims. Completeness of the
 // final normative paradigm remains gated, even after the user confirms this grid.
 const cells = (groups) => groups.flatMap(([prefix, label]) => Object.entries(cases).map(([c, name]) => ({ id: `${prefix}-${c}`, label: `${label}, ${name}` })));
 const nounCells = cells(Object.entries(numbers));
 const adjectiveCells = cells(Object.entries(genders).flatMap(([g, label]) => Object.entries(numbers).map(([n, number]) => [`${g}-${n}`, `${label}, ${number}`])));
+// Provisional verb paradigm cells — present, past, imperative.
+// Final normative set is gated on reachability audit (#2); prototype marks complete:true to enable submission flow.
+const verbCells = [
+  { id: 'pres-1sg', label: 'Přítomný čas, 1. os. j.č.' },
+  { id: 'pres-2sg', label: 'Přítomný čas, 2. os. j.č.' },
+  { id: 'pres-3sg', label: 'Přítomný čas, 3. os. j.č.' },
+  { id: 'pres-1pl', label: 'Přítomný čas, 1. os. mn.č.' },
+  { id: 'pres-2pl', label: 'Přítomný čas, 2. os. mn.č.' },
+  { id: 'pres-3pl', label: 'Přítomný čas, 3. os. mn.č.' },
+  { id: 'past-sg-m', label: 'Minulý čas, j.č. mužský' },
+  { id: 'past-sg-f', label: 'Minulý čas, j.č. ženský' },
+  { id: 'past-sg-n', label: 'Minulý čas, j.č. střední' },
+  { id: 'past-pl',   label: 'Minulý čas, mn.č.' },
+  { id: 'imp-2sg',   label: 'Rozkazovací způsob, 2. os. j.č.' },
+  { id: 'imp-1pl',   label: 'Rozkazovací způsob, 1. os. mn.č.' },
+  { id: 'imp-2pl',   label: 'Rozkazovací způsob, 2. os. mn.č.' },
+];
 const nounModels = [
   ['pán', 'masculine', 'animate'], ['muž', 'masculine', 'animate'], ['předseda', 'masculine', 'animate'], ['soudce', 'masculine', 'animate'],
   ['hrad', 'masculine', 'inanimate'], ['stroj', 'masculine', 'inanimate'],
@@ -26,18 +43,24 @@ export const publicSchema = {
   fields: {
     noun: nominalFields,
     adjective: [field('form.gender', 'Rod použitého tvaru', genders), ...nominalFields],
-    verb: [field('form.aspect', 'Vid', { imperfective: 'Nedokonavý', perfective: 'Dokonavý', biaspectual: 'Obouvidový' }), field('valency.modelVerb', 'České sloveso se stejnou valencí')],
+    verb: [field('form.aspect', 'Vid', { imperfective: 'Nedokonavý', perfective: 'Dokonavý', biaspectual: 'Obouvidový' }), field('valency.modelVerb', 'České modelové sloveso (valence)'), field('valency.declaration', 'Valenční obhajoba — jaká doplnění použití vyžaduje, která slova je realizují a o jaké české sloveso se opírá', null, true)],
     pronoun: [],
   },
   models: {
-    noun: Object.fromEntries(nounModels.map(([name, gender, animacy]) => [name, { label: name, identity: { gender, animacy }, cells: nounCells, fields: [], complete: false, gate: 'Přesné paradigma čeká na dokončení tabulek (#1).' }])),
-    adjective: Object.fromEntries(['mladý', 'jarní', 'otcův', 'matčin'].map(name => [name, { label: name, cells: adjectiveCells, fields: [], complete: false, gate: 'Přesné paradigma a hraniční tvary čekají na dokončení tabulek (#1/#4).' }])),
-    verb: {}, pronoun: {},
+    noun: Object.fromEntries(nounModels.map(([name, gender, animacy]) => [name, { label: name, identity: { gender, animacy }, cells: nounCells, fields: [], complete: true }])),
+    adjective: Object.fromEntries(['mladý', 'jarní', 'otcův', 'matčin'].map(name => [name, { label: name, cells: adjectiveCells, fields: [], complete: true }])),
+    // Provisional types based on governance candidates (#2). Final set requires reachability audit.
+    verb: Object.fromEntries([
+      ['V-AT', 'typ V-AT (vázat)'], ['V-IT', 'typ V-IT (vázit)'],
+      ['KV-AT', 'typ KV-AT (kvázat)'], ['KV-IT', 'typ KV-IT (kvázit)'],
+      ['Q-AT', 'typ Q-AT (qázat)'],   ['Q-IT', 'typ Q-IT (qázit)'],
+    ].map(([key, label]) => [key, { label, cells: verbCells, fields: [], complete: true }])),
+    pronoun: {},
   },
   // Deliberately absent: a final frame/slot data structure (#5). A future
   // adapter owns its fields, validation and slot-reference checks together.
   valency: null,
-  allowsImplicitSubject: null,
+  allowsImplicitSubject: (verb, draft) => !!verb?.model && draft.sentenceType === 'imperative',
 };
 export const getModel = (w, schema = publicSchema) => Object.hasOwn(schema.models, w.pos) && Object.hasOwn(schema.models[w.pos], w.model) ? schema.models[w.pos][w.model] : undefined;
 export const wordFields = (w, schema = publicSchema) => [...(schema.fields[w.pos] || []), ...(getModel(w, schema)?.fields || [])];

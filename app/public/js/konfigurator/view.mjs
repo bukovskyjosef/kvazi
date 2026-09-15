@@ -1,15 +1,16 @@
 import { sentenceTypes, relationShapes, getModel, wordFields, getPath, isFunctional, CONFIRMATION, publicSchema, genders, cases, numbers } from './schema.mjs';
-import { partsOfSpeechLabels, functionsLabels, gendersLabels, casesLabels, numbersLabels, translateOptions } from './terms.mjs';
+import { partsOfSpeechLabels, functionsLabels, gendersLabels, casesLabels, numbersLabels, translateOptions, buttonLabel } from './terms.mjs';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const options = (values, selected) => '<option value="">— vyberte —</option>' + Object.entries(values).map(([key, value]) => `<option value="${esc(key)}"${key === selected ? ' selected' : ''}>${esc(value)}</option>`).join('');
-function field(path, label, value, values, scope = 'word', disabled = false) {
+function field(path, label, value, values, scope = 'word', disabled = false, multiline = false) {
   const id = `${scope}-${path.replaceAll('.', '-')}`;
   const attrs = `id="${id}" data-scope="${scope}" data-path="${esc(path)}"${disabled ? ' disabled' : ''}`;
+  if (multiline) return `<div class="fld"><label for="${id}">${esc(label)}</label><textarea ${attrs}>${esc(value ?? '')}</textarea></div>`;
   return `<div class="fld"><label for="${id}">${esc(label)}</label>${values ? `<select ${attrs}>${options(values, value)}</select>` : `<input type="text" ${attrs} value="${esc(value)}">`}</div>`;
 }
 function check(path, label, value, scope = 'word') {
   const id = `${scope}-${path.replaceAll('.', '-')}`;
-  return `<div class="fld"><input type="checkbox" id="${id}" data-scope="${scope}" data-path="${esc(path)}"${value ? ' checked' : ''}> <label for="${id}">${esc(label)}</label></div>`;
+  return `<div class="fld"><label class="check-label"><input type="checkbox" id="${id}" data-scope="${scope}" data-path="${esc(path)}"${value ? ' checked' : ''}> ${esc(label)}</label></div>`;
 }
 const list = items => `<ul class="status-list">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
 function renderMorphoCells(w, model) {
@@ -32,7 +33,7 @@ function renderMorphoCells(w, model) {
           return idx < 0 ? '<td>—</td>' : `<td>${cellInput(cellId, idx)}</td>`;
         }).join('')}</tr>`
       ).join('');
-      return `<p class="mt-section-title">${esc(nLabels[numKey])}</p><div class="morfo-wrap"><table class="mt adj-grid"><caption>Oranžové buňky jsou předvyplněné — zkontrolujte a opravte každý tvar.</caption><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+      return `<p class="mt-section-title">${esc(nLabels[numKey])}</p><div class="morfo-wrap"><table class="mt adj-grid"><caption>Šedé buňky jsou předvyplněné — zkontrolujte a opravte každý tvar.</caption><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
     };
     return notice + Object.keys(numbers).map(numKey => renderTable(numKey)).join('');
   }
@@ -48,13 +49,16 @@ function renderMorphoCells(w, model) {
   const rows = model.cells.map((c, i) =>
     `<tr><th scope="row"><label for="cell-${i}">${esc(cellLabel(c))}</label></th><td>${cellInput(c.id, i)}</td></tr>`
   ).join('');
-  return `${notice}<div class="morfo-wrap"><table class="mt"><caption>Oranžové buňky jsou předvyplněné — zkontrolujte a opravte každý tvar.</caption><thead><tr><th scope="col">Kategorie</th><th scope="col">Váš tvar</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return `${notice}<div class="morfo-wrap"><table class="mt"><caption>Šedé buňky jsou předvyplněné — zkontrolujte a opravte každý tvar.</caption><thead><tr><th scope="col">Kategorie</th><th scope="col">Váš tvar</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 export function renderSentence(draft, state) {
   const detailsOpen = document.getElementById('sentenceFields')?.querySelector('details')?.open ?? false;
-  document.getElementById('sentencePreview').textContent = draft.tokens.length ? state.text : 'Věta se zobrazí zde…';
+  const preview = document.getElementById('sentencePreview');
+  preview.textContent = draft.tokens.length ? state.text : 'Věta se zobrazí zde…';
+  preview.classList.toggle('empty', !draft.tokens.length);
+  const typeLocked = !!draft.closingPunct;
   const typeRadios = Object.entries(sentenceTypes).map(([key, label]) =>
-    `<label class="radio-label"><input type="radio" name="sentenceType" data-scope="sentence" data-path="sentenceType" value="${esc(key)}"${draft.sentenceType === key ? ' checked' : ''}> ${esc(label)}</label>`
+    `<label class="radio-label"><input type="radio" name="sentenceType" data-scope="sentence" data-path="sentenceType" value="${esc(key)}"${draft.sentenceType === key ? ' checked' : ''}${typeLocked ? ' disabled' : ''}> ${esc(label)}</label>`
   ).join('');
   const implicitSubjectHtml = draft.sentenceType === 'imperative'
     ? `<label class="radio-label" for="sentence-implicitSubject"><input type="checkbox" id="sentence-implicitSubject" data-scope="sentence" data-path="implicitSubject"${draft.implicitSubject ? ' checked' : ''}> Podmět není vyjádřen</label>`
@@ -68,7 +72,14 @@ export function renderSentence(draft, state) {
   if (detailsOpen) document.getElementById('sentenceFields').querySelector('details').open = true;
 }
 export function renderTokens(draft, state, selectedId) {
-  document.getElementById('tokens').innerHTML = draft.tokens.map((w) => `<span class="token-chip"><button type="button" id="token-${esc(w.id)}" class="chip ${state.tokens[w.id].complete ? 'ok' : 'err'} ${selectedId === w.id ? 'active' : ''}${w.pos ? ' pos-' + w.pos : ''}" data-action="select" data-id="${esc(w.id)}" aria-pressed="${selectedId === w.id}"><span class="chip-text">${esc(w.surface)}</span></button><button type="button" class="chip-remove" data-action="delete-chip" data-id="${esc(w.id)}" aria-label="Smazat ${esc(w.surface)}">×</button></span>`).join('');
+  const wordChips = draft.tokens.map((w, i) => {
+    const disp = i === 0 && w.surface.length > 0 ? w.surface[0].toUpperCase() + w.surface.slice(1) : w.surface;
+    return `<span class="token-chip"><button type="button" id="token-${esc(w.id)}" class="chip ${state.tokens[w.id].complete ? 'ok' : 'err'} ${selectedId === w.id ? 'active' : ''}${w.pos ? ' pos-' + w.pos : ''}" data-action="select" data-id="${esc(w.id)}" aria-pressed="${selectedId === w.id}"><span class="chip-text">${esc(disp)}</span></button><button type="button" class="chip-remove" data-action="delete-chip" data-id="${esc(w.id)}" aria-label="Smazat ${esc(w.surface)}">×</button></span>`;
+  }).join('');
+  const punctChip = draft.closingPunct
+    ? `<span class="token-chip"><button type="button" class="chip closing-punct" disabled><span class="chip-text">${esc(draft.closingPunct)}</span></button><button type="button" class="chip-remove" data-action="delete-punct" aria-label="Odebrat závěrečnou interpunkci">×</button></span>`
+    : '';
+  document.getElementById('tokens').innerHTML = wordChips + punctChip;
   const place = document.getElementById('insertPlace'), previous = place.value;
   place.innerHTML = '<option value="end">Na konec věty</option>' + draft.tokens.flatMap((w, i) => ['before', 'after'].map(side => `<option value="${side}:${esc(w.id)}">${side === 'before' ? 'Před' : 'Za'} ${i + 1}. ${esc(w.surface)}</option>`)).join('');
   if ([...place.options].some(o => o.value === previous)) place.value = previous;
@@ -85,14 +96,13 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
   const relationLabels = { head: 'Řídící slovo', predicate: 'Přísudek', nominal: w.role === 'preposition' ? 'Řízené jmenné slovo' : 'Podmět nebo předmět', left: 'První spojovaná část', right: 'Druhá spojovaná část' };
   const others = Object.fromEntries(draft.tokens.filter(t => t.id !== w.id).map(t => [t.id, `${draft.tokens.indexOf(t) + 1}. ${t.surface}`]));
   const functional = isFunctional(w);
-  container.innerHTML = `<h2 class="card-header">Deklarace slova ${esc(w.surface)}</h2><div class="card-body">
+  container.innerHTML = `<h2 class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Deklarace slova ${esc(w.surface)}</span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><small style="font-size:10px;font-weight:400;opacity:.55;letter-spacing:.02em">Odborné termíny se přeloží do hovorových</small><button id="termToggle" type="button" style="font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:inherit;font-family:inherit">${esc(buttonLabel())}</button></span></h2><div class="card-body">
     <fieldset><legend>Identita a použitý tvar</legend><div class="config-grid">
       ${field('pos', 'Slovní druh', w.pos, functional ? posLabels : Object.fromEntries(Object.entries(posLabels).filter(([k]) => !['preposition', 'conjunction'].includes(k))), 'word', functional)}
       ${!functional ? field('lemma', w.pos === 'verb' ? 'Neurčitek / základní tvar' : 'Základní tvar', w.lemma) + field('lexicalStatus', 'Deklarovaná identita', w.lexicalStatus, w.pos === 'pronoun' ? { real: 'Skutečné slovo' } : { real: 'Skutečné slovo', quasi: 'Kvazislovo' }) + field('model', w.pos === 'verb' ? 'Soutěžní časovací typ' : 'Soutěžní vzor', w.model, models, 'word', !Object.keys(models).length) : '<p>Slovní druh a role jsou určeny pravidlem jednopísmenné výjimky.</p>'}
-      ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? translateOptions(f.options) : null)).join('')}
+      ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? translateOptions(f.options) : null, 'word', false, f.multiline)).join('')}
     </div>${w.pos === 'noun' && model ? `<p>Rod: ${esc({ masculine: 'mužský', feminine: 'ženský', neuter: 'střední' }[w.identity.gender])}${w.identity.animacy ? `, ${w.identity.animacy === 'animate' ? 'životný' : 'neživotný'}` : ''} (určeno zvoleným vzorem).</p>` : ''}
     ${status.gates.length ? `<div class="notice">${list(status.gates)}</div>` : ''}
-    ${w.pos === 'verb' ? '<p>Valenční rámec a odkazy obligatorních členů zde zatím nelze úplně zaznamenat. Modelové sloveso samo strukturovaný rámec nenahrazuje.</p>' : ''}
     </fieldset>
     <fieldset><legend>Větná funkce a vazby</legend>
       ${field('role', functional ? 'Technická role' : 'Větná funkce', w.role, functional ? { [w.role]: w.role === 'preposition' ? 'Předložka – bez hlavní větné funkce' : 'Spojení souřadných částí' } : Object.fromEntries(Object.entries(funcLabels).filter(([key]) => key !== 'coordination')), 'word', functional)}

@@ -35,11 +35,11 @@ const TERMS = {
   // Numbers
   singular:           ['Singulár',          'Jednotné'],
   plural:             ['Plurál',            'Množné'],
-  // Genders (abbreviated for table headers in expert mode)
-  masculineAnimate:   ['M živ',             'Mužský životný'],
-  masculineInanimate: ['M neživ',           'Mužský neživotný'],
-  feminine:           ['F',                 'Ženský'],
-  neuter:             ['N',                 'Střední'],
+  // Genders
+  masculineAnimate:   ['Maskulinum životné',   'Mužský životný'],
+  masculineInanimate: ['Maskulinum neživotné', 'Mužský neživotný'],
+  feminine:           ['Femininum',            'Ženský'],
+  neuter:             ['Neutrum',              'Střední'],
   // Verb aspect
   imperfective:       ['Imperfektivum',     'Nedokonavý'],
   perfective:         ['Perfektivum',       'Dokonavý'],

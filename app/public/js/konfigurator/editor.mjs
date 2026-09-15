@@ -9,7 +9,7 @@ const element = id => document.getElementById(id);
 function render() {
   const focused = document.activeElement;
   const focusId = focused?.id;
-  const selection = focused?.tagName === 'INPUT' && focused.type === 'text' ? [focused.selectionStart, focused.selectionEnd] : null;
+  const selection = (focused?.tagName === 'TEXTAREA' || (focused?.tagName === 'INPUT' && focused.type === 'text')) ? [focused.selectionStart, focused.selectionEnd] : null;
   const state = deriveValidationState(draft);
   renderSentence(draft, state);
   renderTokens(draft, state, selectedId);
@@ -21,7 +21,10 @@ function render() {
   }
   const termBtn = element('termToggle');
   if (termBtn) termBtn.textContent = buttonLabel();
-  const summary = `${state.wordCount} slov. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologické návrhy ${state.morphologyOk ? 'potvrzeny' : 'nepotvrzeny'}. ${state.submitReady ? 'Připraveno k odeslání; backend není zapojen.' : 'Zatím není připraveno k odeslání.'}`;
+  element('newSurface').hidden = !!draft.closingPunct;
+  const submitBtn = element('submitButton');
+  if (submitBtn) submitBtn.disabled = !state.submitReady;
+  const summary = `${state.wordCount} slov. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologické návrhy ${state.morphologyOk ? 'potvrzeny' : 'nepotvrzeny'}. ${state.submitReady ? 'Připraveno k odeslání.' : 'Zatím není připraveno k odeslání.'}`;
   if (element('liveStatus').textContent !== summary) element('liveStatus').textContent = summary;
 }
 function dispatch(action) {
@@ -60,7 +63,19 @@ function insertWord(surface) {
 }
 function consumeInput(commitLast = false) {
   const input = element('newSurface');
-  const parts = nfc(input.value).split(/\s+/u);
+  if (draft.closingPunct) { input.value = ''; return; }
+  const raw = nfc(input.value);
+  // Detect closing punctuation anywhere in the current input value.
+  const punctIdx = raw.search(/[.?!]/);
+  if (punctIdx >= 0) {
+    const before = raw.slice(0, punctIdx);
+    for (const surface of before.split(/\s+/u).filter(Boolean)) insertWord(surface);
+    dispatch({ type: 'close', punct: raw[punctIdx] });
+    input.value = '';
+    element('inputStatus').textContent = '';
+    return;
+  }
+  const parts = raw.split(/\s+/u);
   const remainder = commitLast ? '' : parts.pop();
   for (const surface of parts.filter(Boolean)) insertWord(surface);
   input.value = remainder;
@@ -99,6 +114,9 @@ document.addEventListener('click', e => {
   else if (action === 'before' || action === 'after') {
     element('insertPlace').value = `${action}:${selectedId}`;
     element('newSurface').focus();
+  } else if (action === 'delete-punct') {
+    dispatch({ type: 'open' });
+    element('newSurface').focus();
   } else if (action === 'delete' || action === 'delete-chip') {
     deleteWord(button.dataset.id || selectedId);
     (action === 'delete-chip' ? element('newSurface') : element('word-surface') || element('newSurface')).focus();
@@ -107,9 +125,8 @@ document.addEventListener('click', e => {
     element('editor').querySelector(`[data-action="${action}"]`)?.focus();
   }
 });
-element('termToggle').addEventListener('click', () => {
-  toggleMode();
-  render();
+document.addEventListener('click', e => {
+  if (e.target.id === 'termToggle') { toggleMode(); render(); }
 });
 element('previewButton').addEventListener('click', () => {
   // Synchronous fresh derivation, even if a caller bypassed the normal render.
@@ -121,5 +138,33 @@ element('previewButton').addEventListener('click', () => {
   pre.textContent = JSON.stringify(preview, null, 2);
   element('payload').replaceChildren(heading, pre);
   element('liveStatus').textContent = 'Zobrazen aktuální místní náhled draftu. Nic nebylo odesláno.';
+});
+element('submitButton').addEventListener('click', async () => {
+  const preview = previewDraft(draft);
+  if (!preview.validation.submitReady) return;
+  const csrf = document.querySelector('meta[name="csrf"]')?.content ?? '';
+  const btn = element('submitButton');
+  const resultEl = element('submitResult');
+  btn.disabled = true;
+  btn.textContent = 'Odesílám…';
+  try {
+    const res = await fetch('/api/submit.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csrf, schema: preview.schema, draft: preview.draft }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      resultEl.innerHTML = `<div class="alert alert-ok" style="margin-top:0">Přihláška #${data.id} byla odeslána. <a href="/moje-vety.php">Zobrazit moje věty →</a></div>`;
+      element('liveStatus').textContent = `Přihláška #${data.id} úspěšně odeslána.`;
+    } else {
+      resultEl.innerHTML = `<div class="alert alert-warning" style="margin-top:0">Chyba: ${data.error}</div>`;
+    }
+  } catch {
+    resultEl.innerHTML = '<div class="alert alert-warning" style="margin-top:0">Síťová chyba, zkuste znovu.</div>';
+  } finally {
+    btn.textContent = 'Odeslat přihlášku';
+    render();
+  }
 });
 render();
