@@ -1,16 +1,18 @@
 # Rozhodcovská specifikace
 
-> **Status:** hlavní normativní dokument pro obecná pravidla platnosti. Přesná morfologie je kanonicky definována ve výslovně NORMATIVNÍCH částech příslušných modulů `docs/kvazitahak/`. Dokumentace zaznamenává rozhodnutí kvaziautority; není autoritou nad ní.
+> **Status:** normativní dokument pro obecná pravidla soutěžní platnosti. Přesná mechanika jednotlivých oblastí je kanonicky definována ve výslovně NORMATIVNÍCH částech příslušných modulů `docs/kvazitahak/`. Dokumentace zaznamenává rozhodnutí kvaziautority; není autoritou nad ní.
 
-## 1. Autorita a hierarchie
+## 1. Místo v normativním balíku
+
+**Neexistuje jeden soubor „úplných pravidel“.** Tato rozhodcovská specifikace je autoritativní pro **obecná pravidla soutěžní platnosti a sporné případy**. Přesnou morfologii, paradigmata, syntaktické testy, valenci, hraniční mechaniku a prefix `kvazi-` určují výslovně NORMATIVNÍ části příslušných modulů `docs/kvazitahak/`. `03-ai-policy.md` je autoritativní pro používání AI a nástrojů a `04-verzovani-a-sprava.md` pro verzování, revalidaci a správu.
+
+Úplnou mapu normativního balíku a autority všech ostatních artefaktů udržuje **pouze `docs/README.md`**. Lokální přehled v tomto dokumentu ji nenahrazuje.
 
 **Konečnou autoritou hry je kvaziautorita / Josef Bukovský.** Normativní dokumenty jsou kanonickým záznamem přijatých rozhodnutí a musí být navzájem konzistentní.
 
-Pro obecná pravidla platnosti je kanonickým zdrojem tato rozhodcovská specifikace. Pro přesnou morfologii, paradigmata, tvorbu kmenů a další mechaniku jednotlivých uzavřených modelů jsou kanonickým zdrojem výslovně NORMATIVNÍ části příslušných modulů `docs/kvazitahak/`. `03-ai-policy.md` a `04-verzovani-a-sprava.md` jsou kanonické pro své normativní oblasti.
-
 Současná spisovná čeština se použije ve věcech, které soutěžní systém výslovně neupravuje. Pokud si dva normativní dokumenty odporují, jde o dokumentační/governance vadu, nikoli o prostor pro volnou interpretaci; do opravy rozhoduje výklad kvaziautority.
 
-Technická implementace, databáze ani formulář nejsou vyšší autoritou než pravidla. Spravovaný katalog skutečných slov má pouze zvláštní autoritativní roli vymezenou v oddílu 9.
+Technická implementace, databáze ani formulář nejsou vyšší autoritou než pravidla. Spravovaný katalog skutečných slov má zvláštní lexikální autoritativní roli vymezenou v oddílu 9.
 
 ## 2. Soutěžní abeceda
 
@@ -187,13 +189,15 @@ Hráč deklaruje typ věty: oznamovací → `.`, tázací → `?`, rozkazovací 
 
 Stačí jedna úplná a interně konzistentní analýza. Řešitel nemusí dokazovat, že jiná možná analýza neexistuje.
 
-Odevzdání musí obsahovat úplná data vyžadovaná aktuálními modely a field schematem, včetně plné morfologické deklarace a případných obhajob. U slovesa je navíc povinná slovní valenční obhajoba. U zájmena se místo produktivního modelu uvádí zájmenný lexém/lemma a relevantní vlastnosti konkrétního tvaru.
+Odevzdání musí u produktivních slov obsahovat údaje, které jednoznačně určují soutěžní identitu, morfologické vlastnosti konkrétního použitého tvaru a samotný použitý `surfaceForm`, plus syntaktickou analýzu a případné obhajoby/zdroje vyžadované pravidly. **Hráč ručně nevyplňuje celé paradigma ani nepoužité tvary.** Normativní paradigma zůstává autoritativním zdrojem, ze kterého systém deterministicky ověří právě použitý tvar. U slovesa je navíc povinná slovní valenční obhajoba. U zájmena se místo produktivního modelu uvádí zájmenný lexém/lemma a relevantní vlastnosti konkrétního tvaru.
 
 Konkrétní UI ani datový model nesmí měnit jazykovou platnost.
 
 ### Veřejné zveřejnění schválené věty
 
-Úplný rozhodcovský spis není veřejným výstupem. V seznamu schválených vět se zveřejňuje zejména věta, počet slov, počet soutěžních znaků a autor/spoluautoři. V detailu lze u jednotlivých slov zveřejnit lehký jazykový rozbor: použitý tvar, skutečné slovo/kvazislovo, slovní druh, lemma, soutěžní model tam, kde jej kategorie používá, základní vlastnosti konkrétního tvaru a syntaktickou roli/jednoduché vazby.
+Úplný rozhodcovský spis není veřejným výstupem. V seznamu schválených vět se zveřejňuje zejména věta, počet slov, počet soutěžních znaků a veřejná identita (`username`) **jednoho registrovaného účtu**, který podání vlastní a odevzdal. Systém neeviduje identity jednotlivých lidí stojících za účtem ani samostatné spoluautory.
+
+V detailu lze u jednotlivých slov zveřejnit lehký jazykový rozbor: použitý tvar, skutečné slovo/kvazislovo, slovní druh, lemma, soutěžní model tam, kde jej kategorie používá, základní vlastnosti konkrétního tvaru a syntaktickou roli/jednoduché vazby.
 
 Kompletní paradigma, úplná morfologická obhajoba, interní review, důkazní podklady a katalogové interní stavy zůstávají neveřejné.
 
@@ -205,7 +209,7 @@ Při námitce proti katalogu nebo jiné jazykové obhajobě mohou být relevantn
 
 ## 19. Nástroje, fair play a důvěra
 
-Úplná normativní politika používání nástrojů je v `03-ai-policy.md`. Základní duch je: **AI smí vysvětlit hru, nesmí ji za hráče hrát.** Automatický nástroj nesmí za hráče hledat, generovat, skládat nebo optimalizovat soutěžní kandidáty.
+Normativní politika používání nástrojů pro tuto oblast je v `03-ai-policy.md`. Základní duch je: **AI smí vysvětlit hru, nesmí ji za hráče hrát.** Automatický nástroj nesmí za hráče hledat, generovat, skládat nebo optimalizovat soutěžní kandidáty.
 
 Dodržování této části stojí na fair play a vzájemné důvěře. Projekt nevyžaduje pracovní logy, screenshoty, historii promptů ani jiný dohledový důkaz způsobu vzniku řešení a nevytváří vyšetřovací režim používání nástrojů.
 
@@ -237,6 +241,8 @@ Interní reachability analýza může sloužit k auditu, testům a poznání her
 
 Kvazi je otevřený kumulativní problém. Zveřejněné schválené řešení, jednotlivé kvazislovo, konstrukci nebo jiný zveřejněný nápad smí kdokoli použít, upravit nebo rozvíjet. Na jednotlivé herní nápady se nezavádí výlučné vlastnictví.
 
-Lidé smějí řešení konzultovat a tvořit společně; jedno podání může mít více spoluautorů. Autorem konkrétního podání je osoba/skupina uvedená u tohoto podání a předchozí rekordy ani jejich autoři se zpětně nemažou. Přesná kopie existující věty sama nevytváří nový delší rekord; pravidla nevyšetřují, zda šlo o opis nebo nezávislý objev.
+Na řešení může fakticky spolupracovat libovolný počet lidí, ale **soutěž jejich počet ani identity nesleduje**. Každé podání vlastní a odevzdává právě **jeden registrovaný účet**. Registrovaný účet může reprezentovat jednotlivce i libovolný kolektiv a jeho registrační e-mail může patřit jednotlivci nebo skupině. Systém neeviduje samostatné spoluautory, jejich identity ani podíly. Veřejná atribuce používá pouze `username` registrovaného účtu.
+
+Přesně shodnou větu může podat více registrovaných účtů. Při shodném primárním i sekundárním skóre jde o společný rekord a pořadí podání nerozhoduje. Projekt nezkoumá, zda pozdější použití zveřejněného nápadu vzniklo nezávislým znovuobjevením nebo převzetím.
 
 Veřejné zveřejnění podle oddílu 17 vytváří legitimní společnou znalost hry.
