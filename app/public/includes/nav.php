@@ -4,7 +4,7 @@
  * Requires auth.php to be included and auth_session_start() called BEFORE this file.
  *
  * Variables expected from page (all optional):
- * @var string $activePage  'home'|'vety'|'tahak'|'prirucka'|'konfigurator'|'login'
+ * @var string $activePage  'home'|'manifest'|'vety'|'tahak'|'prirucka'|'konfigurator'|'login'
  */
 $activePage ??= '';
 $_navUser    = function_exists('auth_user') ? auth_user() : null;
@@ -19,6 +19,8 @@ $_navCsrf    = function_exists('auth_csrf_token') ? auth_csrf_token() : '';
     </a>
 
     <nav class="nav-links" aria-label="Hlavní navigace">
+      <a href="/manifest.php"
+         class="nav-link<?= $activePage === 'manifest' ? ' active' : '' ?>">Manifest</a>
       <a href="/vety.php"
          class="nav-link<?= $activePage === 'vety'     ? ' active' : '' ?>">Věty</a>
       <a href="/tahak.php"
