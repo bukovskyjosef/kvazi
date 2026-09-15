@@ -116,7 +116,7 @@ Formulář může mechanicky kontrolovat znaky, úplnost, deterministicky odvodi
 
 Základní fair-play věta zní: **AI ti smí vysvětlit hru. Nesmí ji za tebe hrát.** Nástroj může mechanicky ověřit konkrétní lidský nápad, ale nesmí za hráče generovat, prohledávat, skládat nebo optimalizovat kandidáty. Podrobnosti jsou v [`../rules/03-ai-policy.md`](../rules/03-ai-policy.md).
 
-Schválená zveřejněná řešení jsou společnou znalostí hry. Smíš na ně navazovat, upravovat je a přebírat jejich části; jednotlivé kvazislovo ani konstrukční nápad si nikdo soutěžně nevlastní. Spoluautoři jsou povoleni a shodné rekordní skóre znamená společný rekord.
+Schválená zveřejněná řešení jsou společnou znalostí hry. Smíš na ně navazovat, upravovat je a přebírat jejich části; jednotlivé kvazislovo ani konstrukční nápad si nikdo soutěžně nevlastní. Na řešení může spolupracovat libovolný počet lidí, ale podání se vždy připisuje jednomu registrovanému účtu; systém neeviduje samostatné spoluautory ani identity osob za účtem. Shodné rekordní skóre znamená společný rekord.
 
 ## 10. Když potřebuješ přesnost
 
