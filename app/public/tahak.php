@@ -1,15 +1,31 @@
 <?php
+// Source: docs/kvazitahak/00-hracsky-tahak.md + moduly 01–07
 declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 auth_session_start();
 $activePage = 'tahak';
+
+$allowedSekce = ['prehled','syntax','substantiva','adjektiva','slovesa','valence','hranicni','kvazi'];
+$sekce = trim((string)($_GET['sekce'] ?? 'prehled'));
+if (!in_array($sekce, $allowedSekce, true)) { $sekce = 'prehled'; }
+
+$sLabels = [
+  'prehled'     => 'Přehled',
+  'syntax'      => 'Syntax',
+  'substantiva' => 'Substantiva',
+  'adjektiva'   => 'Adjektiva',
+  'slovesa'     => 'Slovesa',
+  'valence'     => 'Valence',
+  'hranicni'    => 'Hraniční pravidla',
+  'kvazi'       => 'Prefix kvazi-',
+];
 ?>
 <!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kvazitahák — Nejdelší kvazivěta</title>
+  <title>Kvazitahák<?= $sekce !== 'prehled' ? ' — ' . htmlspecialchars($sLabels[$sekce]) : '' ?> — Nejdelší kvazivěta</title>
   <link rel="stylesheet" href="/css/site.css">
   <style>
     .tahak-section { margin-bottom: 44px; }
@@ -17,7 +33,11 @@ $activePage = 'tahak';
       font-size: 18px; font-weight: 800; letter-spacing: -.02em;
       color: var(--text); margin-bottom: 16px;
       padding-bottom: 10px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
+      border-bottom: 1px solid var(--border);
+    }
+    .tahak-section h3 {
+      font-size: 14px; font-weight: 700; letter-spacing: -.01em;
+      color: var(--text-muted); margin: 20px 0 10px;
     }
     .tahak-rule {
       background: var(--glass);
@@ -27,10 +47,10 @@ $activePage = 'tahak';
       margin-bottom: 8px;
       font-size: 13px;
       color: var(--text-muted);
-      line-height: 1.6;
+      line-height: 1.65;
     }
     .tahak-rule strong { color: var(--text); }
-    .tahak-rule code {
+    .tahak-rule code, .tahak-norm-note code {
       font-family: 'Courier New', monospace;
       background: rgba(255,179,92,.1);
       color: var(--accent-3);
@@ -38,6 +58,31 @@ $activePage = 'tahak';
       border-radius: 4px;
       font-size: .9em;
     }
+    .tahak-rule ul, .tahak-rule ol { padding-left: 20px; margin: 8px 0 0; }
+    .tahak-rule li { margin-bottom: 4px; }
+    .tahak-norm-note {
+      font-size: 12px; color: var(--text-dim); font-style: italic;
+      margin-bottom: 18px; line-height: 1.5;
+      border-left: 2px solid var(--border-hi); padding-left: 10px;
+    }
+    /* Subnav */
+    .tahak-subnav {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tahak-subnav-link {
+      display: inline-flex; align-items: center;
+      padding: 5px 14px; border-radius: 999px;
+      font-size: 12px; font-weight: 600; letter-spacing: .01em;
+      border: 1px solid var(--border); color: var(--text-dim);
+      text-decoration: none; transition: border-color .15s, color .15s, background .15s;
+      white-space: nowrap;
+    }
+    .tahak-subnav-link:hover { border-color: var(--border-hi); color: var(--text-muted); text-decoration: none; }
+    .tahak-subnav-link.active { border-color: var(--border-hi); color: var(--accent); background: var(--glass); }
+    /* Motif grid */
     .motif-table {
       font-family: 'Courier New', monospace;
       font-size: 13px;
@@ -56,6 +101,57 @@ $activePage = 'tahak';
       letter-spacing: .1em;
       text-align: center;
     }
+    /* Paradigm tables */
+    .mofo-caption {
+      font-size: 12px; font-weight: 700; color: var(--text-muted);
+      margin: 18px 0 6px; letter-spacing: .01em;
+    }
+    .mofo-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12px; margin-bottom: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    .mofo-table th {
+      background: var(--glass); color: var(--text-muted);
+      font-weight: 700; font-size: 11px; text-align: left;
+      padding: 5px 8px; border: 1px solid var(--border);
+    }
+    .mofo-table td {
+      padding: 4px 8px; border: 1px solid var(--border);
+      color: var(--accent-3);
+    }
+    .mofo-table td.mofo-pad {
+      color: var(--text-dim); font-family: inherit; font-size: 11px;
+    }
+    .mofo-model-header {
+      font-size: 13px; font-weight: 700; color: var(--text);
+      margin: 24px 0 4px;
+    }
+    .mofo-model-note {
+      font-size: 12px; color: var(--text-dim); margin-bottom: 8px; font-style: italic;
+    }
+    /* Module links */
+    .tahak-module-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 8px; margin-top: 12px;
+    }
+    .tahak-module-card {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      text-decoration: none; color: var(--text-muted);
+      font-size: 13px; font-weight: 600;
+      transition: border-color .15s, color .15s;
+    }
+    .tahak-module-card:hover { border-color: var(--border-hi); color: var(--text); text-decoration: none; }
+    .tahak-module-num {
+      flex-shrink: 0; width: 24px; height: 24px;
+      border-radius: 6px; background: rgba(255,179,92,.1);
+      border: 1px solid rgba(255,179,92,.22); color: var(--accent);
+      font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    /* Status badges */
     .status-badge {
       display: inline-block;
       font-size: 10px; font-weight: 700;
@@ -64,7 +160,6 @@ $activePage = 'tahak';
       vertical-align: middle;
     }
     .badge-normative { background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.25); color: #4ade80; }
-    .badge-guide     { background: rgba(255,179,92,.1);  border: 1px solid rgba(255,179,92,.22); color: var(--accent); }
     .badge-open      { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.22); color: #fca5a5; }
   </style>
 </head>
@@ -77,90 +172,878 @@ $activePage = 'tahak';
   <div class="page-header">
     <span class="section-tag">Hráčský průvodce</span>
     <h1>Kvazi<em>tahák</em></h1>
-    <p>Praktický přehled pravidel a omezení pro sestavení soutěžní věty. Normativní části jsou výslovně označeny.</p>
+    <p>Praktický přehled pravidel pro sestavení soutěžní věty. Po přečtení <a href="/manifest.php">Jak hrát</a> používej při hře primárně tuto stránku. Normativní části jsou závazné v aktuální platné verzi pravidel.</p>
   </div>
 
-  <!-- Abeceda -->
-  <div class="tahak-section">
-    <h2>Soutěžní abeceda <span class="status-badge badge-normative">normativní</span></h2>
-    <div class="tahak-rule">
-      Povolené znaky: <code>K V Q A Á Z I Í Y Ý</code><br>
-      Velká a malá písmena jsou totožná. Diakritika se rozlišuje: <code>A ≠ Á</code>, <code>I ≠ Í</code>, <code>Y ≠ Ý</code>.
-    </div>
-    <div class="tahak-rule">
-      <strong>Skórování:</strong> <code>Q = 1 písmeno</code>, <code>KV = 2 písmena</code>. Každý zapsaný znak má hodnotu právě jednoho písmene.
-    </div>
-    <div class="tahak-rule">
-      <code>Q</code> se vyslovuje <code>/kv/</code>, ale je samostatným písmenem. Zápisy <code>QAZ</code> a <code>KVAZ</code> jsou dvě odlišná slova — nelze jim přiřadit tutéž morfologickou identitu.
-    </div>
-  </div>
+  <nav class="tahak-subnav" aria-label="Sekce kvazitaháku">
+    <?php foreach ($sLabels as $key => $label): ?>
+      <a href="/tahak.php<?= $key !== 'prehled' ? '?sekce=' . rawurlencode($key) : '' ?>"
+         class="tahak-subnav-link<?= $sekce === $key ? ' active' : '' ?>"><?= htmlspecialchars($label) ?></a>
+    <?php endforeach; ?>
+  </nav>
 
-  <!-- Motivy -->
+<?php if ($sekce === 'prehled'): ?>
+<!-- ═══════════════════════ PŘEHLED (00-hracsky-tahak.md) ═══════════════════════ -->
+
   <div class="tahak-section">
-    <h2>Motiv KVAZI <span class="status-badge badge-normative">normativní</span></h2>
+    <h2>1. Nejdřív ověř povrch <span class="status-badge badge-normative">normativní</span></h2>
     <div class="tahak-rule">
-      Základní motiv je <code>KVAZI</code>. V každém výskytu lze nezávisle použít: <code>KV | Q</code>, <code>A | Á</code>, <code>Z</code>, <code>I | Í | Y | Ý</code>.
+      <ul>
+        <li>Soutěžní znaky: <code>K V Q A Á Z I Í Y Ý</code></li>
+        <li>Motiv vychází z <code>KVAZI</code>: začátek <code>KV | Q</code>, dále <code>A | Á</code>, potom <code>Z</code>, nakonec <code>I | Í | Y | Ý</code></li>
+        <li><code>Q</code> je samostatný znak a počítá se jako 1; nikdy se morfologicky ani lexikálně nepřevádí na <code>KV</code></li>
+        <li>Běžné slovo má 3–5 soutěžních znaků a celé leží uvnitř jednoho motivu</li>
+        <li>Jednopísmenné výjimky jsou pouze <code>k</code>, <code>v</code>, <code>z</code>, <code>a</code>, <code>i</code>; každou lze použít nejvýše jednou</li>
+        <li>Věta po odstranění mezer tvoří souvislý úsek opakovaných povolených motivů a může začít i skončit uvnitř motivu</li>
+        <li>Na konci je právě <code>.</code>, <code>?</code> nebo <code>!</code></li>
+      </ul>
     </div>
     <div class="motif-table" aria-label="Všechny motivové varianty">
       <?php foreach (['KVAZI','KVAZÍ','KVAZY','KVAZÝ','KVÁZI','KVÁZÍ','KVÁZY','KVÁZÝ','QAZI','QAZÍ','QAZY','QAZÝ','QÁZI','QÁZÍ','QÁZY','QÁZÝ'] as $m): ?>
         <div class="motif-cell"><?= $m ?></div>
       <?php endforeach; ?>
     </div>
+    <h3>Zvláštní substantivní prefix <code>kvazi-</code></h3>
     <div class="tahak-rule">
-      Celá věta musí být <strong>souvislým úsekem nepřetržité posloupnosti</strong> motivů. Začátek a konec smějí ležet uvnitř motivu.
+      U podstatného jména můžeš nejvýše jednou přidat doslovný prefix <code>kvazi-</code>. Základní substantivum musí být samo úplně platné. Prefixované substantivum je jedno slovo a nová soutěžní identita. <strong>Pět znaků prefixu nezapočítává se do sekundárního skóre.</strong> Přesné pravidlo: <a href="/tahak.php?sekce=kvazi">Prefix kvazi- →</a>
     </div>
   </div>
 
-  <!-- Délka slov -->
   <div class="tahak-section">
-    <h2>Délka a pozice slov <span class="status-badge badge-normative">normativní</span></h2>
+    <h2>2. Postav právě jednu větu <span class="status-badge badge-normative">normativní</span></h2>
     <div class="tahak-rule">
-      Každé slovo má <strong>3–5 znaků</strong> a musí celé ležet uvnitř jednoho opakování motivu. Hranici dvou motivů nesmí překročit.
+      Věta má právě jeden přísudek a právě jeden plnovýznamový slovesný token. Má právě jeden podmět; pouze u dovoleného imperativu může být pravidelně nevyjádřený. Všechny členy musí tvořit jednu propojenou nekruhovou syntaktickou analýzu.
     </div>
     <div class="tahak-rule">
-      <strong>Pět jednopísmenných výjimek:</strong> <code>k</code> <code>v</code> <code>z</code> <code>a</code> <code>i</code> — každé lze použít nejvýše jednou v celé větě.
+      Povolené hlavní vztahy jsou pouze: <strong>podmět, přísudek, předmět, přívlastek shodný, přívlastek neshodný, příslovečné určení, doplněk a koordinace pomocí <code>a</code> nebo <code>i</code></strong>. Přesné rozhodovací testy: <a href="/tahak.php?sekce=syntax">Syntax →</a>
+    </div>
+    <div class="tahak-rule">
+      Předložky jsou pouze <code>k</code> + dativ, <code>v</code> + lokál/akuzativ a <code>z</code> + genitiv. V soutěži zůstávají vždy nevokalizované (<code>ke</code>, <code>ve</code>, <code>ze</code> se nepoužívají).
     </div>
   </div>
 
-  <!-- Druhy slov -->
   <div class="tahak-section">
-    <h2>Skutečná a kvazislova <span class="status-badge badge-normative">normativní</span></h2>
+    <h2>3. Co může být slovo <span class="status-badge badge-normative">normativní</span></h2>
     <div class="tahak-rule">
-      <strong>Skutečné slovo:</strong> doloženo v IJP (<em>Internetová jazyková příručka</em>) nebo ASSČ (<em>Akademický slovník současné češtiny</em>). Jiné zdroje existenci soutěžního slova samy o sobě nedokazují.
+      Povolena jsou podstatná jména, přídavná jména, slovesa, skutečná česká zájmena a pět jednopísmenných funkčních slov <code>k/v/z/a/i</code>.
     </div>
+    <h3>Podstatná jména</h3>
     <div class="tahak-rule">
-      <strong>Kvazislovo:</strong> vymyšlené slovo hráče — ale musí být morfologicky obhájeno a zařazeno do soutěžního modelu.
+      <table class="mofo-table" style="font-family:inherit">
+        <thead><tr><th>Rod</th><th>Modely</th></tr></thead>
+        <tbody>
+          <tr><td>mužský životný</td><td><code>pán</code>, <code>muž</code>, <code>předseda</code>, <code>soudce</code></td></tr>
+          <tr><td>mužský neživotný</td><td><code>hrad</code>, <code>stroj</code></td></tr>
+          <tr><td>ženský</td><td><code>žena</code>, <code>růže</code>, <code>píseň</code>, <code>kost</code></td></tr>
+          <tr><td>střední</td><td><code>město</code>, <code>moře</code>, <code>kuře</code>, <code>stavení</code></td></tr>
+        </tbody>
+      </table>
+      Žádný model se neskrývá podle toho, zda se zdá prakticky použitelný. Úplná paradigmata: <a href="/tahak.php?sekce=substantiva">Substantiva →</a>
     </div>
+    <h3>Přídavná jména</h3>
     <div class="tahak-rule">
-      Ke každému slovu je nutné vyplnit: <strong>slovní druh, vzor, pád, číslo a větnou funkci.</strong> Formulář konfigurátor provede technickou kontrolu.
+      Finální modely: <code>mladý</code>, <code>jarní</code>, <code>otcův</code>, <code>matčin</code>. Modely <code>otcův</code> a <code>matčin</code> se produktivně odvozují z platného substantiva. <code>mladý</code> a <code>jarní</code> lze stupňovat; přivlastňovací modely ne. Krátké tvary se ve v1 nepoužívají. Úplná paradigmata: <a href="/tahak.php?sekce=adjektiva">Adjektiva →</a>
+    </div>
+    <h3>Slovesa</h3>
+    <div class="tahak-rule">
+      Finálních produktivních typů je právě pět:
+      <table class="mofo-table" style="margin-top:10px;font-family:inherit">
+        <thead><tr><th>Kód</th><th>Mnemotechnický model</th><th>Infinitiv</th></tr></thead>
+        <tbody>
+          <tr><td><code>V-AT</code></td><td><code>dělat</code></td><td><code>S+at</code></td></tr>
+          <tr><td><code>V-IT</code></td><td><code>prosit</code></td><td><code>S+it</code></td></tr>
+          <tr><td><code>V-NOUT</code></td><td><code>tisknout</code></td><td><code>S+nout</code></td></tr>
+          <tr><td><code>V-ÝT</code></td><td><code>krýt</code></td><td><code>S+ýt</code></td></tr>
+          <tr><td><code>V-OVAT</code></td><td><code>kupovat</code></td><td><code>S+ovat</code></td></tr>
+        </tbody>
+      </table>
+      Povoleny jsou přesně definované jednoduché osobní tvary, imperativ, l-ové příčestí, minulý čas, budoucí čas a přítomný kondicionál. Pomocné <code>být</code> je zvláštní uzavřená reálná pomocná sada, ne šestý produktivní typ. Úplné tabulky: <a href="/tahak.php?sekce=slovesa">Slovesa →</a>
+    </div>
+    <h3>Zájmena</h3>
+    <div class="tahak-rule">
+      Zájmena jsou pouze <strong>skutečná česká slova</strong>. Nová kvazizájmena se nevytvářejí a neexistuje pro ně produktivní soutěžní paradigma. Konkrétní lexém a tvar musí obstát podle spravovaného katalogu skutečných slov.
     </div>
   </div>
 
-  <!-- Věta -->
   <div class="tahak-section">
-    <h2>Česká věta <span class="status-badge badge-normative">normativní</span></h2>
+    <h2>4. Valence slovesa <span class="status-badge badge-normative">normativní</span></h2>
     <div class="tahak-rule">
-      Věta musí mít <strong>podmět a přísudek</strong>. Vyhrává <strong>více slov</strong>; při shodě rozhoduje <strong>více písmen</strong> bez mezer.
-    </div>
-    <div class="tahak-rule">
-      Větu tvoříte v konfigurátoru, kde se automaticky kontrolují znaková pravidla a strukturní požadavky.
+      U svého konkrétního slovesa musíš slovně obhájit:
+      <ol>
+        <li>jaká obligatorní doplnění jeho použití vyžaduje,</li>
+        <li>která konkrétní slova ve větě je realizují,</li>
+        <li>o jaké současné české sloveso a jeho použití se analogie opírá.</li>
+      </ol>
+      Všechna obligatorní doplnění musí být ve větě přítomná. Valence není kód ani předem připravená tabulka rámců. Praktické pravidlo: <a href="/tahak.php?sekce=valence">Valence →</a>
     </div>
   </div>
 
-  <!-- Otevřené body -->
   <div class="tahak-section">
-    <h2>Otevřené body <span class="status-badge badge-open">rozpracováno</span></h2>
+    <h2>5. Skutečné slovo versus kvazislovo <span class="status-badge badge-normative">normativní</span></h2>
     <div class="tahak-rule">
-      <strong>Časovací typy sloves (#2):</strong> Konkrétní paradigmata a reachability analýza jsou stále otevřeny na GitHubu. Výsledek ovlivní, která slovesná slova jsou v soutěži dosažitelná.
+      Kvazislovo nemusí existovat ani mít konkrétní věcný význam, ale musí přesně splnit zvolený soutěžní model. Skutečné slovo se pro soutěž poznává podle <strong>spravovaného katalogu</strong>, nikoli přímým hledáním v externím slovníku.
+    </div>
+    <div class="tahak-rule">
+      Katalog není pro hráče seznam kandidátů. Může pouze potvrdit hotový vlastní návrh: úplnou morfologickou identitu + konkrétní použitý tvar. Nepotvrzený exact match neznamená automatické zamítnutí; kandidát může jít k rozhodčímu review. IJP, ASSČ a další odborné zdroje mohou sloužit kvaziautoritě jako podklady při správě katalogu.
     </div>
   </div>
 
-  <div style="margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,.07)">
-    <p style="font-size:13px;color:var(--text-dim)">
-      Tento tahák je živý dokument. Normativní části jsou závazné v aktuální platné verzi pravidel.
-      Kompletní specifikaci najdete v <a href="/prirucka.php" style="color:var(--accent);text-decoration:none">rozhodcovské příručce</a>.
-    </p>
+  <div class="tahak-section">
+    <h2>6. Soutěžní identita se neopakuje <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Stejnou soutěžní identitu nelze ve větě použít dvakrát, ani když změníš pád, číslo, osobu, čas, význam nebo větnou funkci.
+      <ul>
+        <li><strong>Substantivum:</strong> lemma + rod + relevantní životnost + model; <code>kvazi-</code> vytváří od základní podoby odlišnou identitu</li>
+        <li><strong>Adjektivum:</strong> základní lemma/odvození + soutěžní model; rod, číslo, pád a stupeň samy novou identitu nevytvářejí</li>
+        <li><strong>Sloveso:</strong> infinitiv + soutěžní časovací typ; vid ani valence novou identitu nevytvářejí</li>
+        <li><strong>Zájmeno:</strong> lexém/lemma</li>
+        <li><strong>Funkční slova:</strong> <code>k</code>, <code>v</code>, <code>z</code>, <code>a</code>, <code>i</code> jsou jednotlivé identity; každou lze použít nejvýše jednou</li>
+      </ul>
+    </div>
   </div>
+
+  <div class="tahak-section">
+    <h2>7. Skóre <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      <ol>
+        <li>Vyhrává <strong>více slov</strong>.</li>
+        <li>Při shodě vyhrává <strong>více soutěžních znaků bez mezer</strong>.</li>
+        <li>Při shodě obou hodnot jde o společný rekord.</li>
+      </ol>
+      <code>Q = 1</code>, <code>KV = 2</code>. Závěrečná interpunkce se nepočítá. Pět znaků normativního substantivního prefixu <code>kvazi-</code> je při sekundárním skóre neutrálních.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>8. Co odevzdáváš</h2>
+    <div class="tahak-rule">
+      U každého slova deklaruješ konkrétní tvar, slovní druh, lemma/základ, soutěžní model tam, kde existuje, morfologické vlastnosti konkrétního tvaru, soutěžní identitu, skutečné/kvazi zařazení, syntaktickou funkci a potřebné vazby. U slovesa navíc vid a slovní valenční obhajobu. Formulář může mechanicky kontrolovat znaky, úplnost a veřejné strukturální invarianty. Jazykový verdikt dává až rozhodcovské posouzení.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>9. Nástroje, AI a navazování</h2>
+    <div class="tahak-rule">
+      Základní fair-play věta zní: <strong>AI ti smí vysvětlit hru. Nesmí ji za tebe hrát.</strong> Nástroj může mechanicky ověřit konkrétní lidský nápad, ale nesmí za hráče generovat, prohledávat, skládat nebo optimalizovat kandidáty.
+    </div>
+    <div class="tahak-rule">
+      Schválená zveřejněná řešení jsou společnou znalostí hry. Smíš na ně navazovat, upravovat je a přebírat jejich části; jednotlivé kvazislovo ani konstrukční nápad si nikdo soutěžně nevlastní. Spoluautoři jsou povoleni a shodné rekordní skóre znamená společný rekord.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>10. Když potřebuješ přesnost</h2>
+    <p class="tahak-norm-note">Hráčské detailní kapitoly jsou závazné v částech označených NORMATIVNÍ. Pokud se stručný přehled dostane do sporu s přesnou normativní tabulkou nebo rozhodcovskou specifikací, rozhoduje normativní hierarchie.</p>
+    <div class="tahak-module-grid">
+      <a href="/tahak.php?sekce=syntax" class="tahak-module-card"><span class="tahak-module-num">01</span>Syntaktické vztahy a testy</a>
+      <a href="/tahak.php?sekce=substantiva" class="tahak-module-card"><span class="tahak-module-num">02</span>Úplná substantivní paradigmata</a>
+      <a href="/tahak.php?sekce=adjektiva" class="tahak-module-card"><span class="tahak-module-num">03</span>Úplná adjektivní paradigmata</a>
+      <a href="/tahak.php?sekce=slovesa" class="tahak-module-card"><span class="tahak-module-num">04</span>Úplný slovesný systém</a>
+      <a href="/tahak.php?sekce=valence" class="tahak-module-card"><span class="tahak-module-num">05</span>Valenční obhajoba</a>
+      <a href="/tahak.php?sekce=hranicni" class="tahak-module-card"><span class="tahak-module-num">06</span>Strukturálně výjimečné případy</a>
+      <a href="/tahak.php?sekce=kvazi" class="tahak-module-card"><span class="tahak-module-num">07</span>Zvláštní substantivní prefix</a>
+    </div>
+  </div>
+
+<?php elseif ($sekce === 'syntax'): ?>
+<!-- ═══════════════════════ SYNTAX (01-syntax.md) ═══════════════════════ -->
+
+  <p class="tahak-norm-note">Základní vztahy, jejich rozhodovací testy a minimální globální podmínky jedné věty jsou normativně uzavřené.</p>
+
+  <div class="tahak-section">
+    <h2>Uzavřený seznam hlavních vztahů <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      V kvazivětě jsou přípustné pouze tyto hlavní syntaktické funkce a vztahy:
+      <ul>
+        <li>podmět</li>
+        <li>přísudek</li>
+        <li>předmět</li>
+        <li>přívlastek shodný</li>
+        <li>přívlastek neshodný</li>
+        <li>příslovečné určení</li>
+        <li>doplněk</li>
+        <li>koordinace pomocí <code>a</code> nebo <code>i</code>, pokud nevznikne několikanásobný podmět ani přísudek</li>
+      </ul>
+      Seznam je uzavřený na úrovni těchto hlavních vztahů. Jejich běžné významové podtypy nejsou samostatnými soutěžními mechanismy. Pouhé označení členu názvem povolené funkce nestačí; každý člen musí splnit rozhodovací test své hlavní funkce, uvést všechny vyžadované vazby a respektovat valenční obhajobu slovesa.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Globální podmínky jedné věty <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      <ul>
+        <li>existuje právě jeden přísudek jako jediný kořen hlavní predikační osy</li>
+        <li>všechny ostatní větné členy jsou zapojeny do jedné propojené syntaktické analýzy</li>
+        <li>syntaktické závislosti nesmějí tvořit kruh</li>
+        <li>podmět a přísudek musí být v kategoriích, v nichž to čeština vyžaduje, v běžné morfosyntaktické shodě</li>
+        <li>koordinované části musí mít stejnou hlavní syntaktickou funkci; koordinovaná skupina jako celek zastává jednu syntaktickou roli</li>
+        <li>není-li mezislovní podmínka výslovně soutěžně upravena, musí konstrukce obstát jako současná spisovná čeština</li>
+      </ul>
+    </div>
+    <h3>Předložky <code>k</code>, <code>v</code>, <code>z</code></h3>
+    <div class="tahak-rule">
+      Používají se vždy nevokalizovaně; podoby <code>ke</code>, <code>ve</code>, <code>ze</code> se nepoužívají. Jinak zůstávají běžnými českými předložkami s běžnou pádovou rekcí: <code>k</code> + dativ, <code>v</code> + lokál nebo akuzativ podle významu, <code>z</code> + genitiv.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Rozhodovací testy <span class="status-badge badge-normative">normativní</span></h2>
+
+    <h3>Podmět</h3>
+    <div class="tahak-rule">
+      <strong>Vazba:</strong> hlava podmětové skupiny odkazuje na jediný přísudek.<br>
+      <strong>Test:</strong> je to jediná hlava členu, o němž přísudek něco vypovídá?<br>
+      <strong>Povinnost:</strong> právě jeden; vynechat jej lze pouze u dovoleného imperativu.<br>
+      Závislé členy uvnitř podmětové skupiny nejsou dalšími podměty. Koordinace více podmětových hlav není dovolena.
+    </div>
+
+    <h3>Přísudek</h3>
+    <div class="tahak-rule">
+      <strong>Vazba:</strong> je kořenem hlavní predikační osy; výslovný podmět a další slovesné členy odkazují k němu.<br>
+      <strong>Test:</strong> je tvořen jediným povoleným tokenem plnovýznamového slovesa a nese jedinou hlavní výpověď věty?<br>
+      <strong>Povinnost:</strong> právě jeden.
+    </div>
+
+    <h3>Předmět</h3>
+    <div class="tahak-rule">
+      <strong>Vazba:</strong> odkazuje na přísudek.<br>
+      <strong>Test:</strong> je jeho vztah k přísudku obhájen valenčním použitím slovesa?<br>
+      <strong>Povinnost:</strong> všechna obligatorní doplnění vyplývající z obhájeného použití slovesa musí být výslovně realizována.
+    </div>
+
+    <h3>Přívlastek shodný</h3>
+    <div class="tahak-rule">
+      <strong>Vazba:</strong> odkazuje na konkrétní řídící jmenný člen.<br>
+      <strong>Test:</strong> rozvíjí tento člen a shoduje se s ním v kategoriích, v nichž se podle svého modelu shodovat má?<br>
+      <strong>Povinnost:</strong> volný člen; nenahrazuje obligatorní doplnění slovesa.
+    </div>
+
+    <h3>Přívlastek neshodný</h3>
+    <div class="tahak-rule">
+      <strong>Vazba:</strong> odkazuje na konkrétní řídící jmenný člen.<br>
+      <strong>Test:</strong> rozvíjí tento člen, ale netvoří s ním vztah morfologické shody?<br>
+      <strong>Povinnost:</strong> volný člen; nesmí být skrytou náhradou zakázané lexikální rekce. Konkrétní realizace musí být běžnou konstrukcí současné spisovné češtiny.
+    </div>
+
+    <h3>Příslovečné určení</h3>
+    <div class="tahak-rule">
+      <strong>Vazba:</strong> odkazuje na přísudek.<br>
+      <strong>Test:</strong> vyjadřuje okolnost děje nebo stavu a není podle obhájeného valenčního použití předmětem ani jiným obligatorním doplněním?<br>
+      Významové podtypy se soutěžně neuzavírají do úplného seznamu; rozhoduje vazba na přísudek a běžná česká konstrukce.
+    </div>
+
+    <h3>Doplněk</h3>
+    <div class="tahak-rule">
+      <strong>Vazby:</strong> odkazuje současně na přísudek a na konkrétní podmět nebo předmět.<br>
+      <strong>Test:</strong> popisuje vlastnost nebo stav tohoto členu platný ve vztahu k vyjádřenému ději či stavu?<br>
+      <strong>Morfologie:</strong> shoduje se s příslušným členem v kategoriích, v nichž to jeho model vyžaduje.<br>
+      Pro soutěž se nepovažuje za další hlavní predikační osu ani přísudek.
+    </div>
+
+    <h3>Koordinace</h3>
+    <div class="tahak-rule">
+      <strong>Vazby:</strong> <code>a</code> nebo <code>i</code> odkazuje na hlavy obou výslovně přítomných souřadných částí; koordinovaná skupina jako celek je zapojena do jedné nadřazené syntaktické role.<br>
+      <strong>Test:</strong> mají obě části stejnou hlavní syntaktickou funkci a jsou zapojeny do téže věty?<br>
+      Koordinace nesmí vytvořit více podmětových hlav ani více přísudků. Každou ze spojek <code>a</code> a <code>i</code> lze použít nejvýše jednou.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Co zůstává zakázané <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      <ul>
+        <li>přístavek</li>
+        <li>elipsa obligatorního členu</li>
+        <li>syntaktická analýza rozpadlá do více nepropojených částí</li>
+        <li>kruhové syntaktické závislosti</li>
+        <li>koordinace vytvářející více podmětových hlav nebo více přísudků</li>
+        <li>konstrukce, kterou nelze zařadit do některého povoleného hlavního vztahu</li>
+        <li>pouhé přejmenování jiné syntaktické konstrukce názvem povolené funkce</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Fiktivní význam a obhajoba</h2>
+    <div class="tahak-rule">
+      Pokud syntaktická funkce závisí na fiktivním významu kvazislova, musí vztah být z uzavřeného seznamu hlavních vztahů, musí splnit jeho rozhodovací test a řešitel uvede běžnou českou analogii se stejnou konstrukcí.
+    </div>
+  </div>
+
+<?php elseif ($sekce === 'substantiva'): ?>
+<!-- ═══════════════════════ SUBSTANTIVA (02-substantiva.md) ═══════════════════════ -->
+
+  <p class="tahak-norm-note">Seznam vzorů i jejich přesná normativní paradigmata jsou pro první rules verzi zmrazeny.</p>
+
+  <div class="tahak-section">
+    <h2>Obecný princip <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Názvy <code>pán</code>, <code>muž</code>, <code>předseda</code>, <code>soudce</code>, <code>hrad</code>, <code>stroj</code>, <code>žena</code>, <code>růže</code>, <code>píseň</code>, <code>kost</code>, <code>město</code>, <code>moře</code>, <code>kuře</code> a <code>stavení</code> jsou názvy <strong>uzavřených soutěžních morfologických modelů</strong>. Název modelu není otevřeným odkazem na všechny varianty, dublety nebo výjimky českých slov tradičně řazených ke stejnému vzoru.
+    </div>
+    <div class="tahak-rule">
+      <strong>Soutěžní kmen je vždy odvozen deterministicky z lemmatu a zvoleného modelu.</strong> Hráč jej nevolí ani neobhajuje vlastní analogií. V první rules verzi platí jedna morfologická buňka = právě jedna kanonická realizace; morfologické dublety se nepovolují. Obecné české hláskové alternace se automaticky nepoužívají. <strong>Reachability není kritériem existence modelu.</strong>
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Základní odvození kmene <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      <ul>
+        <li>lemma zakončené souhláskou: <code>S = celé lemma</code></li>
+        <li>lemma na <code>-a</code>: <code>S = lemma bez posledního a</code></li>
+        <li>lemma na <code>-e</code>: <code>S = lemma bez posledního e</code></li>
+        <li>lemma na <code>-o</code>: <code>S = lemma bez posledního o</code></li>
+        <li>model <code>stavení</code> na <code>-í</code>: <code>S = lemma bez posledního í</code></li>
+      </ul>
+      Nominativ singuláru je přímo lemma. Ostatní buňky se tvoří přesně podle tabulek níže. Výjimkou je pouze explicitně popsaný model <code>kuře</code>.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Mužský rod životný <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule" style="font-size:12px;color:var(--text-dim)">U dvojice <code>pán/muž</code> se nezkoumá fonologická preference tvrdosti či měkkosti; rozhoduje zvolený soutěžní model.</div>
+
+    <p class="mofo-model-header"><code>pán</code> — S = lemma (zakončeno souhláskou)</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+a</code></td><td><code>S+ů</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ovi</code></td><td><code>S+ům</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+a</code></td><td><code>S+y</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+e</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ovi</code></td><td><code>S+ech</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+em</code></td><td><code>S+y</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>muž</code> — S = lemma (zakončeno souhláskou)</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+e</code></td><td><code>S+ů</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+i</code></td><td><code>S+ům</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+e</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+i</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+i</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+em</code></td><td><code>S+i</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>předseda</code> — lemma S+a</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+a</code></td><td><code>S+ové</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+y</code></td><td><code>S+ů</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ovi</code></td><td><code>S+ům</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+u</code></td><td><code>S+y</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+o</code></td><td><code>S+ové</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ovi</code></td><td><code>S+ech</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ou</code></td><td><code>S+y</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>soudce</code> — lemma S+e</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+e</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+e</code></td><td><code>S+ů</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+i</code></td><td><code>S+ům</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+e</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+e</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+i</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+em</code></td><td><code>S+i</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Mužský rod neživotný <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule" style="font-size:12px;color:var(--text-dim)">U dvojice <code>hrad/stroj</code> se nezkoumá fonologická preference; rozhoduje zvolený soutěžní model.</div>
+
+    <p class="mofo-model-header"><code>hrad</code> — S = lemma</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S</code></td><td><code>S+y</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+u</code></td><td><code>S+ů</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+u</code></td><td><code>S+ům</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S</code></td><td><code>S+y</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+e</code></td><td><code>S+y</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+u</code></td><td><code>S+ech</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+em</code></td><td><code>S+y</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>stroj</code> — S = lemma</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+e</code></td><td><code>S+ů</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+i</code></td><td><code>S+ům</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+i</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+i</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+em</code></td><td><code>S+i</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Ženský rod <span class="status-badge badge-normative">normativní</span></h2>
+
+    <p class="mofo-model-header"><code>žena</code> — lemma S+a</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+a</code></td><td><code>S+y</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+y</code></td><td><code>S</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ě</code></td><td><code>S+ám</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+u</code></td><td><code>S+y</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+o</code></td><td><code>S+y</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ě</code></td><td><code>S+ách</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ou</code></td><td><code>S+ami</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>růže</code> — lemma S+e</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+e</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+e</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+i</code></td><td><code>S+ím</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+i</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+e</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+i</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+í</code></td><td><code>S+emi</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>píseň</code> — S = lemma</p>
+    <p class="mofo-model-note">Model je v první rules verzi jednokmenný. Pohyblivé <code>e</code>, vypouštění samohlásky ani jiná lexikální změna skutečného slova <code>píseň</code> se nepřenáší.</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+e</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+i</code></td><td><code>S+ím</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+i</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+i</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+í</code></td><td><code>S+emi</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>kost</code> — S = lemma</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+i</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+i</code></td><td><code>S+em</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+i</code></td><td><code>S+i</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+i</code></td><td><code>S+ech</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+í</code></td><td><code>S+mi</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Střední rod <span class="status-badge badge-normative">normativní</span></h2>
+
+    <p class="mofo-model-header"><code>město</code> — lemma S+o</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+o</code></td><td><code>S+a</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+a</code></td><td><code>S</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+u</code></td><td><code>S+ům</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+o</code></td><td><code>S+a</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+o</code></td><td><code>S+a</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ě</code></td><td><code>S+ech</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+em</code></td><td><code>S+y</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>moře</code> — lemma S+e</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+e</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+e</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+i</code></td><td><code>S+ím</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+e</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+e</code></td><td><code>S+e</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+i</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+em</code></td><td><code>S+i</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>kuře</code> — lemma S+e (vícekmenný)</p>
+    <p class="mofo-model-note">Explicitní výjimka. Základ <code>S</code>, sg rozšířený kmen <code>S+et</code>, pl rozšířený kmen <code>S+at</code>.</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+e</code></td><td><code>S+ata</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+ete</code></td><td><code>S+at</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+eti</code></td><td><code>S+atům</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+e</code></td><td><code>S+ata</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+e</code></td><td><code>S+ata</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+eti</code></td><td><code>S+atech</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+etem</code></td><td><code>S+aty</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header"><code>stavení</code> — lemma S+í</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>sg</th><th>pl</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+í</code></td><td><code>S+ím</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+í</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ím</code></td><td><code>S+ími</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Skutečné slovo versus kvazislovo <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      O zařazení nerozhoduje samotný zápis, ale úplná soutěžní identita substantiva: základní tvar, rod, životnost a model. Odpovídá-li celá identita a použitý tvar schválené položce katalogu skutečných slov, musí být použita jako skutečné slovo. Stejný základní tvar může být kvazislovem, pokud se jeho identita liší od každé odpovídající schválené skutečné identity a splní jiné normativní paradigma.
+    </div>
+    <div class="tahak-rule">
+      IJP, ASSČ a jiné jazykové zdroje mohou kvaziautoritě sloužit jako podklad při správě katalogu, nejsou však samy přímým soutěžním whitelistem hráče. Atypické skutečné tvary mimo soutěžní modely se nepoužívají.
+    </div>
+  </div>
+
+<?php elseif ($sekce === 'adjektiva'): ?>
+<!-- ═══════════════════════ ADJEKTIVA (03-adjektiva.md) ═══════════════════════ -->
+
+  <p class="tahak-norm-note">Normativní adjektivní morfologie pro první rules verzi je zmrazena.</p>
+
+  <div class="tahak-section">
+    <h2>Obecný princip <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Adjektivní soutěžní model je uzavřený herní morfologický model. Soutěžní kmen a případné další podoby se odvozují deterministicky. Hráč si kmen ani alternaci nevolí. Každá buňka má právě jednu kanonickou realizaci; dublety se ve v1 nepovolují. Adjektivum rozlišuje rod, číslo a pád; u mužského rodu také životnost tam, kde ji paradigma morfologicky rozlišuje. <strong>Reachability není kritériem existence ani zveřejnění normativního modelu.</strong>
+    </div>
+    <div class="tahak-rule">Normativní modely jsou <code>mladý</code>, <code>jarní</code>, <code>otcův</code> a <code>matčin</code>.</div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Model <code>mladý</code> <span class="status-badge badge-normative">normativní</span></h2>
+    <p class="mofo-model-note">Lemma <code>S+ý</code>; soutěžní kmen <code>S</code> vznikne odebráním koncového <code>ý</code>.</p>
+
+    <p class="mofo-model-header">Singulár</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>m. živ.</th><th>m. neživ.</th><th>ž.</th><th>stř.</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+ý</code></td><td><code>S+ý</code></td><td><code>S+á</code></td><td><code>S+é</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+ého</code></td><td><code>S+ého</code></td><td><code>S+é</code></td><td><code>S+ého</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ému</code></td><td><code>S+ému</code></td><td><code>S+é</code></td><td><code>S+ému</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+ého</code></td><td><code>S+ý</code></td><td><code>S+ou</code></td><td><code>S+é</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+ý</code></td><td><code>S+ý</code></td><td><code>S+á</code></td><td><code>S+é</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ém</code></td><td><code>S+ém</code></td><td><code>S+é</code></td><td><code>S+ém</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ým</code></td><td><code>S+ým</code></td><td><code>S+ou</code></td><td><code>S+ým</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header">Plurál</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>m. živ.</th><th>m. neživ.</th><th>ž.</th><th>stř.</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+í</code></td><td><code>S+é</code></td><td><code>S+é</code></td><td><code>S+á</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+ých</code></td><td><code>S+ých</code></td><td><code>S+ých</code></td><td><code>S+ých</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ým</code></td><td><code>S+ým</code></td><td><code>S+ým</code></td><td><code>S+ým</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+é</code></td><td><code>S+é</code></td><td><code>S+é</code></td><td><code>S+á</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+í</code></td><td><code>S+é</code></td><td><code>S+é</code></td><td><code>S+á</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ých</code></td><td><code>S+ých</code></td><td><code>S+ých</code></td><td><code>S+ých</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ými</code></td><td><code>S+ými</code></td><td><code>S+ými</code></td><td><code>S+ými</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Model <code>jarní</code> <span class="status-badge badge-normative">normativní</span></h2>
+    <p class="mofo-model-note">Lemma <code>S+í</code>; soutěžní kmen <code>S</code> vznikne odebráním koncového <code>í</code>.</p>
+
+    <p class="mofo-model-header">Singulár</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>m. živ.</th><th>m. neživ.</th><th>ž.</th><th>stř.</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+ího</code></td><td><code>S+ího</code></td><td><code>S+í</code></td><td><code>S+ího</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ímu</code></td><td><code>S+ímu</code></td><td><code>S+í</code></td><td><code>S+ímu</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+ího</code></td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ím</code></td><td><code>S+ím</code></td><td><code>S+í</code></td><td><code>S+ím</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ím</code></td><td><code>S+ím</code></td><td><code>S+í</code></td><td><code>S+ím</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header">Plurál</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>m. živ.</th><th>m. neživ.</th><th>ž.</th><th>stř.</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+ích</code></td><td><code>S+ích</code></td><td><code>S+ích</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ím</code></td><td><code>S+ím</code></td><td><code>S+ím</code></td><td><code>S+ím</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td><td><code>S+í</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ích</code></td><td><code>S+ích</code></td><td><code>S+ích</code></td><td><code>S+ích</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ími</code></td><td><code>S+ími</code></td><td><code>S+ími</code></td><td><code>S+ími</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Přivlastňovací modely <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Přivlastňovací kvaziadjektivum musí být odvozeno od konkrétního platného substantiva (skutečného nebo kvazi). Derivační základ je vždy základ <code>S</code>. Mužský rod zdroje → model <code>otcův</code>, lemma <code>S+ův</code>. Ženský rod → model <code>matčin</code>, lemma <code>S+in</code>. Ze substantiva středního rodu se tento typ netvoří. U modelu <code>kuře</code> je derivačním základem základní <code>S</code>, nikoli rozšířené kmeny.
+    </div>
+
+    <p class="mofo-model-header">Model <code>otcův</code> — singulár</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>m. živ.</th><th>m. neživ.</th><th>ž.</th><th>stř.</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+ův</code></td><td><code>S+ův</code></td><td><code>S+ova</code></td><td><code>S+ovo</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+ova</code></td><td><code>S+ova</code></td><td><code>S+ovy</code></td><td><code>S+ova</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ovu</code></td><td><code>S+ovu</code></td><td><code>S+ově</code></td><td><code>S+ovu</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+ova</code></td><td><code>S+ův</code></td><td><code>S+ovu</code></td><td><code>S+ovo</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+ův</code></td><td><code>S+ův</code></td><td><code>S+ova</code></td><td><code>S+ovo</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ově</code></td><td><code>S+ově</code></td><td><code>S+ově</code></td><td><code>S+ově</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ovým</code></td><td><code>S+ovým</code></td><td><code>S+ovou</code></td><td><code>S+ovým</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header">Model <code>otcův</code> — plurál</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>m. živ.</th><th>m. neživ.</th><th>ž.</th><th>stř.</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+ovi</code></td><td><code>S+ovy</code></td><td><code>S+ovy</code></td><td><code>S+ova</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+ových</code></td><td><code>S+ových</code></td><td><code>S+ových</code></td><td><code>S+ových</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+ovým</code></td><td><code>S+ovým</code></td><td><code>S+ovým</code></td><td><code>S+ovým</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+ovy</code></td><td><code>S+ovy</code></td><td><code>S+ovy</code></td><td><code>S+ova</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+ovi</code></td><td><code>S+ovy</code></td><td><code>S+ovy</code></td><td><code>S+ova</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ových</code></td><td><code>S+ových</code></td><td><code>S+ových</code></td><td><code>S+ových</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+ovými</code></td><td><code>S+ovými</code></td><td><code>S+ovými</code></td><td><code>S+ovými</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header">Model <code>matčin</code> — singulár</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>m. živ.</th><th>m. neživ.</th><th>ž.</th><th>stř.</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+in</code></td><td><code>S+in</code></td><td><code>S+ina</code></td><td><code>S+ino</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+ina</code></td><td><code>S+ina</code></td><td><code>S+iny</code></td><td><code>S+ina</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+inu</code></td><td><code>S+inu</code></td><td><code>S+ině</code></td><td><code>S+inu</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+ina</code></td><td><code>S+in</code></td><td><code>S+inu</code></td><td><code>S+ino</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+in</code></td><td><code>S+in</code></td><td><code>S+ina</code></td><td><code>S+ino</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+ině</code></td><td><code>S+ině</code></td><td><code>S+ině</code></td><td><code>S+ině</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+iným</code></td><td><code>S+iným</code></td><td><code>S+inou</code></td><td><code>S+iným</code></td></tr>
+    </tbody></table>
+
+    <p class="mofo-model-header">Model <code>matčin</code> — plurál</p>
+    <table class="mofo-table"><thead><tr><th>Pád</th><th>m. živ.</th><th>m. neživ.</th><th>ž.</th><th>stř.</th></tr></thead><tbody>
+      <tr><td class="mofo-pad">1.</td><td><code>S+ini</code></td><td><code>S+iny</code></td><td><code>S+iny</code></td><td><code>S+ina</code></td></tr>
+      <tr><td class="mofo-pad">2.</td><td><code>S+iných</code></td><td><code>S+iných</code></td><td><code>S+iných</code></td><td><code>S+iných</code></td></tr>
+      <tr><td class="mofo-pad">3.</td><td><code>S+iným</code></td><td><code>S+iným</code></td><td><code>S+iným</code></td><td><code>S+iným</code></td></tr>
+      <tr><td class="mofo-pad">4.</td><td><code>S+iny</code></td><td><code>S+iny</code></td><td><code>S+iny</code></td><td><code>S+ina</code></td></tr>
+      <tr><td class="mofo-pad">5.</td><td><code>S+ini</code></td><td><code>S+iny</code></td><td><code>S+iny</code></td><td><code>S+ina</code></td></tr>
+      <tr><td class="mofo-pad">6.</td><td><code>S+iných</code></td><td><code>S+iných</code></td><td><code>S+iných</code></td><td><code>S+iných</code></td></tr>
+      <tr><td class="mofo-pad">7.</td><td><code>S+inými</code></td><td><code>S+inými</code></td><td><code>S+inými</code></td><td><code>S+inými</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Stupňování <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Stupňovat lze pouze adjektiva modelů <code>mladý</code> a <code>jarní</code>. Modely <code>otcův</code> a <code>matčin</code> jsou nestupňovatelné.
+      <ul>
+        <li>1. stupeň: základní lemma (<code>S+ý</code> nebo <code>S+í</code>)</li>
+        <li>2. stupeň: jediné kanonické lemma <code>S+ější</code></li>
+        <li>3. stupeň: jediné kanonické lemma <code>nejS+ější</code></li>
+      </ul>
+      <code>nej-</code> je součást jednoho slovního tvaru, nikoli samostatné slovo. 2. i 3. stupeň se skloňují přesně podle paradigmatu <code>jarní</code>. Nepravidelné komparativy ani alternativní přípony se ve v1 nepovolují.
+    </div>
+    <div class="tahak-rule"><strong>Krátké / jmenné tvary adjektiv se v první rules verzi nepovolují.</strong> Substantivně použité adjektivum zůstává pro soutěž morfologicky adjektivem.</div>
+  </div>
+
+<?php elseif ($sekce === 'slovesa'): ?>
+<!-- ═══════════════════════ SLOVESA (04-slovesa.md) ═══════════════════════ -->
+
+  <p class="tahak-norm-note">Normativní slovesná morfologie pro první rules verzi je zmrazena.</p>
+
+  <div class="tahak-section">
+    <h2>Obecný princip <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Každé kvazisloveso má právě jeden soutěžní časovací typ, jeden deklarovaný vid a valenční obhajobu konkrétního použití. Morfologickou soutěžní identitu tvoří <code>infinitiv + soutěžní časovací typ</code>. Vid, osoba, číslo, čas, způsob ani valence samy novou identitu nevytvářejí. Slovesný model je uzavřený herní model; každá normativní buňka má právě jednu kanonickou realizaci. <strong>Reachability není filtrem modelů ani jejich buněk.</strong>
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Finální sada pěti typů <span class="status-badge badge-normative">normativní</span></h2>
+    <table class="mofo-table" style="font-family:inherit"><thead><tr><th>Kód</th><th>Pracovní název</th><th>Podmínka infinitivu</th><th>Soutěžní základ</th></tr></thead><tbody>
+      <tr><td><code>V-AT</code></td><td><code>dělat</code></td><td>lemma <code>S+at</code></td><td><code>S</code> = lemma bez <code>at</code></td></tr>
+      <tr><td><code>V-IT</code></td><td><code>prosit</code></td><td>lemma <code>S+it</code></td><td><code>S</code> = lemma bez <code>it</code></td></tr>
+      <tr><td><code>V-NOUT</code></td><td><code>tisknout</code></td><td>lemma <code>S+nout</code></td><td><code>S</code> = lemma bez <code>nout</code></td></tr>
+      <tr><td><code>V-ÝT</code></td><td><code>krýt</code></td><td>lemma <code>S+ýt</code></td><td><code>S</code> = lemma bez <code>ýt</code></td></tr>
+      <tr><td><code>V-OVAT</code></td><td><code>kupovat</code></td><td>lemma <code>S+ovat</code></td><td><code>S</code> = lemma bez <code>ovat</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Přítomné / jednoduché osobní tvary <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule" style="font-size:12px;color:var(--text-dim)">Pořadí: 1.sg, 2.sg, 3.sg, 1.pl, 2.pl, 3.pl. U dokonavého slovesa se tytéž tvary vykládají časově jako budoucí.</div>
+    <table class="mofo-table" style="font-family:inherit"><thead><tr><th>Typ</th><th>1.sg</th><th>2.sg</th><th>3.sg</th><th>1.pl</th><th>2.pl</th><th>3.pl</th></tr></thead><tbody>
+      <tr><td><code>V-AT</code></td><td><code>S+ám</code></td><td><code>S+áš</code></td><td><code>S+á</code></td><td><code>S+áme</code></td><td><code>S+áte</code></td><td><code>S+ají</code></td></tr>
+      <tr><td><code>V-IT</code></td><td><code>S+ím</code></td><td><code>S+íš</code></td><td><code>S+í</code></td><td><code>S+íme</code></td><td><code>S+íte</code></td><td><code>S+í</code></td></tr>
+      <tr><td><code>V-NOUT</code></td><td><code>S+nu</code></td><td><code>S+neš</code></td><td><code>S+ne</code></td><td><code>S+neme</code></td><td><code>S+nete</code></td><td><code>S+nou</code></td></tr>
+      <tr><td><code>V-ÝT</code></td><td><code>S+yji</code></td><td><code>S+yješ</code></td><td><code>S+yje</code></td><td><code>S+yjeme</code></td><td><code>S+yjete</code></td><td><code>S+yjí</code></td></tr>
+      <tr><td><code>V-OVAT</code></td><td><code>S+uji</code></td><td><code>S+uješ</code></td><td><code>S+uje</code></td><td><code>S+ujeme</code></td><td><code>S+ujete</code></td><td><code>S+ují</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Imperativ <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule" style="font-size:12px;color:var(--text-dim)">Povolena je 2.sg, 1.pl a 2.pl. Jedině u imperativního přísudku může zůstat pravidelný podmět nevyjádřený.</div>
+    <table class="mofo-table" style="font-family:inherit"><thead><tr><th>Typ</th><th>2.sg</th><th>1.pl</th><th>2.pl</th></tr></thead><tbody>
+      <tr><td><code>V-AT</code></td><td><code>S+ej</code></td><td><code>S+ejme</code></td><td><code>S+ejte</code></td></tr>
+      <tr><td><code>V-IT</code></td><td><code>S</code></td><td><code>S+me</code></td><td><code>S+te</code></td></tr>
+      <tr><td><code>V-NOUT</code></td><td><code>S+ni</code></td><td><code>S+nime</code></td><td><code>S+nite</code></td></tr>
+      <tr><td><code>V-ÝT</code></td><td><code>S+yj</code></td><td><code>S+yjme</code></td><td><code>S+yjte</code></td></tr>
+      <tr><td><code>V-OVAT</code></td><td><code>S+uj</code></td><td><code>S+ujme</code></td><td><code>S+ujte</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>L-ové příčestí <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule" style="font-size:12px;color:var(--text-dim)">Jediný plnovýznamový slovesný token ve složeném minulém čase a kondicionálu. Rod/životnost/číslo se musí shodovat s podmětem.</div>
+    <table class="mofo-table" style="font-family:inherit"><thead><tr><th>Typ</th><th>m.sg</th><th>f.sg</th><th>n.sg</th><th>m.anim.pl</th><th>m.inan/f.pl</th><th>n.pl</th></tr></thead><tbody>
+      <tr><td><code>V-AT</code></td><td><code>S+al</code></td><td><code>S+ala</code></td><td><code>S+alo</code></td><td><code>S+ali</code></td><td><code>S+aly</code></td><td><code>S+ala</code></td></tr>
+      <tr><td><code>V-IT</code></td><td><code>S+il</code></td><td><code>S+ila</code></td><td><code>S+ilo</code></td><td><code>S+ili</code></td><td><code>S+ily</code></td><td><code>S+ila</code></td></tr>
+      <tr><td><code>V-NOUT</code></td><td><code>S+nul</code></td><td><code>S+nula</code></td><td><code>S+nulo</code></td><td><code>S+nuli</code></td><td><code>S+nuly</code></td><td><code>S+nula</code></td></tr>
+      <tr><td><code>V-ÝT</code></td><td><code>S+yl</code></td><td><code>S+yla</code></td><td><code>S+ylo</code></td><td><code>S+yli</code></td><td><code>S+yly</code></td><td><code>S+yla</code></td></tr>
+      <tr><td><code>V-OVAT</code></td><td><code>S+oval</code></td><td><code>S+ovala</code></td><td><code>S+ovalo</code></td><td><code>S+ovali</code></td><td><code>S+ovaly</code></td><td><code>S+ovala</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Pomocné sloveso <code>být</code> <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Pomocné <code>být</code> je uzavřená zvláštní <strong>reálná pomocná sada</strong>, nikoli šestý produktivní model kvazislovesa. Jeho token není druhým plnovýznamovým slovesem; spolu s plnovýznamovým tvarem tvoří jediný přísudek. Každý zapsaný pomocný token je však samostatné soutěžní slovo (počítá se do primárního skóre) se sdílenou soutěžní identitou <code>být</code>. Uzavřená pomocná sada <strong>nepodléhá katalogu skutečných slov</strong>.
+    </div>
+    <div class="tahak-rule">
+      <strong>Povolené pomocné tvary (v1):</strong>
+      <ul>
+        <li>Minulý čas: <code>jsem</code> (1.sg), <code>jsi</code> (2.sg), <em>nulový</em> (3.sg/pl), <code>jsme</code> (1.pl), <code>jste</code> (2.pl)</li>
+        <li>Analytické futurum nedokonavých sloves: <code>budu</code>, <code>budeš</code>, <code>bude</code>, <code>budeme</code>, <code>budete</code>, <code>budou</code></li>
+        <li>Kondicionál přítomný: <code>bych</code>, <code>bys</code>, <code>by</code>, <code>bychom</code>, <code>byste</code>, <code>by</code></li>
+      </ul>
+      Jiné tvary pomocného <code>být</code>, kondicionál minulý, opisné pasivum a další složené slovesné konstrukce nejsou ve v1 součástí soutěžního systému.
+    </div>
+    <div class="tahak-rule">
+      <strong>Minulý čas</strong> = příslušné l-ové příčestí + pomocný tvar minulého času. Ve 3. osobě stojí pouze l-ové příčestí.<br>
+      <strong>Budoucí čas dokonavých sloves</strong>: jednoduchý osobní tvar z tabulky výše.<br>
+      <strong>Budoucí čas nedokonavých sloves</strong>: analytické futurum <code>být</code> + infinitiv.<br>
+      <strong>Kondicionál přítomný</strong> = l-ové příčestí + odpovídající pomocný kondicionálový tvar.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Vid <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">Povolené hodnoty: <code>nedokonavý</code>, <code>dokonavý</code>, <code>obouvidový</code>. Vid je povinná deklarovaná vlastnost, ale není součástí soutěžní identity. Jeho jazyková přijatelnost podléhá rozhodcovskému posouzení.</div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Co v1 neobsahuje</h2>
+    <div class="tahak-rule">Mimo systém jsou zejména: přechodníky, participia mimo l-ové příčestí, opisné pasivum, kondicionál minulý, nepravidelná slovesa jako produktivní kvazimodel, dublety a libovolné kmenové alternace. Skutečné plnovýznamové sloveso soutěžně používá tutéž uzavřenou morfologickou reprezentaci jako kvazisloveso.</div>
+  </div>
+
+<?php elseif ($sekce === 'valence'): ?>
+<!-- ═══════════════════════ VALENCE (05-valence.md) ═══════════════════════ -->
+
+  <p class="tahak-norm-note">Normativní princip je rozhodnutý. Valence je slovní obhajoba konkrétního použití slovesa, nikoli samostatný strukturovaný soutěžní model.</p>
+
+  <div class="tahak-section">
+    <h2>Normativní princip <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Valence <strong>není součástí morfologické ani soutěžní identity slovesa</strong>. U slovesa se valence nezapisuje jako kanonický kód, seznam strukturovaných slotů ani výběr z uzavřené tabulky rámců. Hráč ji popíše volným textem v rozsahu potřebném k obhajobě konkrétní věty.
+    </div>
+    <div class="tahak-rule">
+      Valenční obhajoba musí být dostatečně konkrétní, aby z ní bylo zřejmé:
+      <ul>
+        <li>jaké doplnění zvolené použití slovesa vyžaduje,</li>
+        <li>která výslovně přítomná slova kvazivěty tato doplnění realizují,</li>
+        <li>o jaké konkrétní současné české sloveso a jeho použití se obhajoba opírá.</li>
+      </ul>
+      Modelové české sloveso pro valenci nemusí být stejné jako podklad pro časování.
+    </div>
+    <div class="tahak-rule">Všechna obligatorní doplnění, která z obhájeného valenčního použití vyplývají, musí být v kvazivětě výslovně realizována. Valenční obhajoba nesmí obejít jiné syntaktické nebo morfologické pravidlo soutěže.</div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Co se z valence neodvozuje</h2>
+    <div class="tahak-rule">
+      Různý způsob slovního popisu valence nevytváří novou soutěžní identitu slovesa. Valence zejména:
+      <ul>
+        <li>není součástí klíče morfologické identity,</li>
+        <li>nepřidává nový morfologický model,</li>
+        <li>neomezuje hráče na předem připravený seznam pádových rámců.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Posouzení</h2>
+    <div class="tahak-rule">
+      Valence se automaticky jazykově nevaliduje. Je normativní součástí obhajoby konkrétní věty. Při review může být řešení zamítnuto zejména tehdy, pokud:
+      <ul>
+        <li>uvedená česká analogie neobhajuje deklarované použití slovesa,</li>
+        <li>z obhájeného použití vyplývá obligatorní doplnění, které ve větě chybí,</li>
+        <li>valenční vysvětlení pouze přejmenovává nepovolenou syntaktickou konstrukci,</li>
+        <li>obhajoba jinak odporuje současné spisovné češtině nebo výslovným pravidlům soutěže.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Hráčská forma</h2>
+    <div class="tahak-rule">
+      Pro hráče stačí jedno pole / jedna souvislá obhajoba. Není nutné používat odborný kód (<code>DAT + ACC</code>), pokud hráč tutéž informaci jednoznačně vysvětlí běžným jazykem. Rozhodující je obsah obhajoby, nikoli její zápis.
+    </div>
+  </div>
+
+<?php elseif ($sekce === 'hranicni'): ?>
+<!-- ═══════════════════════ HRANIČNÍ PRAVIDLA (06-hranicni-pravidla.md) ═══════════════════════ -->
+
+  <p class="tahak-norm-note">Tato kapitola je určena pro pravidlově výjimečné nebo vysvětlovací okrajové situace.</p>
+
+  <div class="tahak-section">
+    <h2>Reachability není kritérium umístění <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Mechanismus, model nebo morfologická větev se do hraničních pravidel <strong>nepřesouvá pouze proto, že je obtížně dosažitelná nebo prokazatelně nedosažitelná</strong> v aktuálním znakovém systému.
+    </div>
+    <div class="tahak-rule">
+      Je-li například morfologický model součástí normativní sady substantiv nebo adjektiv, zůstává v příslušné hlavní morfologické tabulce bez ohledu na to, zda z něj lze skutečně vytvořit použitelný soutěžní povrchový tvar. Možnost samostatně objevit, že některá pravidlově dovolená cesta nikam nevede, je záměrnou součástí hry.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Co do hraniční kapitoly patří</h2>
+    <div class="tahak-rule">
+      Hraniční kapitola je vhodná tehdy, když daný případ:
+      <ul>
+        <li>používá zvláštní pravidlo nebo výjimku oproti běžnému modelu,</li>
+        <li>vyžaduje zvláštní rozhodovací test,</li>
+        <li>je pro běžné čtení příliš technický, ale stále normativně relevantní,</li>
+        <li>nebo potřebuje vysvětlit vztah několika jinak samostatných pravidel.</li>
+      </ul>
+      O umístění rozhoduje <strong>struktura a srozumitelnost pravidla</strong>, nikoli pravděpodobnost nalezení použitelného tahu.
+    </div>
+  </div>
+
+<?php elseif ($sekce === 'kvazi'): ?>
+<!-- ═══════════════════════ PREFIX KVAZI- (07-prefix-kvazi.md) ═══════════════════════ -->
+
+  <p class="tahak-norm-note">NORMATIVNÍ pravidlo první rules verze. Rozhodnutí #60 a synchronizace #79.</p>
+
+  <div class="tahak-section">
+    <h2>Rozsah výjimky <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Prefix <code>kvazi-</code> je zvláštní tematická výjimka dostupná <strong>pouze substantivům</strong>. Nejde o obecný prefixační mechanismus pro jiné slovní druhy.
+    </div>
+    <div class="tahak-rule">
+      <ul>
+        <li>prefix je vždy právě <code>kvazi</code>; podoby <code>qazi-</code>, <code>kvázi-</code>, <code>quasi-</code> ani jiné varianty se nepovolují</li>
+        <li><code>Q</code> se uvnitř prefixu nepoužívá; nevzniká žádná ekvivalence <code>Q</code> ↔ <code>KV</code></li>
+        <li>prefix lze použít nejvýše jednou v celé odvozené identitě; řetězení <code>kvazikvazi-</code> je zakázáno</li>
+        <li>základ musí být sám platný; prefix neopravuje neplatné lemma, model, morfologii, syntaxi ani povrchovou použitelnost</li>
+        <li>prefix nemění rod, životnost, substantivní model, pád, číslo, způsob tvorby kmene ani syntaktické chování základu</li>
+        <li>prefixovaná odvozenina má vlastní soutěžní identitu odlišnou od neprefixovaného základu</li>
+      </ul>
+      Je-li základní lemma <code>L</code> a jeho konkrétní tvar <code>T</code>, prefixovaná odvozenina má lemma <code>kvaziL</code> a odpovídající tvar <code>kvaziT</code>.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Základ musí fungovat i bez prefixu <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Konkrétní základní tvar <code>T</code> musí být plnohodnotně použitelný <strong>na témže místě věty i po odstranění prefixu <code>kvazi-</code></strong>. Musí sám splnit svou morfologii, pád a syntaktické vazby a na témže místě projít globální motivovou sekvencí. Prefix nesmí zachránit základ, který by bez něj na daném místě věty nebyl platný.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Povrchová výjimka <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Prefixované substantivum je pro soutěž <strong>jedno slovo</strong>. Doslovný prefix <code>kvazi</code> tvoří zvláštní povolený úvod tohoto slova a je výjimkou z běžné délky 3–5 znaků a hranice slova. Podmínka 3–5 soutěžních znaků se vztahuje na část <code>T</code> za prefixem; pět znaků prefixu se do tohoto limitu nezapočítává. Část za prefixem musí sama splnit běžná pravidla pro substantivní slovo.
+    </div>
+    <div class="tahak-rule">
+      Při kontrole celé věty se doslovný prefix <code>kvazi</code> chová jako právě jeden celý motiv <code>KVAZI</code>; bezprostředně následující základ pokračuje v běžné motivové posloupnosti.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Skóre <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Prefixované substantivum se v primárním skóre počítá jako <strong>jedno slovo</strong>. Pět znaků doslovného prefixu <code>kvazi</code> je jedinou zvláštní výjimkou ze standardního sekundárního skórování: má skórovou hodnotu <strong>0</strong> a do počtu soutěžních znaků rozhodujícího při shodném počtu slov se <strong>nezapočítává</strong>. Znaky základního tvaru za prefixem se počítají standardně (<code>Q = 1</code>, <code>KV = 2</code>). Motivová validace se na prefix vztahuje standardně.
+    </div>
+  </div>
+
+  <div class="tahak-section">
+    <h2>Identita a opakování <span class="status-badge badge-normative">normativní</span></h2>
+    <div class="tahak-rule">
+      Prefixované a neprefixované substantivum jsou dvě různé soutěžní identity. Zákaz opakování stejné identity se na každou z nich uplatní samostatně. Samotné přidání prefixu nevytváří nový substantivní model a nedovoluje měnit morfologické ani syntaktické vlastnosti základu.
+    </div>
+  </div>
+
+<?php endif; ?>
 
 </main>
 

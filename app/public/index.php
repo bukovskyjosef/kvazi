@@ -93,10 +93,11 @@ $activePage = 'home';
         <div class="step-num">1</div>
         <h3>Motiv KVAZI</h3>
         <p>
-          Základ je opakující se sekvence <code>KVAZI</code>. Písmeno
-          <code>Q</code> nahrazuje <code>KV</code> jako jeden znak.
+          Základ je opakující se sekvence <code>KVAZI</code>. Na začátku motivu lze použít
+          <code>KV</code> nebo <code>Q</code> — <code>Q</code> se vyslovuje <code>/kv/</code>,
+          ale je to <strong>samostatné soutěžní písmeno</strong>, nikoli zkratka za dvojici <code>KV</code>.
           Samohlásky připouštějí délku: <code>A/Á</code>, <code>I/Í/Y/Ý</code>.
-          Vznikají tak varianty: <code>QAZÍ</code>, <code>KVÁZÝ</code>, <code>QÁZY</code>…
+          Vznikají varianty: <code>QAZÍ</code>, <code>KVÁZÝ</code>, <code>QÁZY</code>…
         </p>
       </div>
 
@@ -107,6 +108,7 @@ $activePage = 'home';
           Každé slovo má <strong>3–5 znaků</strong> a musí celé ležet
           uvnitř jednoho opakování motivu. Hranici dvou motivů nesmí překročit.
           Pět jednopísmenných výjimek: <code>k</code>&thinsp;<code>v</code>&thinsp;<code>z</code>&thinsp;<code>a</code>&thinsp;<code>i</code> — každé nejvýše jednou.
+          Podstatné jméno může navíc nést doslovný prefix <code>kvazi-</code>; jeho pět znaků tvoří zvláštní výjimku a <strong>nezapočítává se do sekundárního skóre</strong>.
         </p>
       </div>
 
@@ -114,8 +116,8 @@ $activePage = 'home';
         <div class="step-num">3</div>
         <h3>Skutečná nebo kvazi</h3>
         <p>
-          Smíš použít skutečné české slovo (doložené v <strong>IJP</strong> nebo
-          <strong>ASSČ</strong>) nebo vymyšlené <strong>kvazislovo</strong> —
+          Smíš použít skutečné české slovo (potvrzené <strong>spravovaným katalogem</strong> soutěže)
+          nebo vymyšlené <strong>kvazislovo</strong> —
           ale každé musíš morfologicky obhájit a zařadit do soutěžního modelu.
         </p>
       </div>
@@ -124,13 +126,17 @@ $activePage = 'home';
         <div class="step-num">4</div>
         <h3>Česká věta</h3>
         <p>
-          Ze slov sestavíš jednu větu s podmětem a přísudkem.
+          Ze slov sestavíš jednu větu s <strong>jedním podmětem, jedním přísudkem</strong>
+          a právě <strong>jedním výskytem plnovýznamového slovesa</strong>.
           Vyhrává <strong>více slov</strong>; při shodě rozhoduje
-          <strong>více písmen</strong> bez mezer.
-          <code>Q</code> se počítá jako jedno písmeno.
+          <strong>více soutěžních znaků</strong> bez mezer
+          (<code>Q&nbsp;=&nbsp;1</code>, <code>KV&nbsp;=&nbsp;2</code>).
         </p>
       </div>
 
+    </div>
+    <div style="margin-top:28px;text-align:center">
+      <a class="btn btn-ghost" href="/tahak.php">Otevřít Kvazitahák &rarr;</a>
     </div>
   </div>
 </section>
@@ -154,7 +160,7 @@ $activePage = 'home';
         <div class="rule-icon">&#128270;</div>
         <div>
           <h4>Ověření slov</h4>
-          <p>Skutečná slova ověřuješ ručně v IJP nebo ASSČ. Jiné zdroje samy o sobě existenci soutěžního slova nedokazují.</p>
+          <p>Skutečná slova ověřuje spravovaný katalog soutěže. IJP, ASSČ a jiné odborné zdroje slouží jako podklady, ale nejsou přímým soutěžním whitelistem.</p>
         </div>
       </div>
 
