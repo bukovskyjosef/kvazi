@@ -1,6 +1,10 @@
 # Jak hrát
 
-> **Stručná verze pro hráče.** Po přečtení pokračuj přímo do [`Kvazitaháku – rychlého hráčského přehledu`](../kvazitahak/00-hracsky-tahak.md). Přesné úplné pravidlo je v rozhodcovské specifikaci.
+> **Stručná verze pro hráče.** Po přečtení pokračuj přímo do [`Kvazitaháku – rychlého hráčského přehledu`](../kvazitahak/00-hracsky-tahak.md).
+
+## Místo v normativním balíku
+
+Tento dokument je **nenormativní hráčský vstup**: pravidla pouze vysvětluje a nesmí je rozšiřovat. Obecnou platnost řeší `02-rozhodcovska-specifikace.md`, přesnou mechaniku NORMATIVNÍ moduly `../kvazitahak/01-07`, práci s AI `03-ai-policy.md` a verzování `04-verzovani-a-sprava.md`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
 
 ## O co jde
 
@@ -60,7 +64,7 @@ Jakmile jednou použiješ konkrétní soutěžní identitu slova, je vyčerpaná
 
 U slovesa tvoří morfologickou soutěžní identitu infinitiv a soutěžní časovací typ. Vid ani valenční obhajoba samy o sobě novou identitu nevytvářejí. Prefixované substantivum `kvazi-` má od své neprefixované podoby odlišnou soutěžní identitu.
 
-Přesné určování identity najdeš v kvazitaháku a úplných pravidlech.
+Přesné určování identity najdeš v kvazitaháku a v příslušných částech normativního balíku.
 
 ## 6. Jak se měří rekord
 
