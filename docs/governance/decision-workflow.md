@@ -149,9 +149,11 @@ Issue je hotové, když podle svého typu:
 
 Do implementace funkcionality závislé na otevřeném `question`/SPEC issue se nemá jít, pokud nelze bezpečně vytvořit technický základ bez předjímání výsledku.
 
-Příklad:
-- lze připravit obecný framework formuláře,
-- nelze natvrdo implementovat finální slovesné typy, dokud nejsou specifikovány.
+Obecný příklad:
+- lze připravit neutrální technickou infrastrukturu, která umí pojmout více možných výsledků budoucího rozhodnutí,
+- nelze natvrdo implementovat jednu konkrétní variantu, pokud by tím implementace předjímala dosud nepřijaté produktové nebo pravidlové rozhodnutí.
+
+Příklady v tomto governance dokumentu mají být **stavově nezávislé**. Nemají používat konkrétní aktuální nebo již uzavřené issue, pravidlový mechanismus či produktovou variantu jako obecný vzor, pokud by změnou jejich stavu mohl příklad zastarat nebo působit jako živé rozhodnutí. Konkrétní historii rozhodování zachycují GitHub Issues a případně `docs/governance/decisions.md`, nikoli obecný workflow.
 
 ## Praktické GitHub filtry
 
