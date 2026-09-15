@@ -2,6 +2,10 @@
 
 > **Status:** oficiální praktický vstup do hráčského kvazitaháku pro první rules verzi. Přesné normativní tabulky jsou v odkazovaných kapitolách; tento přehled je nezkracuje ani nenahrazuje.
 
+## Místo v normativním balíku
+
+Tento dokument je **nenormativní praktický rozcestník pro hráče**. Obecnou soutěžní platnost řeší `../rules/02-rozhodcovska-specifikace.md`, přesnou mechaniku NORMATIVNÍ části modulů `01-07`, práci s AI `../rules/03-ai-policy.md` a verzování `../rules/04-verzovani-a-sprava.md`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 Po přečtení [`Jak hrát`](../rules/01-jak-hrat.md) používej při hře primárně tuto stránku. Když potřebuješ přesný tvar, otevři přímo příslušnou tabulku níže. Historické návrhy a auditní pracovní texty nejsou součástí hráčské vrstvy.
 
 ## 1. Nejdřív ověř povrch
@@ -130,4 +134,4 @@ Hráčské detailní kapitoly jsou závazné v částech označených `NORMATIVN
 - [`06-hranicni-pravidla.md`](06-hranicni-pravidla.md) – strukturálně výjimečné případy,
 - [`07-prefix-kvazi.md`](07-prefix-kvazi.md) – zvláštní substantivní prefix.
 
-Pokud se stručný výklad dostane do sporu s přesnou normativní tabulkou nebo rozhodcovskou specifikací, rozhoduje normativní hierarchie popsaná v [`../rules/02-rozhodcovska-specifikace.md`](../rules/02-rozhodcovska-specifikace.md).
+Pokud se stručný výklad dostane do sporu s normativním artefaktem, nejde o volbu „silnějšího dokumentu“, ale o dokumentační chybu. Pro oblast, kterou daný artefakt výslovně spravuje, platí jeho NORMATIVNÍ obsah; úplnou mapu odpovědností a konfliktů najdeš v [`../README.md`](../README.md).
