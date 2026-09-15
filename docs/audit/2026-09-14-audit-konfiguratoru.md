@@ -1,5 +1,7 @@
 # Hloubkový audit `konfigurator.html` – 2026-09-14
 
+> **HISTORICKÝ / SUPERSEDED SNAPSHOT — 2026-09-14.** Tato zpráva zachycuje stav projektu a závěry auditu k 14. 9. 2026. **Není zdrojem aktuálního backlogu, aktuálního stavu issues ani současného celkového verdiktu projektu.** Aktuální práci vždy ověřuj přímo v GitHub Issues a aktuální soutěžní pravidla v současném normativním balíku podle `docs/README.md`. Historický obsah níže se záměrně nepřepisuje podle pozdějšího vývoje.
+
 > **Status:** nenormativní auditní zpráva po rozhodnutí decision ownera o morfologickém panelu. Nemění soutěžní pravidla. Slouží jako podklad pro revizi `konfigurator.html`, issue #5/#7/#10 a navazující implementaci formuláře.
 
 ## 1. Cíl auditu
