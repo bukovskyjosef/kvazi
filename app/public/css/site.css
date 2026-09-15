@@ -760,9 +760,8 @@ a:focus-visible {
 /* ═══════════════════════════════════════════════════════════
    MANIFEST (stránka manifest.php)
    ═══════════════════════════════════════════════════════════ */
-.manifest-body {
-  max-width: 700px;
-}
+.manifest-body {}
+.manifest-body .kq { color: var(--accent); font-style: normal; }
 .manifest-body blockquote {
   border-left: 3px solid var(--accent);
   padding-left: 24px;
