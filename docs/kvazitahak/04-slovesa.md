@@ -1,77 +1,117 @@
 # Kvazitahák – slovesa
 
-> **Status:** architektura pravidla a sada vidů jsou rozhodnuté; konkrétní uzavřená sada časovacích typů ještě není uzavřena.
+> **Status:** normativní slovesná morfologie pro první rules verzi je zmrazena.
 
-## NORMATIVNÍ princip
+## NORMATIVNÍ: obecný princip
 
-Každé kvazisloveso musí mít:
-
-1. jeden soutěžní časovací typ,
-2. jeden povolený vid,
-3. valenční obhajobu konkrétního použití podle `05-valence.md`.
-
-Časovací typ se nevybírá z libovolných externích českých sloves.
-
-Valence se neposuzuje jako další morfologický model ani jako součást soutěžní identity slovesa. Hráč ji obhajuje volným textem pro konkrétní použití slovesa ve větě. Obhajoba musí být dostatečná k posouzení, zda jsou všechna obligatorní doplnění vyplývající z daného použití ve větě skutečně realizována.
-
-Zvolený časovací typ musí přesně určovat vztah mezi infinitivem, případným kmenem, deklarovanými morfologickými hodnotami a použitým tvarem. Nesmí připustit, aby se tentýž použitý tvar odvozoval z libovolně mnoha infinitivů a soutěžních identit.
+Každé kvazisloveso má právě jeden soutěžní časovací typ, jeden deklarovaný vid a valenční obhajobu konkrétního použití podle `05-valence.md`.
 
 Morfologickou soutěžní identitu slovesa tvoří:
 
 `infinitiv + soutěžní časovací typ`
 
-Vid ani valence samy o sobě novou soutěžní identitu nevytvářejí.
+Vid, osoba, číslo, čas, způsob ani valence samy o sobě novou identitu nevytvářejí.
 
-## NORMATIVNÍ princip výběru časovacích typů
+Slovesný model je uzavřený herní model. Hráč si kmen, alternaci ani koncovku nevolí. Každá normativní buňka má právě jednu kanonickou realizaci. Obecné české nepravidelnosti, dublety a hláskové alternace se automaticky nepřenášejí. Reachability není filtrem modelů ani jejich buněk.
 
-Soutěž používá **konečnou, explicitně definovanou a veřejně pochopitelnou sadu časovacích typů**. Typ se zařazuje nebo nezařazuje jako produktové rozhodnutí o morfologickém systému hry, nikoli podle toho, zda reachability audit právě najde soutěžně použitelný povrchový tvar.
+## NORMATIVNÍ: finální sada pěti typů
 
-Reachability není normativní filtr:
+První rules verze používá právě těchto pět produktivních typů:
 
-- normativně přijatý časovací typ zůstává součástí pravidel i tehdy, pokud se později ukáže, že při aktuálních znakových a motivových omezeních nemá žádný použitelný povrchový tvar,
-- dva typy se neslučují ani jeden z nich neodstraňuje pouze proto, že mají stejné dosažitelné tvary nebo že jeden z nich žádný dosažitelný tvar nemá,
-- hráčské materiály nemají známou nedosažitelnost typu předem označovat; hledání slepých cest je legitimní součást hry,
-- interní reachability analýza smí sloužit k porozumění systému, testům a hledání důsledků pravidel, nikoli k omezení nabídky normativně povolených typů.
+| Kód | Pracovní název | Podmínka infinitivu | Soutěžní základ |
+|---|---|---|---|
+| `V-AT` | `dělat` | lemma `S+at` | `S` = lemma bez `at` |
+| `V-IT` | `prosit` | lemma `S+it` | `S` = lemma bez `it` |
+| `V-NOUT` | `tisknout` | lemma `S+nout` | `S` = lemma bez `nout` |
+| `V-ÝT` | `krýt` | lemma `S+ýt` | `S` = lemma bez `ýt` |
+| `V-OVAT` | `kupovat` | lemma `S+ovat` | `S` = lemma bez `ovat` |
 
-Samotná výslovnost `Q` jako `/kv/` není důvodem ke slučování zápisů nebo morfologických identit s `KV`.
+Názvy českých vzorových sloves jsou pouze mnemotechnické názvy soutěžních modelů. Neotevírají další české konjugační varianty.
 
-Každý finální typ musí být zejména:
+## NORMATIVNÍ: přítomné / jednoduché osobní tvary
 
-- morfologicky přesně a uzavřeně definovaný,
-- konečný a rozhodnutelný pro konkrétní použitý tvar,
-- konzistentní s ostatními soutěžními modely,
-- srozumitelný pro veřejného hráče.
+Pořadí v tabulce je `1.sg, 2.sg, 3.sg, 1.pl, 2.pl, 3.pl`.
 
-## TODO – konkrétní časovací typy
+| Typ | Tvary |
+|---|---|
+| `V-AT` | `S+ám`, `S+áš`, `S+á`, `S+áme`, `S+áte`, `S+ají` |
+| `V-IT` | `S+ím`, `S+íš`, `S+í`, `S+íme`, `S+íte`, `S+í` |
+| `V-NOUT` | `S+nu`, `S+neš`, `S+ne`, `S+neme`, `S+nete`, `S+nou` |
+| `V-ÝT` | `S+yji`, `S+yješ`, `S+yje`, `S+yjeme`, `S+yjete`, `S+yjí` |
+| `V-OVAT` | `S+uji`, `S+uješ`, `S+uje`, `S+ujeme`, `S+ujete`, `S+ují` |
 
-Je nutné explicitním produktovým rozhodnutím vytvořit výslednou uzavřenou sadu soutěžních časovacích typů.
+U dokonavého slovesa se stejné jednoduché osobní tvary vykládají časově podle běžné české gramatiky jako budoucí; soutěžní morfologie kvůli tomu nevytváří druhé paradigma.
 
-Každý výsledný typ musí normativně definovat:
+## NORMATIVNÍ: imperativ
 
-- podmínku lemmatu / infinitivu,
-- přesné vymezení vztahu mezi infinitivem a případným kmenem, včetně všech dovolených variant,
-- úplné soutěžní paradigma relevantních osob, čísel, časů a způsobů, které daný model normativně obsahuje,
-- případné standardní varianty pouze tehdy, jsou-li výslovně přijaty,
-- které realizace jsou pro soutěžní model přípustné.
+Povolena je 2.sg, 1.pl a 2.pl. Jedině u takového imperativního přísudku může zůstat pravidelný podmět nevyjádřený.
 
-Součástí kontroly každého typu je ověření, že pro jeden konkrétní použitý tvar připouští pouze konečný počet přesně doložitelných soutěžních identit.
+| Typ | 2.sg | 1.pl | 2.pl |
+|---|---|---|---|
+| `V-AT` | `S+ej` | `S+ejme` | `S+ejte` |
+| `V-IT` | `S` | `S+me` | `S+te` |
+| `V-NOUT` | `S+ni` | `S+nime` | `S+nite` |
+| `V-ÝT` | `S+yj` | `S+yjme` | `S+yjte` |
+| `V-OVAT` | `S+uj` | `S+ujme` | `S+ujte` |
 
-Cíl není popsat kompletní českou konjugaci, ale vytvořit férovou, konzistentní a veřejně srozumitelnou soutěžní sadu. Případná nedosažitelnost některých jejích větví není důvodem k jejich odstranění.
+Žádná další česká imperativní alternace se nepřenáší.
 
-## NORMATIVNÍ vid
+## NORMATIVNÍ: l-ové příčestí
 
-Povolené hodnoty vidu jsou:
+L-ové příčestí je jediný plnovýznamový slovesný token ve složeném minulém čase a kondicionálu. Tvary jsou mechanické.
 
-- nedokonavý,
-- dokonavý,
-- obouvidový.
+| Typ | m.sg | f.sg | n.sg | m.anim.pl | m.inanim/f.pl | n.pl |
+|---|---|---|---|---|---|---|
+| `V-AT` | `S+al` | `S+ala` | `S+alo` | `S+ali` | `S+aly` | `S+ala` |
+| `V-IT` | `S+il` | `S+ila` | `S+ilo` | `S+ili` | `S+ily` | `S+ila` |
+| `V-NOUT` | `S+nul` | `S+nula` | `S+nulo` | `S+nuli` | `S+nuly` | `S+nula` |
+| `V-ÝT` | `S+yl` | `S+yla` | `S+ylo` | `S+yli` | `S+yly` | `S+yla` |
+| `V-OVAT` | `S+oval` | `S+ovala` | `S+ovalo` | `S+ovali` | `S+ovaly` | `S+ovala` |
 
-Vid sám o sobě nevytváří novou soutěžní identitu.
+Rod/životnost/číslo příčestí se musí shodovat s podmětem podle běžných českých pravidel.
 
-Deklarovaný vid je součástí hráčovy jazykové analýzy a podléhá následnému posouzení.
+## NORMATIVNÍ: pomocné sloveso `být`
 
-## Jeden token
+Pomocné `být` je uzavřená zvláštní **reálná pomocná sada**, nikoli šestý produktivní model kvazislovesa. Jeho token není druhým plnovýznamovým slovesem a spolu s plnovýznamovým tvarem tvoří jediný přísudek. Každý pomocný token však musí sám projít obecnými povrchovými pravidly hry; pravidla jej neskrývají jen proto, že může být prakticky nedosažitelný.
 
-V celé kvazivětě je právě jeden token plnovýznamového slovesa.
+Pro v1 jsou povoleny pouze následující pomocné tvary:
 
-Případné normativně povolené pomocné slovesné mechanismy se neposuzují podle reachability jako podmínky existence. Jejich přesná role a reprezentace musí být určena pravidly samostatně; případná praktická nedosažitelnost sama o sobě není důvodem je skrývat nebo odstraňovat.
+- minulý čas: 1.sg `jsem`, 2.sg `jsi`, 1.pl `jsme`, 2.pl `jste`; ve 3. osobě je pomocný token nulový,
+- analytické futurum nedokonavých sloves: `budu`, `budeš`, `bude`, `budeme`, `budete`, `budou`,
+- kondicionál přítomný: `bych`, `bys`, `by`, `bychom`, `byste`, `by`.
+
+Jiné tvary pomocného `být`, kondicionál minulý, opisné pasivum a další složené slovesné konstrukce nejsou v první rules verzi součástí soutěžního systému.
+
+### Minulý čas
+
+Minulý čas = příslušné l-ové příčestí + pomocný tvar minulého času podle osoby a čísla. Ve 3. osobě stojí pouze l-ové příčestí.
+
+### Budoucí čas
+
+- dokonavé sloveso: jednoduchý osobní tvar z tabulky výše,
+- nedokonavé sloveso: analytické futurum `být` + infinitiv,
+- u obouvidového slovesa musí deklarovaný konkrétní význam jednoznačně určit, zda se v daném použití chová jako dokonavé nebo nedokonavé.
+
+Infinitiv v analytickém futuru je plnovýznamový slovesný token. Pomocný tvar `být` je pomocný token téhož přísudku.
+
+### Kondicionál
+
+Kondicionál přítomný = l-ové příčestí + odpovídající pomocný kondicionálový tvar. Kondicionál minulý se ve v1 nepovoluje.
+
+## NORMATIVNÍ: vid
+
+Povolené hodnoty jsou `nedokonavý`, `dokonavý`, `obouvidový`. Vid je povinná deklarovaná vlastnost, ale není součástí soutěžní identity. Jeho jazyková přijatelnost podléhá rozhodcovskému posouzení.
+
+## NORMATIVNÍ: co v1 neobsahuje
+
+Mimo systém jsou zejména přechodníky, participia mimo výše uvedené l-ové příčestí, opisné pasivum, kondicionál minulý, nepravidelná slovesa jako produktivní kvazimodel, české dublety a libovolné kmenové alternace.
+
+Skutečné plnovýznamové sloveso soutěžně používá tutéž uzavřenou morfologickou reprezentaci jako kvazisloveso; samotná existence českého nepravidelného paradigmatu neotevírá další soutěžní tvary.
+
+## Implementační invariant
+
+Pro produktivní sloveso musí být možné mechanicky vyhodnotit:
+
+`infinitiv + typ + vid + způsob/čas + osoba + číslo + případný rod/životnost → právě jeden plnovýznamový tvar (+ přesně určený pomocný tvar, pokud jej konstrukce vyžaduje)`.
+
+Pomocný token se eviduje jako součást stejného přísudku, nikoli jako další soutěžní slovesná identita. Celá věta stále obsahuje právě jeden plnovýznamový slovesný token.
