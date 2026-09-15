@@ -105,11 +105,11 @@ Technické/resource limity formuláře jsou nenormativní a nesmějí vytvořit 
 ### Automatická inference prefixu `kvazi-` v konfigurátoru — rozhodnutí 2026-09-15
 
 - Hráč v konfigurátoru prefix `kvazi-` ručně nevolí a žádná roletka/přepínač prefixu se nezobrazuje.
-- Pokud je normalizovaný povrchový token delší než 5 soutěžních znaků a začíná přesnou sekvencí `kvazi`, konfigurátor deterministicky nastaví slovní druh na substantivum a interní `kvaziPrefix = kvazi`.
+- Pokud je normalizovaný povrchový token delší než 5 soutěžních znaků a začíná přesnou sekvencí `kvazi` bez ohledu na velikost písmen, konfigurátor deterministicky nastaví slovní druh na substantivum a interní `kvaziPrefix = kvazi`.
+- Inference neignoruje diakritiku ani jiné znakové varianty; `kvázi`, `qazi`, `quasi` apod. se takto nerozpoznají.
 - Takto odvozený slovní druh ani prefix nelze pro daný povrchový tvar ručně přepsat; po změně povrchového tvaru se inference znovu přepočítá.
-- Interní prefixová vlastnost zůstává součástí kanonického state/payloadu pro identitu, validaci a skóre; odstraněna je pouze ruční volba z UI.
+- Interní prefixová vlastnost zůstává součástí kanonického state/payloadu a cílového uloženého datového modelu pro identitu, validaci a skóre; odstraněna je pouze ruční volba z UI.
 - Zbytek po `kvazi` musí dále samostatně splnit všechna pravidla základního substantiva. Automatická inference sama nezaručuje platnost slova.
-- Přesná prefixová sekvence je `kvazi`; varianty `qazi`, `kvázi`, `quasi` apod. se tímto mechanismem nerozpoznávají.
 - Jde o UX/implementační odvození jednoznačné normativní vlastnosti, nikoli o změnu pravidla prefixu v `07-prefix-kvazi.md`.
 
 ### Reachability — aktuální rozhodnutí #4
