@@ -79,7 +79,7 @@
 --    - player may only query a complete own exact-match candidate
 --    - NO browse, export, prefix search, autocomplete, similar-item suggestions
 --    - negative exact match is NOT automatic rejection
---    See #68, #72, #80.
+--    Decision: #80 (closed). Implementation details: #8.
 
 -- 7. Internal morphology review cache (REVIEW MEMORY)
 --    - separate domain/entity from real-word catalog
@@ -91,7 +91,7 @@
 --      timestamp, reason, evidence and reproducible review-cache state/revision
 --    - approved/rejected history is never silently overwritten
 --    - never exposed as a player membership oracle
---    See #6, #8, #80.
+--    Decision: #80 (closed). Implementation: #6/#8/#9.
 
 -- 8. Validation and review
 --    Keep separate:
@@ -123,7 +123,7 @@
 --    - sensitive actions logged with actor user_id, action, entity, before/after
 --      (or equivalent diff), reason and timestamp
 --    - audit distinguishes real-word-catalog management from review-cache decisions
---    See #36, #80.
+--    See #36.
 
 -- -----------------------------------------------------------------------------
 -- EXPLICITLY OUT OF MVP / MUST NOT REAPPEAR IN INITIAL MIGRATIONS
@@ -142,7 +142,8 @@
 -- -----------------------------------------------------------------------------
 -- 1. Keep product/rule decisions in current normative docs and GitHub issues;
 --    do not revive already-closed #1/#2/#4/#5/#60 as blockers.
--- 2. Implement separate real-word catalog and internal morphology review cache (#80).
+-- 2. Implement the already-decided separation of real-word catalog and
+--    internal morphology review cache in production schema (#6/#8/#9; decision #80).
 -- 3. Implement simplified morphology declaration (#86/#87).
 -- 4. Resolve remaining current high-priority architecture issues before final DDL,
 --    especially #81, #83 and #85 where they affect schema.
