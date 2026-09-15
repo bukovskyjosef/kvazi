@@ -76,13 +76,12 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
       ${field('role', functional ? 'Technická role' : 'Větná funkce', w.role, functional ? { [w.role]: w.role === 'preposition' ? 'Předložka – bez hlavní větné funkce' : 'Spojení souřadných částí' } : Object.fromEntries(Object.entries(funcLabels).filter(([key]) => key !== 'coordination')), 'word', functional)}
       ${w.role === 'predicate' ? '<p>Kořen věty – bez řídícího slova.</p>' : ''}
       ${(relationShapes[w.role] || []).map(key => field(`relations.${key}`, relationLabels[key], w.relations[key], others)).join('')}
-      ${w.role === 'object' ? '<p class="notice">Vazba na konkrétní valenční slot čeká na dokončení struktury rámce (#5).</p>' : ''}
       ${check('evidence.needsAnalogy', 'Vztah je významově nejasný nebo závisí na fiktivním významu', w.evidence.needsAnalogy)}
       ${w.evidence.needsAnalogy ? field('evidence.explanation', 'Krátká obhajoba vztahu', w.evidence.explanation) + field('evidence.analogy', 'Běžná česká analogie stejné konstrukce', w.evidence.analogy) : ''}
     </fieldset>
     ${!functional ? `<fieldset><legend>Podklady pro posouzení</legend>
       ${field('evidence.morphology', 'Morfologická obhajoba a odkaz na model', w.evidence.morphology)}
-      ${w.lexicalStatus === 'real' ? field('evidence.source', 'Zdroj dokládající existenci', w.evidence.source, { IJP: 'Slovníková část IJP', 'ASSČ': 'Zveřejněné heslo ASSČ' }) + field('evidence.reference', 'Konkrétní heslo / odkaz a doklad použitého tvaru', w.evidence.reference) : ''}
+      ${w.lexicalStatus === 'real' && w.role !== 'auxiliary' ? field('evidence.source', 'Zdroj dokládající existenci (nepovinné)', w.evidence.source, { '': '— nevybráno —', IJP: 'Slovníková část IJP', 'ASSČ': 'Zveřejněné heslo ASSČ' }) + field('evidence.reference', 'Konkrétní heslo / odkaz a doklad použitého tvaru', w.evidence.reference) : ''}
     </fieldset>` : ''}
     <h3>Co zbývá u tohoto slova</h3>${list([...status.issues, ...status.missing, ...(status.formCheck && !status.formCheck.ok && status.formCheck.message ? [status.formCheck.message] : [])])}
     </div>`;
@@ -90,7 +89,7 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
 export function renderValidation(draft, state) {
   const rows = [[state.sequence.ok, 'Znaková kontrola'], [state.syntax.ok && state.sentenceOk, 'Větná struktura a syntaktické vazby'], [state.structureOk, 'Strukturované údaje úplné'], [state.morphologyOk, 'Morfologická shoda ověřena'], [state.submitReady, 'Připraveno k odeslání']];
   document.getElementById('validation').innerHTML = rows.map(([ok, label]) => `<p class="${ok ? 'status-ok' : 'status-missing'}">${ok ? '✓' : 'Chybí:'} ${label}</p>`).join('')
-    + `<p>Slov: ${state.wordCount} · Písmen bez mezer: ${state.charCount} (Q = 1, KV = 2)</p>`
+    + `<p>Slov: ${state.wordCount} · Skóre znaků: ${state.charScore} (Q = 1, KV = 2; prefix kvazi- = 0)</p>`
     + list([...state.sentenceIssues, ...state.sequence.issues.map(i => i.message), ...state.syntax.issues.map(i => `${draft.tokens.find(w => w.id === i.id)?.surface || ''}: ${i.message}`)])
     + draft.tokens.map((w, i) => {
       const t = state.tokens[w.id];

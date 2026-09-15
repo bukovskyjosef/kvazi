@@ -2,17 +2,26 @@ import { getModel, getPath, setPath, isFunctional, publicSchema } from './schema
 
 export const nfc = value => String(value).normalize('NFC');
 export const folded = value => nfc(value).toLowerCase();
+// Returns true when surface triggers the normative kvazi- prefix rule:
+// more than 5 soutěžní chars and starts exactly with 'kvazi' (case-insensitive, NFC).
+export const inferKvaziPrefix = surface => {
+  const s = folded(nfc(surface));
+  return s.startsWith('kvazi') && [...s].length > 5;
+};
 export function createDraft() {
   return { sentenceType: 'declarative', implicitSubject: false, meaning: '', defense: '', closingPunct: null, tokens: [], nextId: 1 };
 }
 export function createToken(id, surface) {
-  const w = { id, surface: nfc(surface).toLowerCase(), lemma: '', pos: '', model: '', identity: {}, form: {}, lexicalStatus: '', role: '', relations: {}, valency: { modelVerb: '', declaration: '' }, evidence: { source: '', reference: '', morphology: '', needsAnalogy: false, explanation: '', analogy: '' } };
+  const w = { id, surface: nfc(surface).toLowerCase(), lemma: '', pos: '', model: '', kvaziPrefix: '', identity: {}, form: {}, lexicalStatus: '', role: '', relations: {}, valency: { modelVerb: '', declaration: '' }, evidence: { source: '', reference: '', morphology: '', needsAnalogy: false, explanation: '', analogy: '' } };
   const s = folded(surface);
   if (['k', 'v', 'z', 'a', 'i'].includes(s)) {
     w.pos = ['k', 'v', 'z'].includes(s) ? 'preposition' : 'conjunction';
     w.role = w.pos === 'preposition' ? 'preposition' : 'coordination';
     w.lemma = s;
     w.lexicalStatus = 'real';
+  } else if (inferKvaziPrefix(surface)) {
+    w.pos = 'noun';
+    w.kvaziPrefix = 'kvazi';
   }
   return w;
 }
@@ -54,7 +63,7 @@ export function mutateDraft(current, action, schema = publicSchema) {
     } else if (w.pos === replacement.pos) replacement.relations = w.relations;
     Object.assign(w, replacement);
   } else if (action.type === 'field') {
-    if (action.path === 'pos' && isFunctional(createToken(w.id, w.surface))) return current;
+    if (action.path === 'pos' && (isFunctional(createToken(w.id, w.surface)) || inferKvaziPrefix(w.surface))) return current;
     const previous = getPath(w, action.path);
     const normalized = typeof action.value === 'string' ? nfc(action.value) : action.value;
     setPath(w, action.path, action.path === 'lemma' && typeof normalized === 'string' ? normalized.toLowerCase() : normalized);

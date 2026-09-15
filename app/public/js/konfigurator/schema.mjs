@@ -3,8 +3,8 @@
 export const sentenceTypes = { declarative: 'Oznamovací', interrogative: 'Tázací', imperative: 'Rozkazovací' };
 export const punctuation = { declarative: '.', interrogative: '?', imperative: '!' };
 export const partsOfSpeech = { noun: 'Podstatné jméno', adjective: 'Přídavné jméno', verb: 'Sloveso', pronoun: 'Zájmeno', preposition: 'Předložka', conjunction: 'Spojka' };
-export const functions = { subject: 'Podmět', predicate: 'Přísudek', object: 'Předmět', agreeingAttribute: 'Přívlastek shodný', attribute: 'Přívlastek neshodný', adverbial: 'Příslovečné určení', supplement: 'Doplněk', coordination: 'Spojení souřadných částí' };
-export const relationShapes = { predicate: [], subject: ['head'], object: ['head'], adverbial: ['head'], agreeingAttribute: ['head'], attribute: ['head'], supplement: ['predicate', 'nominal'], coordination: ['left', 'right'], preposition: ['nominal'] };
+export const functions = { subject: 'Podmět', predicate: 'Přísudek', auxiliary: 'Pomocné být', object: 'Předmět', agreeingAttribute: 'Přívlastek shodný', attribute: 'Přívlastek neshodný', adverbial: 'Příslovečné určení', supplement: 'Doplněk', coordination: 'Spojení souřadných částí' };
+export const relationShapes = { predicate: [], subject: ['head'], auxiliary: ['predicate'], object: ['head'], adverbial: ['head'], agreeingAttribute: ['head'], attribute: ['head'], supplement: ['predicate', 'nominal'], coordination: ['left', 'right'], preposition: ['nominal'] };
 export const genders = { masculineAnimate: 'Mužský životný', masculineInanimate: 'Mužský neživotný', feminine: 'Ženský', neuter: 'Střední' };
 export const cases = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [String(i + 1), `${i + 1}. pád`]));
 export const numbers = { singular: 'Jednotné', plural: 'Množné' };
@@ -31,7 +31,6 @@ export const publicSchema = {
   fields: {
     noun: [
       ...nominalFields,
-      field('kvaziPrefix', 'Prefix kvazi-', { '': 'Bez prefixu', 'true': 'Použit prefix kvazi- (podstatné jméno)' }),
     ],
     adjective: [
       field('form.gender', 'Rod použitého tvaru', genders),
