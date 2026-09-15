@@ -60,9 +60,13 @@
 --    - player-declared analysis stored separately from all resolved/catalog truth
 --    - complete competition identity + concrete-used-form morphology
 --    - NO required full hand-filled paradigm after #86
---    - for prefixed nouns, explicit kvaziPrefix = none|kvazi (or equivalent)
---      plus separately represented base noun identity; do not infer the special
---      prefix merely from a surface string starting with "kvazi"
+--    - for prefixed nouns, persist canonical kvaziPrefix = none|kvazi (or equivalent)
+--      plus separately represented base noun identity
+--    - kvaziPrefix is NOT player-declared: when normalized surfaceForm is longer than
+--      5 competition signs and begins with exact `kvazi` (case-insensitive only),
+--      FE and BE deterministically derive POS = noun and kvaziPrefix = kvazi
+--    - the derived prefix state must then pass the full normative validation from
+--      07-prefix-kvazi.md; inference alone does not make the token valid
 --    - a written auxiliary `byt` form is a real sentence token: surface-valid and
 --      score-bearing, sharing one competition identity `byt`, but syntactically
 --      belonging to the same single predicate as the full-content verb
@@ -127,12 +131,13 @@
 --    - cached sentence text / normalized text / score, if stored, are server-generated
 --      and must be deterministically checkable against canonical data
 --    - every written competition sign scores normally (Q=1, KV=2) except exactly
---      the five signs of a normatively declared noun prefix `kvazi-`, which score 0
+--      the five signs of a system-derived AND normatively validated noun prefix
+--      `kvazi-`, which score 0
 --    - prefixed noun remains one word in primary score
 --    - auxiliary `byt` is a separate word and its written signs score normally
---    - score exemption must depend on the explicit normative prefix declaration,
---      never on a mere string-prefix heuristic
---    See #7, #8, #83.
+--    - score exemption depends on persisted canonical derived prefix state plus full
+--      normative prefix validation, never on an unchecked ad-hoc string test
+--    See #7, #8, #83, #87.
 
 -- 10. Admin audit
 --    - admin is user_account with ADMIN role
@@ -153,7 +158,9 @@
 -- - real-word catalog browse/export/autocomplete/prefix search
 -- - automatic inheritance of review-cache approvals across rules versions
 -- - required full player-entered morphology paradigm
--- - treating `kvazi` surface prefix as score-neutral without the normative prefix flag
+-- - player-controlled kvaziPrefix selector/flag
+-- - treating any unchecked `kvazi` surface prefix as score-neutral without deriving
+--   and normatively validating the canonical prefix state
 -- - hiding written auxiliary `byt` inside a verb record instead of storing its token
 
 -- -----------------------------------------------------------------------------
@@ -163,7 +170,8 @@
 --    do not revive already-closed #1/#2/#4/#5/#60 as blockers.
 -- 2. Implement the already-decided separation of real-word catalog and
 --    internal morphology review cache in production schema (#6/#8/#9; decision #80).
--- 3. Implement simplified morphology declaration (#86/#87).
+-- 3. Implement simplified morphology declaration (#86/#87), including automatic
+--    system inference and persistence of canonical kvaziPrefix/POS where applicable.
 -- 4. Implement the closed #79/#83 prefix and auxiliary semantics exactly as
 --    represented in docs/architecture/02-database-model.md and #7/#8.
 -- 5. Preserve single-account authorship from #81 and free-text valence from #85;
