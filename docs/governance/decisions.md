@@ -123,6 +123,14 @@ Reachability je analytická informace, nikoli normativní filtr. Normativně pov
 - Z částečných údajů se nenabízejí možné identity, autocomplete, podobná slova, alternativní analýzy ani jiné nápovědy.
 - Nepotvrzený exact match neznamená zamítnutí; kandidát lze předložit k review.
 
+### Oddělení katalogu skutečných slov a interní review cache — rozhodnutí #80
+
+- Projekt používá dva explicitně oddělené katalogové mechanismy.
+- **Katalog skutečných slov** je lexikální autorita pro status skutečné slovo / kvazislovo. Není obecně vázán na `rules_version`, lze jej průběžně opravovat a hráči poskytuje jen exact-match kontrolu kompletního vlastního návrhu.
+- **Interní morfologická review cache** je neveřejná provozní paměť předchozích morfologických posouzení. Je scoped na konkrétní `rules_version` a používá `APPROVED / REJECTED / UNKNOWN`.
+- Hráč nesmí získat membership informaci z interní review cache.
+- Obě vrstvy se nesmějí technicky ani významově slít do jediné autority.
+
 ### Skutečná zájmena — rozhodnutí #74
 
 - Zájmena jsou zvláštní `real-word-only` kategorie; nová kvazizájmena se nevytvářejí a neexistuje pro ně produktivní soutěžní morfologický model.
