@@ -8,9 +8,8 @@
 -- mutable sentence-level approval state, mixed user/catalog analysis truth, etc.).
 --
 -- Git history contains the old draft. Do not restore it as an implementation default.
--- Production/migration DDL must be created from the current architecture and the
--- implementation issues listed below after the remaining normative field schemas
--- and paradigms are finalized.
+-- Production/migration DDL must be created from the current architecture and
+-- implementation issues listed below.
 
 -- -----------------------------------------------------------------------------
 -- CURRENT AUTHORITATIVE ARCHITECTURE
@@ -31,7 +30,7 @@
 --    - immutable manifest items + per-artifact hash
 --    - optional manifest hash and Git commit/tag metadata
 --    - versioned normative enums/models/paradigms
---    See #9, #18, #27, #44.
+--    See #9.
 
 -- 2. Registered users and auth
 --    - one user account table with unique username + unique private email
@@ -40,7 +39,7 @@
 --    - password-reset tokens stored only in safe derived form
 --    - session/recovery/security model
 --    There is NO separate admin_user table and NO magic-link login.
---    See #35, #36, #37.
+--    See #35, #36.
 
 -- 3. Sentences, drafts and immutable submissions
 --    - sentence = long-lived container bound to author user_id
@@ -51,16 +50,16 @@
 --        DECLARATIVE -> '.'
 --        INTERROGATIVE -> '?'
 --        IMPERATIVE -> '!'
---    See #21, #22, #30.
+--    See #8, #61.
 
 -- 4. Token/word occurrence declarations
 --    - stable token ID inside one immutable revision
 --    - position + surface form + normalized NFC form
---    - player-declared analysis is stored separately from catalog-resolved truth
---    - complete field schema is POS/model-driven
---    - full proposed morphology paradigm + snapshot-bound confirmation
---    - structured evidence/source links
---    See #5, #23, #24, #26, #48, #53.
+--    - player-declared analysis stored separately from all resolved/catalog truth
+--    - complete competition identity + concrete-used-form morphology
+--    - NO required full hand-filled paradigm after #86
+--    - structured evidence/source links where required
+--    See #86, #87, #63.
 
 -- 5. Syntax
 --    - ordinary dependent member: exactly one head
@@ -70,19 +69,31 @@
 --    - prepositions k/v/z: technical preposition role + exactly one governed nominal link;
 --      no main sentence function on the preposition itself
 --    - DB constraints must prevent links across sentence revisions
---    See #28, #51.
+--    See #63, #85.
 
--- 6. Learning internal catalog
---    - catalog knowledge is scoped to one rules_version
+-- 6. Real-word catalog (LEXICAL AUTHORITY)
+--    - separate domain/entity from internal morphology review cache
+--    - exact match = complete competition identity + concrete used form
+--    - not generally scoped to rules_version
+--    - mutable/auditable without requiring a new rules_version
+--    - player may only query a complete own exact-match candidate
+--    - NO browse, export, prefix search, autocomplete, similar-item suggestions
+--    - negative exact match is NOT automatic rejection
+--    See #68, #72, #80.
+
+-- 7. Internal morphology review cache (REVIEW MEMORY)
+--    - separate domain/entity from real-word catalog
+--    - knowledge scoped to one rules_version
 --    - effective semantics APPROVED / REJECTED / UNKNOWN
 --    - UNKNOWN may be represented by absence of a decision row
 --    - new rules_version starts with no automatically inherited approvals
 --    - decision provenance: exact identity/form, rules_version, admin user_id,
---      timestamp, reason, evidence and reproducible catalog state/revision
+--      timestamp, reason, evidence and reproducible review-cache state/revision
 --    - approved/rejected history is never silently overwritten
---    See #6, #19, #20.
+--    - never exposed as a player membership oracle
+--    See #6, #8, #80.
 
--- 7. Validation and review
+-- 8. Validation and review
 --    Keep separate:
 --    a) content/rule validity of a sentence_revision for a rules_version,
 --    b) historical process compliance of the original submission,
@@ -91,25 +102,28 @@
 --    Each decisive validation result must carry full provenance, including:
 --    - sentence_revision
 --    - rules_version
---    - catalog snapshot/revision/provenance
 --    - validator_version
+--    - relevant internal review-cache provenance
 --    - automatic/manual origin
 --    - timestamp and deciding admin when relevant
+--    - real-word catalog item/revision if lexical status materially affected verdict
 --
 --    Score belongs to the validation for a rules_version if scoring semantics vary.
---    See #17, #20, #40.
+--    See #7, #8, #9.
 
--- 8. Canonical text and scoring
+-- 9. Canonical text and scoring
 --    - ordered revision tokens + sentence-type punctuation are source of truth
 --    - cached sentence text / normalized text / score, if stored, are server-generated
 --      and must be deterministically checkable against canonical data
---    See #22, #40.
+--    - prefix kvazi- scoring follows current normative rules
+--    See #77, #83.
 
--- 9. Admin audit
+-- 10. Admin audit
 --    - admin is user_account with ADMIN role
 --    - sensitive actions logged with actor user_id, action, entity, before/after
 --      (or equivalent diff), reason and timestamp
---    See #36.
+--    - audit distinguishes real-word-catalog management from review-cache decisions
+--    See #36, #80.
 
 -- -----------------------------------------------------------------------------
 -- EXPLICITLY OUT OF MVP / MUST NOT REAPPEAR IN INITIAL MIGRATIONS
@@ -118,18 +132,21 @@
 -- - commenter_identity / email_hmac / public_alias
 -- - comment_magic_link
 -- - separate admin_user identity
--- - public/pre-submit internal catalog membership endpoint
--- - automatic inheritance of catalog approvals across rules versions
+-- - public/pre-submit INTERNAL REVIEW CACHE membership endpoint
+-- - real-word catalog browse/export/autocomplete/prefix search
+-- - automatic inheritance of review-cache approvals across rules versions
+-- - required full player-entered morphology paradigm
 
 -- -----------------------------------------------------------------------------
--- GATES BEFORE WRITING PRODUCTION MIGRATIONS
+-- CURRENT IMPLEMENTATION GATES
 -- -----------------------------------------------------------------------------
--- 1. Finalize normative noun/adjective paradigms and reachable variants (#1, #4).
--- 2. Finalize reachable verb conjugation types (#2, #4).
--- 3. Finalize complete form field schema (#5).
--- 4. Represent paradigms/versioned normative enums without hidden UI rules (#18, #27).
--- 5. Implement DB integrity/provenance issues #17–#28, #30, #35–#45 as applicable.
--- 6. Review concrete MVP query paths and indexes with EXPLAIN (#45).
+-- 1. Keep product/rule decisions in current normative docs and GitHub issues;
+--    do not revive already-closed #1/#2/#4/#5/#60 as blockers.
+-- 2. Implement separate real-word catalog and internal morphology review cache (#80).
+-- 3. Implement simplified morphology declaration (#86/#87).
+-- 4. Resolve remaining current high-priority architecture issues before final DDL,
+--    especially #81, #83 and #85 where they affect schema.
+-- 5. Review concrete MVP query paths and indexes with EXPLAIN before production.
 --
 -- Until these gates are satisfied, this file is a schema design checklist,
 -- not an executable migration.
