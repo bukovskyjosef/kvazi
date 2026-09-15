@@ -172,7 +172,7 @@ $sLabels = [
   <div class="page-header">
     <span class="section-tag">Hráčský průvodce</span>
     <h1>Kvazi<em>tahák</em></h1>
-    <p>Praktický přehled pravidel pro sestavení soutěžní věty. Po přečtení <a href="/manifest.php">Jak hrát</a> používej při hře primárně tuto stránku. Normativní části jsou závazné v aktuální platné verzi pravidel.</p>
+    <p>Praktický přehled pravidel pro sestavení soutěžní věty. Po přečtení <a href="/#jak-hrat">Jak hrát</a> používej při hře primárně tuto stránku. Normativní části jsou závazné v aktuální platné verzi pravidel.</p>
   </div>
 
   <nav class="tahak-subnav" aria-label="Sekce kvazitaháku">
