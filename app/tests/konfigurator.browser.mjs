@@ -1,28 +1,18 @@
-// Optional integration check: PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs
-// node app/tests/konfigurator.browser.mjs. Uses a temporary browser profile.
+// Integration test targeting the real PHP runtime.
+// Requires a running PHP + Docker stack. Set KVAZI_BASE_URL to override the default.
+// Usage: PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs node app/tests/konfigurator.browser.mjs
+// Default base URL: http://127.0.0.1:8080 (matches `php -S 127.0.0.1:8080 -t app/public`)
 import assert from 'node:assert/strict';
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const root = new URL('../public/', import.meta.url);
-const server = createServer(async (req, res) => {
-  const url = new URL(`.${new URL(req.url, 'http://localhost').pathname}`, root);
-  if (!url.href.startsWith(root.href)) { res.writeHead(403).end(); return; }
-  try {
-    const data = await readFile(url);
-    res.setHeader('Content-Type', url.pathname.endsWith('.mjs') ? 'text/javascript' : url.pathname.endsWith('.css') ? 'text/css' : 'text/html');
-    res.end(data);
-  } catch { res.writeHead(404).end(); }
-});
-await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+const baseUrl = (process.env.KVAZI_BASE_URL || 'http://127.0.0.1:8080').replace(/\/$/, '');
+
 let browser;
 try {
   browser = await chromium.launch({ headless: true, ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}) });
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto(`http://127.0.0.1:${server.address().port}/konfigurator.html`);
+  await page.goto(`${baseUrl}/konfigurator.php`);
   await page.getByLabel('Typ věty', { exact: true }).selectOption('interrogative');
   await page.getByLabel('Nové slovo (bez mezer)').fill('vazi');
   await page.getByRole('button', { name: 'Vložit slovo', exact: true }).click();
@@ -66,7 +56,7 @@ try {
   assert.equal(await page.getByLabel('Text slova', { exact: true }).inputValue(), 'vázi');
   assert.equal(await page.getByLabel('Základní tvar', { exact: true }).inputValue(), '');
   assert.equal(await page.getByLabel('Řídící slovo', { exact: true }).inputValue(), 't2');
-  await page.getByRole('button', { name: 'Zobrazit místní náhled draftu (neodesílá)' }).click();
+  await page.getByRole('button', { name: 'Zobrazit náhled JSON (neodesílá)' }).click();
   const payload = JSON.parse(await page.locator('#payload pre').textContent());
   assert.deepEqual(payload.draft.tokens.map(w => w.id), ['t3', 't1', 't2']);
   assert.equal(payload.validation.submitReady, false);
@@ -80,7 +70,7 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   await page.screenshot({ path: '/private/tmp/kvazi-configurator-mobile.png', fullPage: true });
-  await page.goto(`http://127.0.0.1:${server.address().port}/konfigurator.html`);
+  await page.goto(`${baseUrl}/konfigurator.php`);
   const entry = page.getByLabel('Nové slovo (bez mezer)');
   await entry.pressSequentially('vazi kvazi ');
   assert.equal(await page.locator('#tokens .token-chip').count(), 2);
@@ -107,5 +97,4 @@ try {
   console.log('Browser checks passed: editing, insertion, stable links, NFC, confirmation, gates, preview, labels, mobile overflow and escaped input.');
 } finally {
   await browser?.close();
-  await new Promise(resolve => server.close(resolve));
 }

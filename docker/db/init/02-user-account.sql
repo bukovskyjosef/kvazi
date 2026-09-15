@@ -24,14 +24,12 @@ CREATE TABLE IF NOT EXISTS kvazi.user_account (
 CREATE INDEX IF NOT EXISTS idx_ua_email    ON kvazi.user_account (email);
 CREATE INDEX IF NOT EXISTS idx_ua_username ON kvazi.user_account (username);
 
--- Seed: admin account
--- Initial password: KvaziAdmin2025!
--- Change via: UPDATE kvazi.user_account SET password_hash = '<hash>' WHERE username = 'josef-bukovsky';
-INSERT INTO kvazi.user_account (username, email, password_hash, role)
-VALUES (
-    'josef-bukovsky',
-    'bukovskyjosef@gmail.com',
-    '$2y$12$2qApXIPEx4GnX0J9OaV4.eHd/ymcibnSjBSzHuv/X29xVi7WnYxD.',
-    'ADMIN'
-)
-ON CONFLICT (username) DO NOTHING;
+-- Bezpečný postup pro první administrátora:
+--   1. Zaregistrujte se normálně na /register.php jako běžný uživatel.
+--   2. Po registraci spusťte jednorázově v DB (nahraďte <username> skutečným jménem):
+--
+--        UPDATE kvazi.user_account SET role = 'ADMIN'
+--         WHERE username = '<username>';
+--
+--   3. Do repozitáře se necommituje žádný credential ani toto UPDATE.
+--      Admin role nelze získat registrací ani z klientského UI.

@@ -3,7 +3,8 @@ import { deriveValidationState, previewDraft, validateTokenSequence } from './va
 import { renderSentence, renderTokens, renderEditor, renderValidation } from './view.mjs';
 import { toggleMode, buttonLabel } from './terms.mjs';
 
-let draft = createDraft(), selectedId = null;
+let draft = window.__resubmit?.draft ?? createDraft(), selectedId = null;
+const resubmitSentenceId = window.__resubmit?.sentenceId ?? null;
 let composing = false;
 const element = id => document.getElementById(id);
 function render() {
@@ -145,12 +146,15 @@ element('submitButton').addEventListener('click', async () => {
     const res = await fetch('/api/submit.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ csrf, schema: preview.schema, draft: preview.draft }),
+      body: JSON.stringify({ csrf, schema: preview.schema, draft: preview.draft, ...(resubmitSentenceId ? { sentenceId: resubmitSentenceId } : {}) }),
     });
     const data = await res.json();
     if (data.ok) {
-      resultEl.innerHTML = `<div class="alert alert-ok" style="margin-top:0">Přihláška #${data.id} byla odeslána. <a href="/moje-vety.php">Zobrazit moje věty →</a></div>`;
-      element('liveStatus').textContent = `Přihláška #${data.id} úspěšně odeslána.`;
+      const msg = resubmitSentenceId
+        ? `Přihláška #${data.id} aktualizována (revize ${data.revisionNo}).`
+        : `Přihláška #${data.id} byla odeslána.`;
+      resultEl.innerHTML = `<div class="alert alert-ok" style="margin-top:0">${msg} <a href="/moje-vety.php">Zobrazit moje věty →</a></div>`;
+      element('liveStatus').textContent = msg;
     } else {
       resultEl.innerHTML = `<div class="alert alert-warning" style="margin-top:0">Chyba: ${data.error}</div>`;
     }

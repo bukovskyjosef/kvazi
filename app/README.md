@@ -27,10 +27,10 @@ php -S 127.0.0.1:8080 -t app/public
 Konfigurátor je dostupný na:
 
 ```text
-http://127.0.0.1:8080/konfigurator.html
+http://127.0.0.1:8080/konfigurator.php
 ```
 
-Aktuální prototyp může držet draft pouze v paměti stránky. Lokální náhled sám o sobě nepředstavuje produkční submit ani rozhodcovské schválení.
+Vyžaduje přihlášeného uživatele pro submit; samotná stránka se zobrazí i nepřihlášenému.
 
 ## Struktura konfigurátoru
 
@@ -54,13 +54,13 @@ Deterministické regresní testy (Node.js 22 nebo novější, bez aplikačních 
 node --test app/tests/*.test.mjs
 ```
 
-Volitelný integrační test používá Playwright dostupný mimo aplikační runtime:
+Volitelný integrační test používá Playwright dostupný mimo aplikační runtime a cílí na běžící PHP stack:
 
 ```sh
 PLAYWRIGHT_MODULE=/absolutni/cesta/playwright/index.mjs node app/tests/konfigurator.browser.mjs
 ```
 
-`CHROME_PATH` může určit vlastní executable prohlížeče. Test spustí dočasný HTTP server na localhostu.
+`CHROME_PATH` může určit vlastní executable prohlížeče. `KVAZI_BASE_URL` přepíše výchozí `http://127.0.0.1:8080`. Test vyžaduje běžící PHP server (docker compose up nebo php -S).
 
 ## Zásada údržby
 

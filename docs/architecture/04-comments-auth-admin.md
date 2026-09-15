@@ -48,16 +48,14 @@ KISS rozhraní:
 
 ### Dashboard
 - čekající věty,
-- schválené věty,
-- námitky proti katalogu.
+- schválené věty.
 
 ### Věty
 - detail,
 - schválit,
 - odmítnout,
-- vrátit k doplnění,
-- archivovat,
-- vytvořit novou revizi.
+- vrátit k doplnění (autor poté odesílá novou revizi sám),
+- archivovat.
 
 ### Katalog
 - navrhnout lexém/tvar,

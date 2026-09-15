@@ -4,6 +4,48 @@ require_once __DIR__ . '/includes/auth.php';
 auth_session_start();
 $activePage = 'konfigurator';
 $csrf = auth_csrf_token();
+
+// Resubmit pre-load: ?sentenceId=N restores the latest revision draft for editing.
+// Only available when the sentence belongs to the logged-in user and was returned.
+$resubmitJson = 'null';
+$incomingSentenceId = isset($_GET['sentenceId']) ? (int)$_GET['sentenceId'] : null;
+if ($incomingSentenceId && ($user = auth_user()) !== null) {
+    try {
+        $db = kvazi_db();
+        // Load latest revision draft_json if the sentence was returned to this user
+        $rs = $db->prepare(
+            'SELECT sr.draft_json
+               FROM kvazi.sentence s
+               JOIN kvazi.sentence_revision sr
+                 ON sr.sentence_id = s.id
+                AND sr.revision_no = (
+                        SELECT MAX(r2.revision_no)
+                          FROM kvazi.sentence_revision r2
+                         WHERE r2.sentence_id = s.id
+                    )
+              WHERE s.id = :sid AND s.user_id = :uid'
+        );
+        $rs->execute([':sid' => $incomingSentenceId, ':uid' => $user['id']]);
+        $row = $rs->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            // Verify latest admin decision is 'return'
+            $ad = $db->prepare(
+                'SELECT action FROM kvazi.administrative_decision
+                  WHERE sentence_id = :sid
+                  ORDER BY decided_at DESC LIMIT 1'
+            );
+            $ad->execute([':sid' => $incomingSentenceId]);
+            if ($ad->fetchColumn() === 'return') {
+                $resubmitJson = json_encode([
+                    'sentenceId' => $incomingSentenceId,
+                    'draft'      => json_decode($row['draft_json'], true),
+                ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            }
+        }
+    } catch (Throwable) {
+        // Fall through — fresh editor
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="cs">
@@ -56,6 +98,7 @@ $csrf = auth_csrf_token();
   </div></section>
 </main>
 
+<script>window.__resubmit = <?= $resubmitJson ?>;</script>
 <script type="module" src="/js/konfigurator/editor.mjs"></script>
 <?php include __DIR__ . '/includes/footer.php'; ?>
 </body>

@@ -9,18 +9,37 @@ if ($user === null) {
     exit;
 }
 
-// Load user's sentences with their current process status and active revision
+// Load user's sentences: latest revision per sentence, with authoritative scores
+// from validation_result and latest admin decision from administrative_decision.
 $submissions = [];
 try {
     $db   = kvazi_db();
     $stmt = $db->prepare(
-        'SELECT s.id, sr.rules_version, sr.draft_json,
-                COALESCE(sp.status, \'pending\') AS status,
-                sr.created_at AS submitted_at
+        'SELECT s.id,
+                sr.id           AS revision_id,
+                sr.revision_no,
+                sr.rules_version,
+                sr.draft_json,
+                sr.created_at   AS submitted_at,
+                vr.word_score,
+                vr.char_score,
+                (SELECT action
+                   FROM kvazi.administrative_decision
+                  WHERE sentence_id = s.id
+                  ORDER BY decided_at DESC
+                  LIMIT 1
+                ) AS latest_action
            FROM kvazi.sentence s
-           JOIN kvazi.sentence_revision sr ON sr.sentence_id = s.id
-           LEFT JOIN kvazi.sentence_process sp ON sp.sentence_id = s.id
-                AND sp.revision_id = sr.id
+           JOIN kvazi.sentence_revision sr
+             ON sr.sentence_id = s.id
+            AND sr.revision_no = (
+                    SELECT MAX(r2.revision_no)
+                      FROM kvazi.sentence_revision r2
+                     WHERE r2.sentence_id = s.id
+                )
+           LEFT JOIN kvazi.validation_result vr
+             ON vr.revision_id = sr.id
+            AND vr.sentence_id = s.id
           WHERE s.user_id = :uid
           ORDER BY sr.created_at DESC'
     );
@@ -30,11 +49,14 @@ try {
     $submissions = [];
 }
 
+// Map administrative_decision.action → display label and badge class.
+// NULL action = no decision yet = pending.
 $statusLabel = [
-    'pending'   => ['label' => 'Čeká na posouzení', 'class' => 'badge-amber'],
-    'approved'  => ['label' => 'Schváleno',          'class' => 'badge-green'],
-    'rejected'  => ['label' => 'Zamítnuto',          'class' => 'badge-red'],
-    'withdrawn' => ['label' => 'Staženo',            'class' => 'badge-muted'],
+    null       => ['label' => 'Čeká na posouzení', 'class' => 'badge-amber'],
+    'approve'  => ['label' => 'Schváleno',          'class' => 'badge-green'],
+    'reject'   => ['label' => 'Zamítnuto',          'class' => 'badge-red'],
+    'return'   => ['label' => 'Vráceno k úpravě',   'class' => 'badge-amber'],
+    'archive'  => ['label' => 'Archivováno',         'class' => 'badge-muted'],
 ];
 
 function sentenceSurface(array $draft): string {
@@ -106,14 +128,19 @@ $activePage = '';
           <?php foreach ($submissions as $sub):
             $draft   = json_decode($sub['draft_json'], true) ?? [];
             $surface = sentenceSurface($draft);
-            $words   = count($draft['tokens'] ?? []);
-            $chars   = array_sum(array_map(fn($t) => mb_strlen($t['surface'] ?? ''), $draft['tokens'] ?? []));
-            $st      = $statusLabel[$sub['status']] ?? ['label' => $sub['status'], 'class' => 'badge-muted'];
+            $words   = (int)($sub['word_score'] ?? count($draft['tokens'] ?? []));
+            $chars   = (int)($sub['char_score'] ?? 0);
+            $action  = $sub['latest_action'] ?? null;
+            $st      = $statusLabel[$action] ?? ['label' => (string)$action, 'class' => 'badge-muted'];
             $date    = (new DateTimeImmutable($sub['submitted_at']))->format('j. n. Y H:i');
+            $revNo   = (int)$sub['revision_no'];
           ?>
             <div class="submission-card">
               <div class="submission-head">
                 <span class="submission-id">#<?= (int)$sub['id'] ?></span>
+                <?php if ($revNo > 1): ?>
+                  <span class="badge badge-muted" title="Revize <?= $revNo ?>">rev.<?= $revNo ?></span>
+                <?php endif; ?>
                 <span class="badge <?= $st['class'] ?>"><?= htmlspecialchars($st['label']) ?></span>
                 <span class="submission-date"><?= $date ?></span>
               </div>
@@ -121,6 +148,14 @@ $activePage = '';
               <div class="submission-meta">
                 <?= $words ?> slov &middot; <?= $chars ?> znaků &middot; schéma <?= htmlspecialchars($sub['rules_version']) ?>
               </div>
+              <?php if ($action === 'return'): ?>
+                <div style="margin-top:8px">
+                  <a href="/konfigurator.php?sentenceId=<?= (int)$sub['id'] ?>"
+                     class="btn btn-accent" style="font-size:13px">
+                    Upravit a znovu odeslat
+                  </a>
+                </div>
+              <?php endif; ?>
             </div>
           <?php endforeach; ?>
         </div>
