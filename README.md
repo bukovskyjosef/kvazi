@@ -11,7 +11,7 @@ Repozitář projektu **Nejdelší kvazivěta**.
 ### Pro agenty
 - `AGENTS.md` – kanonický vstupní kontrakt
 - `docs/00-project-context.md` – smysl a principy projektu
-- `docs/README.md` – mapa dokumentace a autority
+- `docs/README.md` – jediná úplná mapa dokumentace a autority
 - GitHub Issues – jediný aktuální backlog
 
 ### Pro audit
@@ -25,17 +25,19 @@ Repozitář projektu **Nejdelší kvazivěta**.
 - `app/README.md`
 - GitHub Issues
 
-## Normativní zdroje
+## Normativní balík
 
-Soutěžní platnost určují:
-- `docs/rules/02-rozhodcovska-specifikace.md`
-- výslovně označené normativní části `docs/kvazitahak/`
-- `docs/rules/03-ai-policy.md`
-- `docs/rules/04-verzovani-a-sprava.md`
+**Neexistuje jeden soubor „úplných pravidel“.** Soutěžní pravidla tvoří kanonický normativní balík artefaktů s rozdělenými oblastmi odpovědnosti:
+- `docs/rules/02-rozhodcovska-specifikace.md` – obecná pravidla soutěžní platnosti,
+- výslovně označené NORMATIVNÍ části `docs/kvazitahak/` – přesná mechanika jednotlivých modulů,
+- `docs/rules/03-ai-policy.md` – pravidla používání AI a nástrojů,
+- `docs/rules/04-verzovani-a-sprava.md` – verzování a správa pravidel.
 
-`docs/rules/01-jak-hrat.md` je stručná vysvětlující vrstva.
+Spravovaný katalog skutečných slov je zvláštní lexikální autorita vymezená těmito pravidly. Úplnou mapu autority udržuje pouze `docs/README.md`.
 
-Architektura, databáze, UI a interní katalog pravidla implementují; samy je nemění.
+`docs/rules/01-jak-hrat.md` a `docs/kvazitahak/00-hracsky-tahak.md` jsou hráčské vysvětlující vrstvy; pravidla nerozšiřují.
+
+Architektura, databáze, UI, validátor a aplikační kód pravidla implementují; samy je nemění.
 
 ## Struktura
 
@@ -61,11 +63,13 @@ Finální produktová a pravidlová rozhodnutí provádí Josef Bukovský.
 
 Detailní governance, labely a issue workflow jsou pouze v `docs/governance/decision-workflow.md`.
 
-## Dokumentační vrstvy pro hráče
+## Dokumentační cesta pro hráče
 
 1. **Jak hrát** – jednoduchý vstup.
-2. **Kvazitahák** – praktické modely a tabulky.
-3. **Rozhodcovská specifikace** – úplná normativní pravidla.
+2. **Hráčský tahák** – praktický rozcestník.
+3. **Přesné normativní moduly kvazitaháku** – tabulky a konkrétní mechanika podle potřeby.
+
+Vedle této hráčské cesty stojí rozhodcovská specifikace a další části normativního balíku. Žádný z nich sám nepředstavuje úplná pravidla.
 
 ## Autorství
 
