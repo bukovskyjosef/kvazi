@@ -1,6 +1,6 @@
 # Mapa dokumentace
 
-Tento soubor je **jediná úplná mapa artefaktů a jejich autority**.
+Tento soubor je **jediná úplná mapa významových kategorií repozitáře a jejich autority**. Nemá katalogizovat každý jednotlivý soubor; má zajistit, aby člověk i agent dokázali určit roli každé významné vrstvy projektu a našli správný source of truth.
 
 **Konečnou autoritou hry je kvaziautorita / Josef Bukovský.** Normativní dokumenty jsou kanonickým záznamem přijatých rozhodnutí; pokud si odporují, jde o dokumentační/governance vadu, kterou rozhodne kvaziautorita a dokumentace se následně sjednotí.
 
@@ -17,8 +17,13 @@ Spravovaný katalog skutečných slov je zvláštní lexikální autorita v rozs
 
 Každý hráčský nebo normativní dokument má u svého začátku krátkou sekci **„Místo v normativním balíku“**. Ta pouze vysvětluje jeho vlastní roli a nejbližší sousední artefakty; **nesmí vytvářet paralelní úplnou mapu autority**. Tou zůstává pouze tento `docs/README.md`.
 
-| Artefakt | Publikum | Normativní? | Účel | Jak se mění |
+## Mapa významových kategorií repozitáře
+
+| Artefakt / kategorie | Publikum | Normativní? | Účel | Jak se mění / čte |
 |---|---|---:|---|---|
+| `/AGENTS.md` | všichni agenti | procesní vstupní kontrakt | povinný startup protocol, práce se source of truth a Definition of Done | hlavní instrukční vstup pro agenty; tool-specific instrukce jej nesmějí přebít |
+| root `README.md` + tool-specific instrukční stuby (např. `CLAUDE.md`, `.github/copilot-instructions.md`) | člověk, agent | ne | orientace a přesměrování na kanonické zdroje | nesmějí duplikovat ani měnit autoritu `AGENTS.md` a tohoto souboru |
+| `00-project-context.md` | všichni agenti | ne | stabilní kontext, cíle a produktové principy projektu | vysvětluje záměr; soutěžní platnost určuje normativní balík |
 | `rules/01-jak-hrat.md` | hráč | ne | stručná příručka základních pravidel a vstup do hry | musí následovat normativní balík |
 | `rules/02-rozhodcovska-specifikace.md` | rozhodčí, auditor, vývojář | ano | kanonická obecná pravidla platnosti; neduplikuje přesná paradigmata | produktové změny přes explicitní rozhodnutí Josefa |
 | `rules/03-ai-policy.md` | hráč, správce | ano | normativní pravidla používání AI a nástrojů | produktové změny přes explicitní rozhodnutí Josefa |
@@ -26,15 +31,30 @@ Každý hráčský nebo normativní dokument má u svého začátku krátkou sek
 | `kvazitahak/00-hracsky-tahak.md` | hráč | ne | jediný praktický hráčský rozcestník mezi „Jak hrát“ a přesnými moduly | musí následovat normativní balík |
 | `kvazitahak/01-07` – označené NORMATIVNÍ části | hráč, rozhodčí, vývojář | ano | přesné uzavřené modely, tabulky/paradigmata, syntaktické testy, valence, hranice a prefix `kvazi-` | společně s rules verzí / explicitním rozhodnutím Josefa |
 | `kvazitahak/` – příklady/vysvětlivky | hráč | ne | srozumitelnost | nesmí rozšířit pravidla |
-| spravovaný katalog skutečných slov | rozhodčí, aplikace | zvláštní autorita | potvrzuje soutěžní status skutečných slov/tvarů; není veřejným tahákem kandidátů | průběžná správa dle pravidel, bez nutné změny rules_version |
-| `architecture/` | vývojář, auditor | ne | technický návrh | podřízeno pravidlům |
-| `db/schema-draft.sql` | vývojář, auditor | ne | pracovní DB návrh | zatím bez statusu produkční migrace |
-| GitHub Issues | všichni agenti | procesně autoritativní | jediný živý backlog, stav práce a implementační historie | přes issue workflow a labely |
+| spravovaný katalog skutečných slov | rozhodčí, aplikace | zvláštní autorita | potvrzuje soutěžní status skutečných slov/tvarů; není veřejným tahákem kandidátů | průběžná správa dle pravidel, bez nutné změny `rules_version` |
+| `architecture/` | vývojář, auditor | ne | technický návrh systému | podřízeno pravidlům; popisuje cílovou/platnou technickou architekturu podle stavu příslušných issues |
+| `db/schema-draft.sql` | vývojář, auditor | ne | návrhový/pracovní DB model | **není executable runtime migrace ani jediný zdroj skutečného runtime schématu** |
+| root `docker-compose.yml` | vývojář, provoz, auditor | ne | lokální/runtime orchestrace PostgreSQL a PHP vrstvy | provozní artefakt; určuje mimo jiné, které runtime soubory jsou skutečně připojeny do kontejnerů |
+| `docker/` | vývojář, provoz, auditor | ne | kontejnerová/runtime infrastruktura | implementační/provozní vrstva; nesmí vytvářet produktová ani soutěžní pravidla |
+| `docker/db/init/` | vývojář, provoz, auditor | ne | **executable DB bootstrap / runtime schema-init vrstva** připojená z `docker-compose.yml` do PostgreSQL `/docker-entrypoint-initdb.d` | při práci s persistence se musí kontrolovat vedle návrhového `db/schema-draft.sql`; není to totéž co návrh ani obecný migrační framework |
+| `app/` | vývojář, auditor | ne | aplikační kód, veřejné projekce, API a testy | skutečná implementace; nesmí definovat nové pravidlo a musí být kontrolována proti normativním/architektonickým zdrojům |
+| `.github/` | správce, vývojář, agent | ne / procesní podpora | issue/PR šablony a tool-specific repository metadata | podporuje workflow; GitHub Issues zůstávají jediným živým backlogem a `AGENTS.md` jediným agentním vstupním kontraktem |
+| GitHub Issues | všichni agenti | procesně autoritativní | jediný živý backlog, stav práce a implementační historie | přes issue workflow, stav a labely |
 | `governance/decision-workflow.md` | všichni agenti | procesní | pravidla práce s issues | změna governance procesu |
 | `governance/decisions.md` | všichni agenti | ne | historické/stabilní shrnutí dřívějších rozhodnutí | není backlog ani samostatný normativní source of truth |
-| `audit/` | auditor | ne | auditní metodika a zprávy | akční nálezy musí být issues |
-| `history/` | správce, auditor | ne | historie návrhu | nemá přebíjet aktuální pravidla |
-| `app/` | vývojář | ne | aplikační kód | nesmí definovat nové pravidlo |
+| `audit/README.md` | auditor | ne / metodický | aktuální metodika auditu | akční nálezy musí být GitHub Issues |
+| datované soubory v `audit/` | auditor, správce | ne / historický snapshot | zachycují výsledek auditu a stav projektu **k uvedenému datu** | nejsou aktuálním backlogem ani současným celkovým verdiktem; aktuální práci ověřuj v Issues a pravidla v normativním balíku |
+| `archive/` | správce, auditor | ne / historický archiv | vyřazené pracovní materiály a starší podklady | **nesmí přebít aktuální normativní balík, architekturu ani GitHub Issues** |
+| `history/` | správce, auditor | ne / historický | historie návrhu a vývoje konceptu | nemá přebíjet aktuální pravidla, architekturu ani Issues |
+
+### Návrhová DB vrstva versus skutečný runtime bootstrap
+
+Při práci s persistence je nutné držet oddělené dvě role:
+
+- `db/schema-draft.sql` je **návrhový artefakt** používaný pro diskusi a návrh databázového modelu,
+- `docker/db/init/` je **executable bootstrap/runtime schema-init vrstva**, kterou root `docker-compose.yml` připojuje do standardního PostgreSQL init adresáře.
+
+Proto nelze z kontroly samotného `db/schema-draft.sql` usuzovat na aktuální skutečně bootstrapované schéma. Auditor nebo vývojář, který mění persistence/runtime, musí zkontrolovat oba artefakty a jejich vazbu na aplikaci. Naopak existence runtime init SQL z něj nedělá vyšší autoritu nad pravidly nebo architektonickými rozhodnutími.
 
 ## Jak si představit hráčské artefakty
 
@@ -50,6 +70,8 @@ Vedle hráčské cesty stojí **Rozhodcovská specifikace** `rules/02-rozhodcovs
 
 Aktuální otevřená práce se **nikdy neurčuje z textového souboru v repozitáři**. Získává se přímo z GitHub Issues podle stavu a labelů. Dokumentace může odkazovat na jednotlivé issues jako na závislost nebo historii, ale nesmí udržovat jejich paralelní seznam ani kopii stavů.
 
+Datované auditní zprávy jsou historické snapshoty. Jejich tehdejší seznam nálezů, gates, priorit nebo „celkový verdikt“ se nesmí používat jako tvrzení o současném stavu projektu.
+
 ## Praktická autorita
 
 Pokud vznikne konflikt:
@@ -60,8 +82,10 @@ Pokud vznikne konflikt:
 4. pro používání AI/nástrojů čti `rules/03-ai-policy.md`,
 5. pro verzování a správu čti `rules/04-verzovani-a-sprava.md`,
 6. pro otevřenou otázku nebo práci hledej odpovídající GitHub issue,
-7. technický artefakt odporující pravidlům je technická chyba,
-8. konflikt normativních dokumentů je governance defect; konečný výklad dává Josef a dokumentace se opraví.
+7. pro technickou architekturu čti relevantní `architecture/`, ale ověř její aktuální issue kontext,
+8. pro skutečný lokální/runtime persistence bootstrap čti `docker-compose.yml` a `docker/db/init/` vedle `db/schema-draft.sql`,
+9. technický artefakt odporující pravidlům je technická chyba,
+10. konflikt normativních dokumentů je governance defect; konečný výklad dává Josef a dokumentace se opraví.
 
 ## Dokumenty s TODO
 
@@ -71,5 +95,6 @@ Pokud vznikne konflikt:
 
 - hráč: `rules/01-jak-hrat.md` → `kvazitahak/00-hracsky-tahak.md` → podle potřeby `kvazitahak/01-07`
 - sporný případ / rozhodčí: `rules/02-rozhodcovska-specifikace.md` → relevantní NORMATIVNÍ modul kvazitaháku
-- auditor: `/AGENTS.md` → `audit/README.md` → celý `docs/` + `db/schema-draft.sql` + otevřená issues
-- vývojář: `/AGENTS.md` → `architecture/00-boundaries.md` → relevantní pravidla → GitHub Issues
+- auditor: `/AGENTS.md` → `00-project-context.md` → tento `README.md` → `audit/README.md` → relevantní normativní a architektonické dokumenty → `db/schema-draft.sql` **i** `docker-compose.yml` + `docker/db/init/` → skutečný `app/` stav → otevřená GitHub Issues
+- vývojář: `/AGENTS.md` → `00-project-context.md` → tento `README.md` → `architecture/00-boundaries.md` → relevantní pravidla → GitHub Issues → dotčená implementační/runtime vrstva
+- vývojář persistence/runtime: před změnou porovnej `architecture/` + `db/schema-draft.sql` (návrh) + `docker-compose.yml`/`docker/db/init/` (executable bootstrap) + relevantní `app/` kód + GitHub Issues
