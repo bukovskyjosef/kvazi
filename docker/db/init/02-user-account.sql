@@ -1,4 +1,4 @@
--- Migration 02: user_account table + admin seed
+-- Migration 02: user_account table
 -- Implements: docs/architecture/04-comments-auth-admin.md
 --             docs/governance/decisions.md  (#35, #36, #37)
 --

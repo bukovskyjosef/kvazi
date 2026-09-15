@@ -77,6 +77,18 @@ export function validateSyntax(draft, schema = publicSchema) {
     if (['subject', 'object', 'adverbial'].includes(w.role) && !predicate(head)) add('Řídícím slovem musí být přísudek.');
     if (['agreeingAttribute', 'attribute'].includes(w.role) && !nominal(head)) add('Přívlastek musí odkazovat na jmenný člen.');
     if (w.role === 'preposition' && (!nominal(byId(w.relations.nominal)) || w.pos !== 'preposition')) add('Předložka vyžaduje právě jednu vazbu na řízené jmenné slovo.');
+    if (w.role === 'preposition' && w.pos === 'preposition') {
+      const nomTarget = byId(w.relations.nominal);
+      if (nomTarget) {
+        const prep = folded(w.surface);
+        const govRules = (globalThis.__normative?.preposition_case_government) ?? {};
+        const governed = govRules[prep];
+        if (governed) {
+          const nomCase = nomTarget.form?.case;
+          if (nomCase && !governed.includes(nomCase)) add(`Předložka „${prep}" vyžaduje ${governed.join(' nebo ')}. pád řízeného jmenného slova; použitý tvar je v ${nomCase}. pádu.`);
+        }
+      }
+    }
     if (w.role === 'supplement') {
       const target = byId(w.relations.nominal);
       if (!predicate(byId(w.relations.predicate)) || !nominal(target) || !['subject', 'object'].includes(target?.role)) add('Doplněk vyžaduje přísudek a jmenný podmět nebo předmět.');
@@ -120,6 +132,28 @@ export function deriveValidationState(draft, schema = publicSchema) {
     if (draft.sentenceType !== 'imperative' || subjects.length !== 0) sentenceIssues.push('Nevyjádřený podmět je možný jen u rozkazovací věty bez explicitního podmětu.');
     if (!schema.allowsImplicitSubject?.(verbs[0], draft)) sentenceIssues.push('Dovolený imperativ pro nevyjádřený podmět musí určit dokončený slovesný model (#2/#4).');
   } else if (subjects.length !== 1) sentenceIssues.push('Věta musí mít právě jeden výslovný podmět.');
+  // Subject/predicate agreement (deterministic where derivable from normative data)
+  const subjectWord = subjects[0];
+  const predicateWord = predicates[0];
+  if (subjectWord && predicateWord && predicateWord.pos === 'verb') {
+    const vft = predicateWord.form?.verbFormType;
+    const nounModels = (globalThis.__normative?.noun_models) ?? {};
+    if (subjectWord.pos === 'noun') {
+      const subjModel = nounModels[subjectWord.model];
+      if (vft === 'present') {
+        const vPerson = predicateWord.form?.verbPerson;
+        if (vPerson && vPerson !== '3') sentenceIssues.push('Podmět je podstatné jméno; přítomný/budoucí slovesný tvar musí být ve 3. osobě.');
+      }
+      if (vft === 'lParticiple' && subjModel) {
+        const subjGender = subjModel.gender;
+        const subjNumber = subjectWord.form?.number;
+        const verbGender = predicateWord.form?.verbGender;
+        const verbNumber = predicateWord.form?.number;
+        if (verbGender && subjGender && verbGender !== subjGender) sentenceIssues.push(`Rod l-příčestí (${verbGender}) neodpovídá rodu podmětu (${subjGender}).`);
+        if (verbNumber && subjNumber && verbNumber !== subjNumber) sentenceIssues.push(`Číslo l-příčestí (${verbNumber}) neodpovídá číslu podmětu (${subjNumber}).`);
+      }
+    }
+  }
   const tokens = {};
   const identities = new Map();
   for (const w of draft.tokens) {
@@ -178,7 +212,7 @@ export function deriveValidationState(draft, schema = publicSchema) {
   const tokenIssueIds = new Set(sequence.issues.filter(i => i.id !== null).map(i => i.id));
   const charScore = draft.tokens.reduce((sum, w) => {
     const len = [...nfc(w.surface)].length;
-    if (w.kvaziPrefix === 'kvazi' && !tokenIssueIds.has(w.id)) return sum + (len - 5);
+    if (inferKvaziPrefix(w.surface) && !tokenIssueIds.has(w.id)) return sum + (len - 5);
     return sum + len;
   }, 0);
   return { sequence, syntax, sentenceIssues, tokens, structureOk, morphologyOk, sentenceOk, fullVerbOk,

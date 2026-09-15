@@ -106,10 +106,15 @@ try {
             exit;
         }
 
-        // Latest admin decision must be 'return'
+        // Latest admin decision for the latest revision must be 'return'.
+        // Scoped to revision_id so a return(rev1) cannot authorise rev3 once rev2 exists.
         $adChk = $db->prepare(
             'SELECT action FROM kvazi.administrative_decision
-              WHERE sentence_id = :sid
+              WHERE revision_id = (
+                  SELECT id FROM kvazi.sentence_revision
+                   WHERE sentence_id = :sid
+                   ORDER BY revision_no DESC LIMIT 1
+              )
               ORDER BY decided_at DESC LIMIT 1'
         );
         $adChk->execute([':sid' => $incomingSentenceId]);

@@ -28,10 +28,15 @@ if ($incomingSentenceId && ($user = auth_user()) !== null) {
         $rs->execute([':sid' => $incomingSentenceId, ':uid' => $user['id']]);
         $row = $rs->fetch(PDO::FETCH_ASSOC);
         if ($row) {
-            // Verify latest admin decision is 'return'
+            // Verify the latest admin decision for the latest revision is 'return'.
+            // Scoped to revision_id so a return(rev1) cannot authorise rev3 once rev2 exists.
             $ad = $db->prepare(
                 'SELECT action FROM kvazi.administrative_decision
-                  WHERE sentence_id = :sid
+                  WHERE revision_id = (
+                      SELECT id FROM kvazi.sentence_revision
+                       WHERE sentence_id = :sid
+                       ORDER BY revision_no DESC LIMIT 1
+                  )
                   ORDER BY decided_at DESC LIMIT 1'
             );
             $ad->execute([':sid' => $incomingSentenceId]);
@@ -46,6 +51,20 @@ if ($incomingSentenceId && ($user = auth_user()) !== null) {
         // Fall through — fresh editor
     }
 }
+// Normative data inlined for browser JS — loaded from active rules release.
+$normativeJson = '{}';
+$appRoot = dirname(__DIR__);
+try {
+    $ar = json_decode((string)@file_get_contents($appRoot . '/data/active-release.json'), true) ?? [];
+    $ver = $ar['version'] ?? '';
+    if ($ver) {
+        $nd = @file_get_contents($appRoot . "/data/rules/{$ver}/normative.json");
+        if ($nd !== false) {
+            $normativeJson = json_encode(json_decode($nd, true),
+                JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        }
+    }
+} catch (Throwable) {}
 ?>
 <!DOCTYPE html>
 <html lang="cs">
@@ -75,7 +94,8 @@ if ($incomingSentenceId && ($user = auth_user()) !== null) {
         <div class="sentence-entry">
           <div id="tokens" aria-label="Slova věty"></div>
           <input id="newSurface" class="word-input" type="text" autocomplete="off"
-                 spellcheck="false" aria-describedby="inputStatus" placeholder="Pište slova…">
+                 spellcheck="false" aria-label="Nové slovo (bez mezer)"
+                 aria-describedby="inputStatus" placeholder="Pište slova…">
         </div>
         <select id="insertPlace" hidden></select>
         <p id="inputStatus" role="status"></p>
@@ -98,6 +118,7 @@ if ($incomingSentenceId && ($user = auth_user()) !== null) {
   </div></section>
 </main>
 
+<script>window.__normative = <?= $normativeJson ?>;</script>
 <script>window.__resubmit = <?= $resubmitJson ?>;</script>
 <script type="module" src="/js/konfigurator/editor.mjs"></script>
 <?php include __DIR__ . '/includes/footer.php'; ?>

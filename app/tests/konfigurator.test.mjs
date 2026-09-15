@@ -1,9 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { publicSchema, getModel } from '../public/js/konfigurator/schema.mjs';
 import { createDraft, createToken, mutateDraft, inferKvaziPrefix } from '../public/js/konfigurator/state.mjs';
 import { validateTokenSequence, validateSyntax, deriveValidationState, previewDraft } from '../public/js/konfigurator/validation.mjs';
 import { validateForm } from '../public/js/konfigurator/morpho.mjs';
+
+// Initialise normative data from the active rules release before any morpho calls.
+const _appRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+const { version: _ndVersion } = JSON.parse(readFileSync(join(_appRoot, 'data/active-release.json'), 'utf8'));
+global.__normative = JSON.parse(readFileSync(join(_appRoot, `data/rules/${_ndVersion}/normative.json`), 'utf8'));
 
 // Synthetic schema for tests that require a verb model and controlled valency.
 // structuredClone cannot clone functions, so we clone only the plain-data parts.
@@ -156,6 +164,7 @@ test('predicate root, supplement, preposition and coordination specialized shape
   assert.equal(validateSyntax(d, schema).ok, true);
   w.relations.nominal = 't2'; assert.equal(validateSyntax(d, schema).ok, false);
   w.relations = { nominal: 't1' }; w.pos = 'preposition'; w.role = 'preposition'; w.surface = 'k';
+  d.tokens[0].form = { ...d.tokens[0].form, case: '3' }; // dative — required by 'k' government rule
   assert.equal(validateSyntax(d, schema).ok, true);
   w.relations.nominal = 't2'; assert.equal(validateSyntax(d, schema).ok, false);
   d = fixture();

@@ -256,6 +256,12 @@
     "V-OVAT": ["oval","ovala","ovalo","ovali","ovaly","ovala"]
   },
 
+  "preposition_case_government": {
+    "k": ["3"],
+    "v": ["4", "6"],
+    "z": ["2"]
+  },
+
   "relation_shapes": {
     "predicate":         [],
     "subject":           ["head"],

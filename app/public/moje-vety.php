@@ -9,9 +9,9 @@ if ($user === null) {
     exit;
 }
 
-// Load user's sentences: latest revision per sentence, with authoritative scores
-// from validation_result and latest admin decision from administrative_decision.
-$submissions = [];
+// Load all revisions for the user's sentences, each with its per-revision admin decision.
+// Ordered sentence DESC, revision DESC so the first row per sentence is the latest revision.
+$rawRows = [];
 try {
     $db   = kvazi_db();
     $stmt = $db->prepare(
@@ -25,29 +25,32 @@ try {
                 vr.char_score,
                 (SELECT action
                    FROM kvazi.administrative_decision
-                  WHERE sentence_id = s.id
+                  WHERE revision_id = sr.id
                   ORDER BY decided_at DESC
                   LIMIT 1
-                ) AS latest_action
+                ) AS revision_action
            FROM kvazi.sentence s
-           JOIN kvazi.sentence_revision sr
-             ON sr.sentence_id = s.id
-            AND sr.revision_no = (
-                    SELECT MAX(r2.revision_no)
-                      FROM kvazi.sentence_revision r2
-                     WHERE r2.sentence_id = s.id
-                )
+           JOIN kvazi.sentence_revision sr ON sr.sentence_id = s.id
            LEFT JOIN kvazi.validation_result vr
              ON vr.revision_id = sr.id
             AND vr.sentence_id = s.id
           WHERE s.user_id = :uid
-          ORDER BY sr.created_at DESC'
+          ORDER BY s.id DESC, sr.revision_no DESC'
     );
     $stmt->execute([':uid' => $user['id']]);
-    $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rawRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable) {
-    $submissions = [];
+    $rawRows = [];
 }
+
+// Group revisions by sentence; first row per sentence is the latest.
+$sentenceMap = [];
+foreach ($rawRows as $row) {
+    $sid = (int)$row['id'];
+    if (!array_key_exists($sid, $sentenceMap)) $sentenceMap[$sid] = [];
+    $sentenceMap[$sid][] = $row;
+}
+$sentences = array_values($sentenceMap);
 
 // Map administrative_decision.action → display label and badge class.
 // NULL action = no decision yet = pending.
@@ -115,7 +118,7 @@ $activePage = '';
         <p>Přehled všech tvých odeslaných soutěžních přihlášek.</p>
       </div>
 
-      <?php if (empty($submissions)): ?>
+      <?php if (empty($sentences)): ?>
         <div class="card-site">
           <div class="card-site-header">Zatím žádné přihlášky</div>
           <div class="card-site-body" style="color:var(--text-muted);font-size:13px">
@@ -125,32 +128,44 @@ $activePage = '';
         </div>
       <?php else: ?>
         <div class="submission-list">
-          <?php foreach ($submissions as $sub):
-            $draft   = json_decode($sub['draft_json'], true) ?? [];
-            $surface = sentenceSurface($draft);
-            $words   = (int)($sub['word_score'] ?? count($draft['tokens'] ?? []));
-            $chars   = (int)($sub['char_score'] ?? 0);
-            $action  = $sub['latest_action'] ?? null;
-            $st      = $statusLabel[$action] ?? ['label' => (string)$action, 'class' => 'badge-muted'];
-            $date    = (new DateTimeImmutable($sub['submitted_at']))->format('j. n. Y H:i');
-            $revNo   = (int)$sub['revision_no'];
+          <?php foreach ($sentences as $revisions):
+            $latest  = $revisions[0]; // first row = highest revision_no (DESC order)
+            $sentenceId = (int)$latest['id'];
+            $latestDraft = json_decode($latest['draft_json'], true) ?? [];
+            $surface = sentenceSurface($latestDraft);
+            $latestAction = $latest['revision_action'] ?? null;
+            $latestSt = $statusLabel[$latestAction] ?? ['label' => (string)$latestAction, 'class' => 'badge-muted'];
           ?>
             <div class="submission-card">
               <div class="submission-head">
-                <span class="submission-id">#<?= (int)$sub['id'] ?></span>
-                <?php if ($revNo > 1): ?>
-                  <span class="badge badge-muted" title="Revize <?= $revNo ?>">rev.<?= $revNo ?></span>
+                <span class="submission-id">#<?= $sentenceId ?></span>
+                <?php if (count($revisions) > 1): ?>
+                  <span class="badge badge-muted"><?= count($revisions) ?> revize</span>
                 <?php endif; ?>
-                <span class="badge <?= $st['class'] ?>"><?= htmlspecialchars($st['label']) ?></span>
-                <span class="submission-date"><?= $date ?></span>
+                <span class="badge <?= $latestSt['class'] ?>"><?= htmlspecialchars($latestSt['label']) ?></span>
               </div>
               <div class="submission-surface"><?= htmlspecialchars($surface) ?></div>
-              <div class="submission-meta">
-                <?= $words ?> slov &middot; <?= $chars ?> znaků &middot; schéma <?= htmlspecialchars($sub['rules_version']) ?>
-              </div>
-              <?php if ($action === 'return'): ?>
-                <div style="margin-top:8px">
-                  <a href="/konfigurator.php?sentenceId=<?= (int)$sub['id'] ?>"
+
+              <?php foreach ($revisions as $rev):
+                $revAction = $rev['revision_action'] ?? null;
+                $revSt = $statusLabel[$revAction] ?? ['label' => (string)$revAction, 'class' => 'badge-muted'];
+                $words = (int)($rev['word_score'] ?? count((json_decode($rev['draft_json'], true)['tokens'] ?? [])));
+                $chars = (int)($rev['char_score'] ?? 0);
+                $date  = (new DateTimeImmutable($rev['submitted_at']))->format('j. n. Y H:i');
+                $revNo = (int)$rev['revision_no'];
+              ?>
+                <div class="submission-revision" style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:12px;color:var(--text-muted)">
+                  <span style="font-weight:600">Rev.<?= $revNo ?></span>
+                  &middot; <?= $date ?>
+                  &middot; <?= $words ?> slov &middot; <?= $chars ?> znaků
+                  &middot; schéma <?= htmlspecialchars($rev['rules_version']) ?>
+                  &middot; <span class="badge <?= $revSt['class'] ?>" style="font-size:11px"><?= htmlspecialchars($revSt['label']) ?></span>
+                </div>
+              <?php endforeach; ?>
+
+              <?php if ($latestAction === 'return'): ?>
+                <div style="margin-top:10px">
+                  <a href="/konfigurator.php?sentenceId=<?= $sentenceId ?>"
                      class="btn btn-accent" style="font-size:13px">
                     Upravit a znovu odeslat
                   </a>

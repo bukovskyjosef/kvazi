@@ -18,14 +18,20 @@ class KvaziValidator {
     private string $version;
     private string $validatorVersion;
 
-    public function __construct(string $normativeJsonPath) {
+    public function __construct(string $normativeJsonPath, array $manifest) {
         $raw = file_get_contents($normativeJsonPath);
         if ($raw === false) {
             throw new RuntimeException("Nelze načíst normativní data: $normativeJsonPath");
         }
+        // Integrity check: SHA-256 must match manifest.
+        $actualHash = hash('sha256', $raw);
+        $expectedHash = $manifest['normative_hash'] ?? '';
+        if ($actualHash !== $expectedHash) {
+            throw new RuntimeException("Integrita normativních dat selhala. Očekáváno {$expectedHash}, nalezeno {$actualHash}.");
+        }
         $this->nd = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
         $this->version = $this->nd['version'];
-        $this->validatorVersion = '1.0.0';
+        $this->validatorVersion = $manifest['validator_version'] ?? '1.0.0';
     }
 
     public function getRulesVersion(): string { return $this->version; }
@@ -232,6 +238,17 @@ class KvaziValidator {
                 $nomTarget = isset($relations['nominal']) ? ($byId[$relations['nominal']] ?? null) : null;
                 if (!$nominal($nomTarget) || ($w['pos'] ?? '') !== 'preposition') {
                     $add('Předložka vyžaduje právě jednu vazbu na řízené jmenné slovo.');
+                } elseif ($nomTarget) {
+                    // k/v/z government: governed case must match normative rules.
+                    $prep = $this->folded($w['surface'] ?? '');
+                    $govRules = $this->nd['preposition_case_government'] ?? [];
+                    if (isset($govRules[$prep])) {
+                        $nomCase = $nomTarget['form']['case'] ?? null;
+                        if ($nomCase && !in_array($nomCase, $govRules[$prep], true)) {
+                            $govList = implode('. nebo ', $govRules[$prep]);
+                            $add("Předložka „{$prep}\" vyžaduje {$govList}. pád řízeného jmenného slova; použitý tvar je v {$nomCase}. pádu.");
+                        }
+                    }
                 }
             }
 
@@ -333,7 +350,8 @@ class KvaziValidator {
 
         $lemma   = mb_strtolower($this->nfc($w['lemma'] ?? ''), 'UTF-8');
         $surface = mb_strtolower($this->nfc($w['surface'] ?? ''), 'UTF-8');
-        $hasPrefix = !empty($w['kvaziPrefix']);
+        // Derive prefix server-side from surface; client-provided kvaziPrefix is ignored.
+        $hasPrefix = $this->inferKvaziPrefix($w['surface'] ?? '');
 
         if ($hasPrefix) {
             if (!str_starts_with($lemma, 'kvazi')) {
@@ -640,6 +658,11 @@ class KvaziValidator {
         $validPos = $this->nd['valid_pos'];
         if (!in_array($pos, $validPos, true)) $missing[] = 'Slovní druh.';
 
+        // Server-side: kvazi- prefix is normatively allowed only for nouns.
+        if ($this->inferKvaziPrefix($w['surface'] ?? '') && $pos !== 'noun') {
+            $missing[] = 'Prefix kvazi- je povolen pouze pro podstatná jména.';
+        }
+
         // Single-token POS cross-check
         $isPrep = in_array($foldedS, $singlePreps, true);
         $isConj = in_array($foldedS, $singleConjs, true);
@@ -726,7 +749,8 @@ class KvaziValidator {
         foreach ($tokens as $w) {
             $s = $this->nfc($w['surface'] ?? '');
             $len = $this->mbLen($s);
-            if (($w['kvaziPrefix'] ?? '') === 'kvazi' && !in_array($w['id'], $sequenceIssueIds, true)) {
+            // Derive prefix from surface, not from client payload.
+            if ($this->inferKvaziPrefix($w['surface'] ?? '') && !in_array($w['id'], $sequenceIssueIds, true)) {
                 $score += $len - $this->nd['kvazi_prefix_len'];
             } else {
                 $score += $len;
@@ -807,6 +831,46 @@ class KvaziValidator {
             $tokenResults[$w['id']] = ['missing' => $missing, 'formCheck' => $formCheck, 'issues' => []];
         }
 
+        // Subject/predicate agreement (deterministic where derivable)
+        $subjectWord   = null;
+        $predicateWord = null;
+        foreach ($tokens as $w) {
+            if (($w['role'] ?? '') === 'subject')   $subjectWord   = $w;
+            if (($w['role'] ?? '') === 'predicate') $predicateWord = $w;
+        }
+        if ($subjectWord && $predicateWord && ($predicateWord['pos'] ?? '') === 'verb') {
+            $vft     = $predicateWord['form']['verbFormType'] ?? '';
+            $nounModels = $this->nd['noun_models'];
+            if ($subjectWord['pos'] === 'noun') {
+                $subjModel = $nounModels[$subjectWord['model'] ?? ''] ?? null;
+                // Present/future: verb person must be 3rd for noun subject.
+                if ($vft === 'present') {
+                    $vPerson = $predicateWord['form']['verbPerson'] ?? '';
+                    if ($vPerson && $vPerson !== '3') {
+                        $sentenceIssues[] = 'Podmět je podstatné jméno; přítomný/budoucí slovesný tvar musí být ve 3. osobě.';
+                    }
+                }
+                // L-participle: gender and number must match subject noun.
+                if ($vft === 'lParticiple' && $subjModel) {
+                    $subjGender  = $subjModel['gender'];
+                    $subjNumber  = $subjectWord['form']['number'] ?? '';
+                    $verbGender  = $predicateWord['form']['verbGender'] ?? '';
+                    $verbNumber  = $predicateWord['form']['number'] ?? '';
+                    if ($verbGender && $subjGender) {
+                        $expectedVerbGender = $subjGender === 'masculine'
+                            ? ($subjModel['animacy'] === 'animate' ? 'masculine' : 'masculine')
+                            : $subjGender;
+                        if ($verbGender !== $expectedVerbGender) {
+                            $sentenceIssues[] = "Rod l-příčestí ({$verbGender}) neodpovídá rodu podmětu ({$expectedVerbGender}).";
+                        }
+                    }
+                    if ($verbNumber && $subjNumber && $verbNumber !== $subjNumber) {
+                        $sentenceIssues[] = "Číslo l-příčestí ({$verbNumber}) neodpovídá číslu podmětu ({$subjNumber}).";
+                    }
+                }
+            }
+        }
+
         // Unique IDs check
         $ids = array_column($tokens, 'id');
         if (count(array_unique($ids)) !== count($ids) || in_array('', $ids, true) || in_array(null, $ids)) {
@@ -867,6 +931,7 @@ class KvaziValidator {
 /**
  * Načte aktivní rules release a vrátí inicializovaný validátor.
  * Hledá normativní data relativně k $appRoot (= adresář app/).
+ * Načte manifest.json, ověří integritu normative.json a předá manifest konstruktoru.
  */
 function kvazi_load_validator(string $appRoot): KvaziValidator {
     $activeReleaseFile = $appRoot . '/data/active-release.json';
@@ -877,9 +942,15 @@ function kvazi_load_validator(string $appRoot): KvaziValidator {
     $version = $activeRelease['version'] ?? '';
     if (!$version) throw new RuntimeException("active-release.json neobsahuje pole version.");
 
+    $manifestPath = $appRoot . "/data/rules/{$version}/manifest.json";
+    if (!file_exists($manifestPath)) {
+        throw new RuntimeException("Manifest rules verze „{$version}\" nenalezen: $manifestPath");
+    }
+    $manifest = json_decode(file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+
     $normativePath = $appRoot . "/data/rules/{$version}/normative.json";
     if (!file_exists($normativePath)) {
         throw new RuntimeException("Normativní data rules verze „{$version}\" nenalezena: $normativePath");
     }
-    return new KvaziValidator($normativePath);
+    return new KvaziValidator($normativePath, $manifest);
 }

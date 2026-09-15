@@ -1,9 +1,9 @@
 {
   "version": "public-1",
-  "normative_hash": "fbd6c653e33d0e561e8d532ef29633812441bc1ffcd92aef9291d7081a9fbbca",
+  "normative_hash": "3d3efe9df1ed04f13396dd4dee4315da84f76f5a5cf3101b6d9264897cfaec1d",
   "normative_file": "normative.json",
   "validator_version": "1.0.0",
   "activated_at": "2026-09-15T00:00:00Z",
-  "description": "První veřejná rules verze. Obsahuje normativní morfologická paradigmata, DFA motivové pravidlo, whitelist znaků, auxiliary být, scoring a relation shapes.",
+  "description": "První veřejná rules verze. Obsahuje normativní morfologická paradigmata, DFA motivové pravidlo, whitelist znaků, auxiliary být, scoring, relation shapes a rekci předložek k/v/z.",
   "_integrity_note": "normative_hash = SHA-256 normative.json. Každá změna normative.json schopná změnit verdict vyžaduje nový rules release s novou verzí."
 }

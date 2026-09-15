@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { validateForm, _NOUN_MODELS, _ADJ_MODELS, _VERB_MODELS, nounStem } from '../public/js/konfigurator/morpho.mjs';
+
+// Initialise normative data from the active rules release before any morpho calls.
+const _appRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+const { version: _ndVersion } = JSON.parse(readFileSync(join(_appRoot, 'data/active-release.json'), 'utf8'));
+global.__normative = JSON.parse(readFileSync(join(_appRoot, `data/rules/${_ndVersion}/normative.json`), 'utf8'));
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -137,9 +145,9 @@ test('noun with kvaziPrefix strips prefix before validation', () => {
   const w2 = noun('kvazikvaz', 'hrad', 1, 'singular', 'kvaz');
   w2.kvaziPrefix = 'true';
   assert.equal(validateForm(w2).ok, false);
-  // lemma must start with 'kvazi' when prefix used
-  const w3 = noun('kvaz', 'hrad', 1, 'singular', 'kvaz');
-  w3.kvaziPrefix = 'true';
+  // surface carries kvazi prefix but lemma does not start with 'kvazi' → validation fails
+  // (kvaziPrefix field is ignored; prefix is always inferred from surface)
+  const w3 = noun('kvaz', 'hrad', 1, 'singular', 'kvazikvaz');
   assert.equal(validateForm(w3).ok, false);
 });
 

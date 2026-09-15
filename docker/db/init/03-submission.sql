@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS kvazi.rules_release (
 INSERT INTO kvazi.rules_release (version, normative_hash, validator_version, activated_at, description)
 VALUES (
     'public-1',
-    'fbd6c653e33d0e561e8d532ef29633812441bc1ffcd92aef9291d7081a9fbbca',
+    '3d3efe9df1ed04f13396dd4dee4315da84f76f5a5cf3101b6d9264897cfaec1d',
     '1.0.0',
     '2026-09-15T00:00:00Z',
-    'První veřejná rules verze. Normativní morfologická paradigmata, DFA motivové pravidlo, whitelist znaků, auxiliary být, scoring a relation shapes.'
+    'První veřejná rules verze. Normativní morfologická paradigmata, DFA motivové pravidlo, whitelist znaků, auxiliary být, scoring, relation shapes a rekce předložek k/v/z.'
 )
 ON CONFLICT (version) DO NOTHING;
 

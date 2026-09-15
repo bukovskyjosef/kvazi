@@ -33,6 +33,7 @@ services:
       DB_PASS: kvazi
     volumes:
       - ./app/public:/var/www/html:ro
+      - ./app/data:/var/www/data:ro
     ports:
       - "8080:80"
 
