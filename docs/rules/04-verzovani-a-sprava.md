@@ -2,6 +2,10 @@
 
 > **Status:** normativní procesní pravidla.
 
+## Místo v normativním balíku
+
+Tento dokument je autoritativní **pro verzování, revalidaci a správu normativního balíku a soutěžních výsledků**. Obecnou soutěžní platnost řeší `02-rozhodcovska-specifikace.md`, práci s AI a nástroji `03-ai-policy.md` a přesnou mechaniku jednotlivých oblastí NORMATIVNÍ moduly `../kvazitahak/01-07`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 ## Verze pravidel
 Každé zveřejněné znění pravidel má jednoznačnou `rules_version`. Společně se verzují rozhodcovská specifikace, AI/tool policy, výslovně normativní části kvazitaháku a další pravidlové artefakty.
 
