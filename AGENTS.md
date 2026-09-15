@@ -21,16 +21,20 @@ Nikdy nepoužívej historii chatu, starou auditní zprávu ani ručně udržovan
 
 ### Soutěžní platnost
 
-Kanonické normativní zdroje mají rozdělené oblasti odpovědnosti:
+**Neexistuje jeden soubor „úplných pravidel“.** Kanonický normativní balík má rozdělené oblasti odpovědnosti:
 
 1. `docs/rules/02-rozhodcovska-specifikace.md` – obecná pravidla soutěžní platnosti,
 2. výslovně označené **NORMATIVNÍ** části `docs/kvazitahak/` – přesná morfologie, paradigmata a další mechanika konkrétních modulů,
 3. `docs/rules/03-ai-policy.md` – používání AI a nástrojů,
 4. `docs/rules/04-verzovani-a-sprava.md` – verzování a správa.
 
+Spravovaný katalog skutečných slov má zvláštní lexikální autoritu pouze v rozsahu, který mu tento normativní balík výslovně svěřuje.
+
 Tyto zdroje se nemají významově duplikovat. Konflikt mezi nimi je dokumentační/governance defect; agent jej nesmí vyřešit vlastním výkladem. Konečné rozhodnutí dává Josef a dotčené artefakty se následně sjednotí.
 
 `docs/rules/01-jak-hrat.md` je veřejná vysvětlující vrstva a nesmí vytvářet nové pravidlo. `docs/kvazitahak/00-hracsky-tahak.md` je praktický hráčský rozcestník; normativní jsou pouze výslovně označené části detailních modulů.
+
+Každý hráčský vstup a každý normativní dokument balíku musí u svého začátku obsahovat stručnou sekci **„Místo v normativním balíku“**. Tato sekce popisuje jen roli daného dokumentu a jeho nejbližší sousední artefakty; nesmí kopírovat úplnou mapu autority.
 
 ### Technická implementace
 
@@ -38,7 +42,7 @@ Architektura, databázové návrhy, UI, validátor, interní katalog a aplikačn
 
 ### Mapa autority
 
-Detailní klasifikace všech artefaktů je pouze v `docs/README.md`. Neudržuj její kopii v dalších README.
+Detailní klasifikace všech artefaktů je **pouze** v `docs/README.md`. Neudržuj její úplnou kopii v dalších README ani v lokálních sekcích „Místo v normativním balíku“.
 
 ## 3. GitHub Issues jsou jediný živý backlog
 
@@ -129,10 +133,11 @@ Před uzavřením issue nebo označením práce za hotovou:
 
 1. aktualizuj všechny dotčené canonical artefakty,
 2. odstraň nebo oprav zastaralé odvozené tvrzení,
-3. proveď kontrolu konzistence,
-4. spusť relevantní testy/validace, pokud existují,
-5. ověř finální diff,
-6. zapiš výsledek do issue,
-7. až potom issue zavři správným důvodem.
+3. zkontroluj, že dotčené hráčské/normativní dokumenty mají správnou lokální sekci „Místo v normativním balíku“,
+4. proveď kontrolu konzistence,
+5. spusť relevantní testy/validace, pokud existují,
+6. ověř finální diff,
+7. zapiš výsledek do issue,
+8. až potom issue zavři správným důvodem.
 
 Issue se nezavírá jen proto, že bylo rozhodnuto; zavírá se až po zapracování.
