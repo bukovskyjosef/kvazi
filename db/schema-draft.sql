@@ -30,7 +30,8 @@
 --    - immutable manifest items + per-artifact hash
 --    - optional manifest hash and Git commit/tag metadata
 --    - versioned normative enums/models/paradigms
---    See #9.
+--    - closed normative auxiliary `byt` forms are rules data, not real-word catalog data
+--    See #9, #83.
 
 -- 2. Registered users and auth
 --    - one user account table with unique username + unique private email
@@ -38,11 +39,12 @@
 --    - roles USER / ADMIN on the same account identity
 --    - password-reset tokens stored only in safe derived form
 --    - session/recovery/security model
+--    - one account may represent one person or a collective; do not model coauthors
 --    There is NO separate admin_user table and NO magic-link login.
---    See #35, #36.
+--    See #35, #36, #81.
 
 -- 3. Sentences, drafts and immutable submissions
---    - sentence = long-lived container bound to author user_id
+--    - sentence = long-lived container bound to exactly one owning user_id
 --    - editable draft
 --    - each submit creates immutable sentence_revision
 --    - review/submission verdicts bind to a revision, never only to sentence
@@ -50,7 +52,7 @@
 --        DECLARATIVE -> '.'
 --        INTERROGATIVE -> '?'
 --        IMPERATIVE -> '!'
---    See #8, #61.
+--    See #8, #61, #81.
 
 -- 4. Token/word occurrence declarations
 --    - stable token ID inside one immutable revision
@@ -58,18 +60,27 @@
 --    - player-declared analysis stored separately from all resolved/catalog truth
 --    - complete competition identity + concrete-used-form morphology
 --    - NO required full hand-filled paradigm after #86
+--    - for prefixed nouns, explicit kvaziPrefix = none|kvazi (or equivalent)
+--      plus separately represented base noun identity; do not infer the special
+--      prefix merely from a surface string starting with "kvazi"
+--    - a written auxiliary `byt` form is a real sentence token: surface-valid and
+--      score-bearing, sharing one competition identity `byt`, but syntactically
+--      belonging to the same single predicate as the full-content verb
+--    - auxiliary `byt` is a normative closed exception and does NOT use the
+--      real-word catalog
 --    - structured evidence/source links where required
---    See #86, #87, #63.
+--    See #79, #83, #86, #87, #63.
 
 -- 5. Syntax
 --    - ordinary dependent member: exactly one head
---    - predicate: no head
+--    - predicate: no head; exactly one full-content verb token, with normative
+--      auxiliary `byt` token(s) allowed only as part of that same predicate
 --    - supplement: predicate + subject/object links
 --    - coordination: two distinct member links
 --    - prepositions k/v/z: technical preposition role + exactly one governed nominal link;
 --      no main sentence function on the preposition itself
 --    - DB constraints must prevent links across sentence revisions
---    See #63, #85.
+--    See #63, #83.
 
 -- 6. Real-word catalog (LEXICAL AUTHORITY)
 --    - separate domain/entity from internal morphology review cache
@@ -115,8 +126,13 @@
 --    - ordered revision tokens + sentence-type punctuation are source of truth
 --    - cached sentence text / normalized text / score, if stored, are server-generated
 --      and must be deterministically checkable against canonical data
---    - prefix kvazi- scoring follows current normative rules
---    See #77, #83.
+--    - every written competition sign scores normally (Q=1, KV=2) except exactly
+--      the five signs of a normatively declared noun prefix `kvazi-`, which score 0
+--    - prefixed noun remains one word in primary score
+--    - auxiliary `byt` is a separate word and its written signs score normally
+--    - score exemption must depend on the explicit normative prefix declaration,
+--      never on a mere string-prefix heuristic
+--    See #7, #8, #83.
 
 -- 10. Admin audit
 --    - admin is user_account with ADMIN role
@@ -132,10 +148,13 @@
 -- - commenter_identity / email_hmac / public_alias
 -- - comment_magic_link
 -- - separate admin_user identity
+-- - coauthor / coauthor M:N / freeform coauthor identities
 -- - public/pre-submit INTERNAL REVIEW CACHE membership endpoint
 -- - real-word catalog browse/export/autocomplete/prefix search
 -- - automatic inheritance of review-cache approvals across rules versions
 -- - required full player-entered morphology paradigm
+-- - treating `kvazi` surface prefix as score-neutral without the normative prefix flag
+-- - hiding written auxiliary `byt` inside a verb record instead of storing its token
 
 -- -----------------------------------------------------------------------------
 -- CURRENT IMPLEMENTATION GATES
@@ -145,9 +164,11 @@
 -- 2. Implement the already-decided separation of real-word catalog and
 --    internal morphology review cache in production schema (#6/#8/#9; decision #80).
 -- 3. Implement simplified morphology declaration (#86/#87).
--- 4. Resolve remaining current high-priority architecture issues before final DDL,
---    especially #81, #83 and #85 where they affect schema.
--- 5. Review concrete MVP query paths and indexes with EXPLAIN before production.
+-- 4. Implement the closed #79/#83 prefix and auxiliary semantics exactly as
+--    represented in docs/architecture/02-database-model.md and #7/#8.
+-- 5. Preserve single-account authorship from #81 and free-text valence from #85;
+--    do not reintroduce coauthor or structured-valence-slot models.
+-- 6. Review concrete MVP query paths and indexes with EXPLAIN before production.
 --
 -- Until these gates are satisfied, this file is a schema design checklist,
 -- not an executable migration.
