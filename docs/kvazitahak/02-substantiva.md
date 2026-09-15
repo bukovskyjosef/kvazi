@@ -2,6 +2,10 @@
 
 > **Status:** seznam vzorů i jejich přesná normativní paradigmata jsou pro první rules verzi zmrazeny.
 
+## Místo v normativním balíku
+
+Tento modul je autoritativní **pro soutěžní substantivní modely, tvorbu kmene a jejich úplná paradigmata**. Obecná pravidla platnosti řeší `../rules/02-rozhodcovska-specifikace.md`; syntaxi, adjektiva, slovesa, valenci, hraniční pravidla a prefix `kvazi-` řeší ostatní NORMATIVNÍ moduly `01` a `03-07`; AI a verzování mají vlastní dokumenty v `../rules/`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 ## NORMATIVNÍ: princip soutěžního modelu
 
 Názvy `pán`, `muž`, `předseda`, `soudce`, `hrad`, `stroj`, `žena`, `růže`, `píseň`, `kost`, `město`, `moře`, `kuře` a `stavení` jsou názvy **uzavřených soutěžních morfologických modelů inspirovaných českými vzory**.
