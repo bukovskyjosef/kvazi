@@ -40,13 +40,17 @@ Pravidlo práce s nástroji je jednoduché: nástroj může pomoci studovat, po�
 
 Soutěžní aplikace má mechanicky kontrolovat jen to, co lze deterministicky ověřit. Učící se morfologický katalog může šetřit opakované posuzování, ale nesmí vytvářet nové jazykové pravidlo.
 
-## Veřejnost vs. rozhodčí
+## Veřejnost, hráčská cesta a normativní balík
 
-Dokumentace má tři vrstvy:
+Hráčská dokumentace má tři navazující vrstvy:
 
 1. **Jak hrát** – rychlý vstup pro nováčka.
-2. **Kvazitahák** – soutěžní tabulky, povolené modely a běžné příklady.
-3. **Rozhodcovská specifikace** – úplná pravidla, důkazní režim, hraniční scénáře a proces.
+2. **Hráčský tahák** – praktický rozcestník.
+3. **Přesné moduly kvazitaháku** – tabulky a konkrétní mechanika podle potřeby.
+
+Vedle této hráčské cesty existuje **kanonický normativní balík**. Žádný jednotlivý soubor není „úplná pravidla“ sám o sobě: rozhodcovská specifikace řeší obecnou soutěžní platnost, NORMATIVNÍ moduly kvazitaháku přesnou mechaniku svých oblastí, AI policy práci s nástroji a dokument verzování lifecycle pravidel. Úplnou mapu jejich autority udržuje pouze `docs/README.md`.
+
+Každý hráčský a normativní dokument u svého začátku stručně uvádí **Místo v normativním balíku**, aby bylo ihned zřejmé, co řeší on a které sousední artefakty tvoří zbytek celku.
 
 Hráč nemá být nucen studovat technickou normu českého jazyka jen proto, aby mohl začít hrát.
 
