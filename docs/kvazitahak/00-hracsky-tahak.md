@@ -104,9 +104,13 @@ Stejnou soutěžní identitu nelze ve větě použít dvakrát, ani když změn�
 
 ## 8. Co odevzdáváš
 
-U každého slova deklaruješ konkrétní tvar, slovní druh, lemma/základ, soutěžní model tam, kde existuje, morfologické vlastnosti konkrétního tvaru, soutěžní identitu, skutečné/kvazi zařazení, syntaktickou funkci a potřebné vazby. U slovesa navíc vid a slovní valenční obhajobu.
+U každého slova deklaruješ konkrétní tvar, slovní druh, lemma/základ, soutěžní model tam, kde existuje, morfologické vlastnosti **konkrétního použitého tvaru**, soutěžní identitu, skutečné/kvazi zařazení, syntaktickou funkci a potřebné vazby. U slovesa navíc vid a slovní valenční obhajobu.
 
-Formulář může mechanicky kontrolovat znaky, úplnost a veřejné strukturální invarianty. Jazykový verdikt dává až rozhodcovské posouzení.
+**Celé paradigma ani nepoužité tvary ručně nevyplňuješ.** Normativní tabulky zůstávají úplným pravidlem hry, ale systém je používá k deterministické kontrole tvého konkrétního návrhu. Z údajů identity a vlastností použití spočítá právě jeden očekávaný tvar a porovná jej s tvarem, který jsi skutečně zadal.
+
+Jinými slovy: hráč prokazuje **identitu + konkrétní použití**, ne celé chování slova ve všech ostatních pádech, číslech, rodech nebo slovesných tvarech.
+
+Formulář může mechanicky kontrolovat znaky, úplnost, deterministicky odvoditelnou morfologii konkrétního použitého tvaru a veřejné strukturální invarianty. Nesmí z těchto tabulek hledat ani navrhovat kandidátní řešení. Významové a jiné nedeterministické jazykové otázky zůstávají rozhodcovskému posouzení.
 
 ## 9. Nástroje, AI a navazování
 
