@@ -1,5 +1,7 @@
 # Kompletní auditní zpráva – 2026-09-14
 
+> **HISTORICKÝ / SUPERSEDED SNAPSHOT — 2026-09-14.** Tato zpráva zachycuje stav projektu a závěry auditu k 14. 9. 2026. **Není zdrojem aktuálního backlogu, aktuálního stavu issues ani současného celkového verdiktu projektu.** Aktuální práci vždy ověřuj přímo v GitHub Issues a aktuální soutěžní pravidla v současném normativním balíku podle `docs/README.md`. Historický obsah níže se záměrně nepřepisuje podle pozdějšího vývoje.
+
 > **Status:** nenormativní auditní zpráva. Neprovádí produktová ani pravidlová rozhodnutí. Slouží jako podklad pro revizi otevřených `[DECISION]` issues, auditních nálezů a následný plán řešení.
 
 ## 1. Účel zprávy
