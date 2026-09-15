@@ -140,13 +140,15 @@ Reachability je analytická informace, nikoli normativní filtr. Normativně pov
 - Nepravidelnost nebo defektivnost skutečného zájmena sama nevadí, protože se z ní nevytváří produktivní model pro nová slova.
 - Reachability není filtr zájmenné kategorie ani její viditelnosti v UI.
 
-### Veřejný detail schváleného řešení — rozhodnutí #73
+### Veřejný detail schváleného řešení — rozhodnutí #73 + #81
 
 Veřejně se zobrazuje lehký, srozumitelný rozbor, nikoli úplný rozhodcovský spis.
 
-U výsledku se zveřejňuje zejména věta, počet slov, počet soutěžních znaků a autor / spoluautoři. V detailu jednotlivého slova lze zveřejnit použitý tvar, skutečné slovo / kvazislovo, slovní druh, lemma, soutěžní model, základní vlastnosti použitého tvaru a hlavní syntaktickou roli / jednoduché vazby.
+U výsledku se zveřejňuje zejména věta, počet slov, počet soutěžních znaků a veřejná identita (`username`) jednoho registrovaného účtu, který podání vlastní a odevzdal. Samostatní spoluautoři ani identity osob za účtem se neevidují. Registrovaný účet může reprezentovat jednotlivce i kolektiv.
 
-Kompletní paradigma, úplná morfologická obhajoba, detailní důkazní podklady, interní katalogové stavy a úplný admin/judge review zůstávají neveřejné.
+V detailu jednotlivého slova lze zveřejnit použitý tvar, skutečné slovo / kvazislovo, slovní druh, lemma, soutěžní model, základní vlastnosti použitého tvaru a hlavní syntaktickou roli / jednoduché vazby.
+
+Kompletní paradigma, úplná morfologická obhajoba, detailní důkazní podklady, interní katalogové stavy, úplný admin/judge review a identita jednotlivých osob za účtem zůstávají neveřejné; systém posledně uvedenou identitu ani nemá požadovat.
 
 ## Nástroje, AI, férovost a autorství
 
@@ -159,11 +161,14 @@ Kompletní paradigma, úplná morfologická obhajoba, detailní důkazní podkla
 - Dodržování stojí na důvěře; projekt nevyžaduje logy, screenshoty, historii promptů, pracovní deníky ani jiný dohledový důkaz.
 - Projekt nevede disciplinární nebo forenzní řízení o tom, jak hráč řešení hledal.
 
-### Autorství a spolupráce — rozhodnutí #69
+### Autorství a spolupráce — rozhodnutí #69, upravené #81
 
 - Kvazi je otevřený kumulativní problém.
 - Zveřejněné schválené řešení, jednotlivé kvazislovo, konstrukci nebo jiný zveřejněný nápad smí kdokoli použít, upravit nebo rozvíjet.
 - Na jednotlivé herní nápady se nezavádí výlučné vlastnictví.
-- Lidé smějí řešení konzultovat a tvořit společně; jedno podání může mít více spoluautorů bez procentuálních podílů.
+- Na řešení může fakticky spolupracovat libovolný počet lidí; soutěž jejich počet ani identity nesleduje.
+- Každé podání vlastní a odevzdává právě jeden registrovaný účet.
+- Registrovaný účet může reprezentovat jednotlivce i libovolný kolektiv a registrační e-mail může patřit jednotlivci nebo skupině.
+- Systém neeviduje samostatné spoluautory, jejich identity ani podíly; veřejná atribuce používá pouze `username` registrovaného účtu.
 - Přesné duplicitní řešení je dovoleno; při shodném primárním i sekundárním skóre jde o společný rekord a pořadí podání nerozhoduje.
-- Pravidla nevyšetřují nezávislé znovuobjevení oproti převzetí zveřejněného nápadu.
+- Pravidla nevyšetřují nezávislé znovuobjevení oproti převzetí zveřejněného nápadu ani personální složení lidí za účtem.
