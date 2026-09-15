@@ -30,6 +30,7 @@ Pouhé označení členu názvem povolené funkce nestačí. Každý člen musí
 Vedle lokálních testů jednotlivých členů musí celá analýza splnit také toto minimum:
 
 - existuje právě jeden přísudek jako jediný kořen hlavní predikační osy,
+- přísudek obsahuje právě jeden plnovýznamový slovesný token; u normativně povoleného složeného slovesného tvaru může obsahovat také povolený pomocný token nebo tokeny `být` podle `04-slovesa.md`, které nejsou dalším přísudkem ani dalším plnovýznamovým slovesem,
 - všechny ostatní větné členy jsou zapojeny do jedné propojené syntaktické analýzy této věty,
 - syntaktické závislosti nesmějí tvořit kruh,
 - podmět a přísudek musí být v kategoriích, v nichž to současná spisovná čeština vyžaduje, v běžné morfosyntaktické shodě,
@@ -62,9 +63,11 @@ Závislé členy uvnitř podmětové skupiny nejsou dalšími podměty. Koordina
 ### Přísudek
 
 - **Vazba:** je kořenem hlavní predikační osy; výslovný podmět a další slovesné členy odkazují k němu podle své funkce.
-- **Test:** je tvořen jediným povoleným tokenem plnovýznamového slovesa a nese jedinou hlavní výpověď věty?
+- **Test:** obsahuje právě jeden povolený token plnovýznamového slovesa, případně spolu s normativně povoleným pomocným `být` tvoří jediný složený slovesný tvar podle `04-slovesa.md`, a nese jedinou hlavní výpověď věty?
 - **Povinnost:** právě jeden.
 - **Běžná analogie:** `Pes spí.`
+
+Pomocný token `být` je samostatné soutěžní slovo pro povrchovou validaci a skóre, ale syntakticky je součástí téhož jediného přísudku; nevytváří druhý přísudek ani druhé plnovýznamové sloveso.
 
 ### Předmět
 
