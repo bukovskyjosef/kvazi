@@ -23,9 +23,12 @@ Preferovaný princip: **Keep It Simple**.
 1. **Veřejný obsah** – pravidla, kvazitahák, aktuální a historické schválené věty.
 2. **Uživatelské účty** – registrace, přihlášení, reset hesla a role `USER` / `ADMIN`.
 3. **Soutěžní podání** – editovatelný draft a immutable revize věty se strukturovanou morfologií, syntaxí, zdroji a obhajobou.
-4. **Mechanický validátor** – živá deterministická kontrola veřejných znakových a strukturálních pravidel; neveřejná katalogová kontrola až po uzamčení podání.
-5. **Interní učící se katalog** – neveřejná znalostní báze `APPROVED / REJECTED / UNKNOWN` pro konkrétní `rules_version`.
-6. **Administrace** – review podání, rozhodování neznámých katalogových položek, revalidace a auditní stopa.
+4. **Mechanický validátor** – živá deterministická kontrola veřejných znakových, strukturálních a odvoditelných morfologických pravidel nad konkrétním hráčovým návrhem.
+5. **Katalog skutečných slov** – samostatná lexikální autorita pro status skutečné slovo / kvazislovo; hráči poskytuje pouze exact-match kontrolu kompletního vlastního návrhu.
+6. **Interní morfologická review cache** – neveřejná `rules_version`-scoped paměť `APPROVED / REJECTED / UNKNOWN` pro opakované rozhodcovské posouzení.
+7. **Administrace** – review podání, správa katalogu skutečných slov, rozhodování `UNKNOWN` položek review cache, revalidace a auditní stopa.
+
+Katalog skutečných slov a interní review cache jsou dvě oddělené autority s odlišným lifecyclem a nesmějí být slity do jednoho katalogového stavu.
 
 Komentáře nejsou součástí MVP.
 
@@ -55,16 +58,13 @@ Veřejně je dostupný pouze detail revize, která má publikovatelné schválen
 
 Zobrazuje zejména:
 - text věty,
-- autora (`username`),
+- autora (`username`) / spoluautory podle aktuálního produktového rozhodnutí,
 - skóre pro zvolenou verzi pravidel,
 - verzi pravidel a stav validace,
 - datum,
-- analýzu každého slova,
-- soutěžní identitu,
-- morfologii,
-- syntaxi,
-- obhajobu a zdroje,
-- fiktivní význam / kvazietymologii.
+- u každého slova použitý tvar, skutečné/kvazi zařazení, slovní druh, lemma/základ, soutěžní model, základní morfologické vlastnosti konkrétního použití a hlavní syntaktickou roli / jednoduché vazby.
+
+Kompletní paradigma, úplná morfologická obhajoba, detailní důkazní podklady, interní stav review cache a úplný admin review nejsou veřejnou součástí detailu.
 
 ## Uživatelské účty
 
@@ -97,17 +97,23 @@ Uživatel explicitně deklaruje typ věty:
 
 Tato vazba je deterministický validační invariant. Rozkazovací věta může podle pravidel použít dovolený nevyjádřený podmět imperativu.
 
-Po zadání slov následuje povinná strukturovaná analýza slovo po slově. U každého výskytu slova formulář vyžaduje podle aktuálního field schema zejména:
+Po zadání slov následuje povinná strukturovaná analýza slovo po slově. U každého výskytu slova formulář podle aktuálního field schema vyžaduje zejména:
 - slovní druh,
-- úplnou morfologickou identifikaci podle zvoleného soutěžního modelu,
-- soutěžní identitu a konkrétní použitý tvar,
-- celé uživatelem navržené paradigma tam, kde jej pravidla/form schema vyžadují,
-- explicitní potvrzení „Potvrzuji, že toto je můj morfologický návrh.“ svázané s aktuálním snapshotem návrhu,
+- úplnou soutěžní identitu podle zvoleného modelu,
+- lemma / základní tvar,
+- morfologické vlastnosti konkrétního použitého tvaru,
+- konkrétní použitý `surfaceForm`,
 - hlavní větnou funkci nebo technickou roli funkčního slova,
 - všechny povinné odkazy na konkrétní další výskyty slov,
 - minimální obhajobu a zdroje vyžadované pravidly.
 
-Předvyplnění buněk paradigmatu aktuálním povrchovým tvarem je pouze UX zkratka; není to jazykový návrh ani schválení systému.
+Podle rozhodnutí #86 hráč ručně nevyplňuje celé paradigma ani nepoužité tvary. Normativní tabulky systém používá k deterministickému ověření konkrétního deklarovaného tvaru.
+
+### Exact-match kontrola skutečného slova
+
+Po vyplnění kompletní identity a konkrétního použitého tvaru může hráč požádat o exact-match kontrolu proti **katalogu skutečných slov**. Výsledek smí pouze potvrdit, že přesně tato kombinace už je v katalogu uznaná jako skutečné slovo. Nesmí nabízet možné identity, autocomplete, podobná slova ani alternativy.
+
+Tato kontrola je odlišná od interní morfologické review cache. Stav review cache se hráči před submittem nikdy nezobrazuje ani nedotazuje jako membership oracle.
 
 ### Syntaxe
 UI nabízí uzavřený seznam hlavních syntaktických funkcí. Odborný významový podtyp není povinný whitelist.
@@ -122,9 +128,9 @@ Povinnou vazbu nelze nahradit volným textem.
 
 ## Hranice živé validace
 
-Během editace formulář smí kontrolovat pouze zveřejněná mechanická a strukturální pravidla a úplnost deklarace. Neověřuje jazykovou správnost skloňování, časování, valence, syntaktické interpretace ani významové obhajoby.
+Během editace formulář smí kontrolovat zveřejněná mechanická a strukturální pravidla, úplnost deklarace a deterministicky odvoditelnou morfologii konkrétního hráčova návrhu. Nesmí generovat kandidáty, navrhovat jiný model nebo řešit valenci, významové či nedeterministické syntaktické spory za hráče.
 
-Formulář nikdy před submittem neprozrazuje, zda interní katalog konkrétní slovo, tvar nebo identitu zná. Hráč proto vždy vyplňuje stejnou úplnou požadovanou deklaraci a důkazy bez ohledu na stav katalogu.
+Exact-match kontrola katalogu skutečných slov je zvláštní povolený lookup kompletního vlastního návrhu. Naproti tomu interní review cache je vždy neveřejná a její membership se před submittem neprozrazuje.
 
 Pokud pravidly přípustný případ formulář neumí reprezentovat, přímo ve formuláři je viditelná informace o možnosti kontaktovat rozhodčího e-mailem. Pro MVP se nezavádí speciální fallback workflow ani zvláštní stav podání.
 
@@ -132,7 +138,7 @@ Pokud pravidly přípustný případ formulář neumí reprezentovat, přímo ve
 
 `sentence` je dlouhodobý kontejner autorského řešení. Běžná práce probíhá v editovatelném draftu.
 
-Každé konečné odeslání vytvoří **immutable `sentence_revision`** – přesný snapshot textu, pořadí slov, strukturovaných deklarací, paradigmatu, syntaxe, zdrojů, obhajoby, typu věty, autora a času submitu.
+Každé konečné odeslání vytvoří **immutable `sentence_revision`** – přesný snapshot textu, pořadí slov, strukturovaných deklarací, syntaxe, zdrojů, obhajoby, typu věty, autora a času submitu. Normativně odvoditelné nepoužité tvary paradigmatu nejsou povinnou součástí hráčova snapshotu.
 
 Admin ani validační systém nikdy nerozhodují nad proměnlivým draftem. Všechny verdicty odkazují na konkrétní revizi. Pokud je podání vráceno k doplnění, stará revize zůstává nedotčena a další odeslání vytvoří revizi novou.
 
@@ -141,27 +147,33 @@ Nová verze pravidel nevytváří novou revizi věty; nad stejnou immutable revi
 ## MVP schvalovací workflow
 
 1. Registrovaný uživatel odešle draft; vznikne immutable revize.
-2. Backend provede veřejné deterministické kontroly znovu server-side.
-3. Nad uzamčenou revizí proběhne neveřejný lookup každé relevantní soutěžní identity/tvaru v katalogu pro danou `rules_version`.
-4. `APPROVED` se pro tutéž verzi pravidel znovu použije automaticky.
-5. `REJECTED` poskytne adminovi existující negativní rozhodnutí a důvod.
-6. `UNKNOWN` musí admin ručně posoudit. Schválením vzniká budoucí `APPROVED`, zamítnutím `REJECTED`.
-7. Zamítnutí kteréhokoli slova/identity nezbytné pro deklarovanou analýzu znamená zamítnutí dané revize.
+2. Backend zopakuje všechny deterministické kontroly včetně odvození konkrétních morfologických tvarů.
+3. U tokenů deklarovaných jako skutečná slova se jejich status řeší proti samostatnému katalogu skutečných slov; případný chybějící exact match není sám o sobě automatické zamítnutí a může jít k review/správě katalogu.
+4. Nad uzamčenou revizí proběhne neveřejný lookup relevantních morfologických posouzení v interní review cache pro danou `rules_version`.
+5. `APPROVED` review cache se pro tutéž verzi pravidel znovu použije automaticky.
+6. `REJECTED` poskytne adminovi existující negativní rozhodnutí a důvod.
+7. `UNKNOWN` musí admin ručně posoudit. Schválením vzniká budoucí `APPROVED`, zamítnutím `REJECTED` v review cache pro danou rules verzi.
 8. Admin může revizi schválit, zamítnout nebo vrátit k doplnění.
 9. Čekající a zamítnuté revize nejsou veřejné. Zveřejní se až revize administrativně uznaná a obsahově platná podle příslušné verze pravidel.
 
 Veřejné peer review není součástí MVP.
 
-## Interní katalog
+## Katalog skutečných slov
 
-Katalog je provozní znalostní báze podřízená pravidlům. Pro každou novou `rules_version` začíná automatický schvalovací prostor prázdný; historická rozhodnutí starších verzí se uchovávají, ale nepřenášejí jako automatické schválení.
+Katalog skutečných slov je samostatná provozní lexikální autorita. Není obecně scoped na jednu `rules_version`; lze jej průběžně opravovat a rozšiřovat bez vydání nové verze pravidel. Musí umět exact-match nad kompletní soutěžní identitou a konkrétním použitým tvarem a uchovávat auditní stopu správy katalogu.
+
+Hráčské rozhraní nad tímto katalogem je záměrně omezené: žádný browse, export, prefix search, autocomplete ani nabídka podobných slov.
+
+## Interní morfologická review cache
+
+Review cache je neveřejná provozní paměť podřízená pravidlům. Pro každou novou `rules_version` začíná automatický schvalovací prostor prázdný; historická rozhodnutí starších verzí se uchovávají, ale nepřenášejí jako automatické schválení.
 
 Rozhodující stavy jsou:
 - `APPROVED`,
 - `REJECTED`,
 - `UNKNOWN` (absence rozhodného záznamu může být jeho technickou reprezentací).
 
-Katalogové rozhodnutí uchovává minimálně konkrétní identitu/tvar, `rules_version`, výsledek, rozhodujícího admina, čas, důvod a zdroje. Katalog nesmí vytvářet nové soutěžní pravidlo.
+Rozhodnutí review cache uchovává minimálně konkrétní identitu/tvar, `rules_version`, výsledek, rozhodujícího admina, čas, důvod a zdroje. Review cache nesmí vytvářet nové soutěžní pravidlo ani být použita jako veřejný membership oracle.
 
 ## Revalidace a historie
 
@@ -169,7 +181,7 @@ Historické schválení podle starší verze pravidel je neměnný fakt. Po vyd�
 
 Historická procesní compliance původního podání (např. tehdy platná AI/tool policy) se při obsahové revalidaci retroaktivně nepřepisuje.
 
-Každý rozhodující validační záznam musí být reprodukovatelný a uvádět příslušnou rules/catalog/validator provenance a způsob automatického či ručního rozhodnutí.
+Každý rozhodující validační záznam musí být reprodukovatelný a uvádět příslušnou rules/review-cache/validator provenance. Pokud rozhodnutí záviselo na tehdejším stavu katalogu skutečných slov, musí být dohledatelná i tato lexikální provenance, aniž by se katalog skutečných slov tímto stal součástí `rules_version`.
 
 ## Bez komentářů v MVP
 
