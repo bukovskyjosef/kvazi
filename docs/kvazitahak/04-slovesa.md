@@ -2,6 +2,10 @@
 
 > **Status:** normativní slovesná morfologie pro první rules verzi je zmrazena.
 
+## Místo v normativním balíku
+
+Tento modul je autoritativní **pro soutěžní slovesné modely, jejich tvary, vid a uzavřenou pomocnou sadu `být`**. Obecná pravidla platnosti řeší `../rules/02-rozhodcovska-specifikace.md`; syntaxi, jmennou morfologii, valenci, hraniční pravidla a prefix `kvazi-` řeší ostatní NORMATIVNÍ moduly `01-03` a `05-07`; AI a verzování mají vlastní dokumenty v `../rules/`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 ## NORMATIVNÍ: obecný princip
 
 Každé kvazisloveso má právě jeden soutěžní časovací typ, jeden deklarovaný vid a valenční obhajobu konkrétního použití podle `05-valence.md`.
