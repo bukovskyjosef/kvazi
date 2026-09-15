@@ -141,6 +141,7 @@ Neměnný snapshot vytvořený každým submittem. Obsahuje nebo jednoznačně v
 - závěrečnou interpunkci,
 - uživatelské morfologické a syntaktické deklarace,
 - morfologické vlastnosti konkrétního použití podle #86,
+- systémově odvozené kanonické vlastnosti potřebné pro reprodukovatelnou validaci, včetně `kvaziPrefix` tam, kde se podle aktuálního pravidla automaticky odvodí,
 - zdroje/obhajobu,
 - fiktivní význam / kvazietymologii, pokud jsou součástí podání,
 - owning/submitting `user_id` a čas submitu,
@@ -159,12 +160,14 @@ Technický identifikátor konkrétního skutečně zapsaného soutěžního slov
 
 Skutečně zapsaný pomocný tvar `být` je samostatný `sentence_token`: samostatně prochází povrchovou validací, počítá se jako slovo a jeho znaky standardně do sekundárního skóre. Syntakticky však patří do téhož jediného přísudku jako příslušný plnovýznamový slovesný token a všechny povolené pomocné tvary sdílejí jednu soutěžní identitu `být`.
 
-### Uživatelská deklarace
+### Uživatelská deklarace a systémově odvozené vlastnosti
 Musí být datově oddělena od pozdějšího výsledku katalogu skutečných slov i od interní review cache. Uživatelská deklarace sama nevytváří autoritativní morfologickou nebo lexikální pravdu.
 
 Podle POS/modelu zachycuje minimálně úplnou soutěžní identitu, lemma/základní tvar, morfologické hodnoty konkrétního použití, použitý povrchový tvar, syntaktickou funkci/technickou roli, povinné vztahy a evidence.
 
-U substantiva musí datový model explicitně odlišit normativní prefixaci `kvazi-` od samotného základu. Cílová deklarace proto obsahuje ekvivalent pole `kvaziPrefix = none | kvazi` a samostatně základní substantivní identitu. Prefixovaná identita je od základní identity odlišná, ale morfologii a syntaktické chování dědí ze základu podle `07-prefix-kvazi.md`. Prefix není katalogovým heslem sám o sobě a nelze jej použít rekurzivně.
+U normativního substantivního prefixu `kvazi-` však hráč prefix ani POS v jednoznačném případě ručně nedeklaruje. Pokud je normalizovaný `surfaceForm` delší než 5 soutěžních znaků a začíná přesnou sekvencí `kvazi` (bez rozlišování velikosti písmen, nikoli však diakritiky či jiných znakových variant), frontend i backend deterministicky odvodí `POS = substantivum` a kanonický `kvaziPrefix = kvazi`. Tento odvozený stav se uloží/persistuje jako explicitní kanonická vlastnost vedle samostatně reprezentované základní substantivní identity. Po inferenci musí token ještě plně projít normativní validací podle `07-prefix-kvazi.md`; samotný stringový začátek platnost ani skórovou výjimku nezaručuje.
+
+Prefixovaná identita je od základní identity odlišná, ale morfologii a syntaktické chování dědí ze základu podle `07-prefix-kvazi.md`. Prefix není katalogovým heslem sám o sobě a nelze jej použít rekurzivně.
 
 Resolved odkazy katalogu skutečných slov a výsledky review cache patří do samostatných semantických vrstev, ne do původního tvrzení hráče.
 
@@ -222,7 +225,7 @@ Kanonickým zdrojem textu jsou seřazené tokeny revize a její typem určená z
 
 Skóre, jehož semantics mohou být verzované, patří k validačnímu výsledku pro konkrétní `rules_version`, nikoli jako jediná neměnná hodnota celé revize.
 
-Při sekundárním skóre se všechny skutečně zapsané soutěžní znaky standardně počítají (`Q = 1`, `KV = 2`) s jedinou úzkou výjimkou: přesně pět znaků normativního substantivního prefixu `kvazi-` má skórovou hodnotu 0. Prefixované substantivum zůstává jedním slovem pro primární skóre.
+Při sekundárním skóre se všechny skutečně zapsané soutěžní znaky standardně počítají (`Q = 1`, `KV = 2`) s jedinou úzkou výjimkou: přesně pět znaků systémem odvozeného **a následně normativně validního** substantivního prefixu `kvazi-` má skórovou hodnotu 0. Prefixované substantivum zůstává jedním slovem pro primární skóre. Skórování používá kanonický odvozený prefixový stav; nesmí pouze ad hoc testovat, zda povrchový řetězec začíná `kvazi`.
 
 ## Admin audit
 
@@ -247,8 +250,8 @@ Citlivé administrativní zásahy se auditují minimálně údaji:
 10. syntaktické reference nesmějí překročit hranici revize.
 11. normativní modely a číselníky jsou reprodukovatelné pro konkrétní rules version.
 12. typ věty a interpunkce tvoří deterministický invariant.
-13. text a skóre nesmějí driftovat od kanonické tokenové reprezentace; pět znaků normativního prefixu `kvazi-` je jediná explicitní skórová výjimka.
-14. prefix `kvazi-` je v deklaraci explicitně odlišen od základní substantivní identity a nesmí být rekurzivní.
+13. text a skóre nesmějí driftovat od kanonické tokenové reprezentace; pět znaků systémem odvozeného a normativně validního prefixu `kvazi-` je jediná explicitní skórová výjimka.
+14. `kvaziPrefix` je explicitní kanonická uložená vlastnost odlišená od základní substantivní identity, ale v jednoznačném případě je systémem deterministicky odvozena ze `surfaceForm`, nikoli ručně deklarována hráčem; prefix nesmí být rekurzivní.
 15. skutečně zapsané pomocné `být` je samostatný soutěžní token, ale syntakticky součást jediného přísudku a sdílí jednu identitu `být`.
 16. administrátor je `user_account` s rolí `ADMIN`, ne samostatná identita.
 17. jedno podání vlastní právě jeden účet; spoluautoři/osoby za účtem se neevidují.
