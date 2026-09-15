@@ -55,6 +55,10 @@ $activePage = 'manifest';
     <p style="margin-top:20px">
       Autorem kvaziproblému a pravidel je <strong style="color:var(--text)">Josef Bukovský</strong>.
     </p>
+    <p style="margin-top:20px">
+      Kontakt: <a href="mailto:veta@kvazi.cz">veta@kvazi.cz</a>
+    </p>
+
   </div>
 
 </main>
