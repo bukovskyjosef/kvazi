@@ -62,8 +62,8 @@ $activePage = 'home';
         <div class="hero-stat-label">základní motiv</div>
       </div>
       <div class="hero-stat">
-        <div class="hero-stat-num">∞</div>
-        <div class="hero-stat-label">možných vět</div>
+        <div class="hero-stat-num">2</div>
+        <div class="hero-stat-label">úrovně skóre</div>
       </div>
     </div>
   </div>
@@ -205,8 +205,7 @@ $activePage = 'home';
     </p>
     <p>
       Kvazislova — slova, která hráč vymyslí — nejsou únik, ale výzva:
-      musíš je zařadit do gramatického modelu, obhájit jejich tvar a dokázat,
-      že v české větě dávají smysl.
+      musíš je zařadit do gramatického modelu, obhájit jejich tvar a jejich konkrétní použití ve větě.
     </p>
     <p style="margin-top:20px">
       Autorem kvaziproblému a pravidel je <strong style="color:var(--text)">Josef Bukovský</strong>.
