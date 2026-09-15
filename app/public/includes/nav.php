@@ -10,6 +10,7 @@ $activePage ??= '';
 $_navUser    = function_exists('auth_user') ? auth_user() : null;
 $_navCsrf    = function_exists('auth_csrf_token') ? auth_csrf_token() : '';
 ?>
+<script>document.documentElement.dataset.theme=localStorage.getItem('kvazi-theme')||'2'</script>
 <header class="site-nav" id="siteNav" role="banner">
   <div class="nav-inner">
 

@@ -13,39 +13,7 @@ $csrf = auth_csrf_token();
   <title>Konfigurátor kvazivěty</title>
   <meta name="csrf" content="<?= htmlspecialchars($csrf) ?>">
   <link rel="stylesheet" href="/css/site.css">
-  <link id="themeLink" rel="stylesheet" href="/css/konfigurator-theme1.css">
-  <style>
-    .theme-bar {
-      position: fixed;
-      bottom: 18px; left: 18px;
-      z-index: 9999;
-      display: flex; gap: 6px; align-items: center;
-      background: rgba(0,0,0,.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 999px;
-      padding: 5px 10px;
-    }
-    .theme-bar span {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: .06em; text-transform: uppercase;
-      color: rgba(255,255,255,.4);
-      padding-right: 4px;
-      font-family: inherit;
-    }
-    .theme-btn {
-      all: unset; cursor: pointer;
-      font-size: 11px; font-weight: 700; font-family: inherit;
-      padding: 4px 13px; border-radius: 999px;
-      border: 1.5px solid rgba(255,255,255,.2);
-      color: rgba(255,255,255,.5); background: transparent;
-      transition: border-color .15s, color .15s, background .15s;
-      letter-spacing: .02em; white-space: nowrap;
-    }
-    .theme-btn:hover { border-color: rgba(255,255,255,.5); color: #fff; }
-    .theme-btn.active { border-color: rgba(255,255,255,.72); color: #fff; background: rgba(255,255,255,.1); }
-  </style>
+  <script>(function(){var t=localStorage.getItem('kvazi-theme')||'2';document.documentElement.dataset.theme=t;document.write('<link id="themeLink" rel="stylesheet" href="/css/konfigurator-theme'+t+'.css">')})()</script>
 </head>
 <body>
 
@@ -88,30 +56,7 @@ $csrf = auth_csrf_token();
   </div></section>
 </main>
 
-<div class="theme-bar" aria-label="Výběr motivu">
-  <span>Motiv</span>
-  <button class="theme-btn" id="themeBtn1" type="button" aria-label="Motiv 1 — světlý">1</button>
-  <button class="theme-btn" id="themeBtn2" type="button" aria-label="Motiv 2 — tmavý">2</button>
-</div>
-
-<script>
-  (function () {
-    var themes = { '1': '/css/konfigurator-theme1.css', '2': '/css/konfigurator-theme2.css' };
-    var link = document.getElementById('themeLink');
-    var btn1 = document.getElementById('themeBtn1');
-    var btn2 = document.getElementById('themeBtn2');
-    function applyTheme(id, persist) {
-      link.href = themes[id] || themes['1'];
-      btn1.classList.toggle('active', id === '1');
-      btn2.classList.toggle('active', id === '2');
-      if (persist) localStorage.setItem('kvazi-theme', id);
-    }
-    var saved = localStorage.getItem('kvazi-theme') || '1';
-    applyTheme(saved, false);
-    btn1.addEventListener('click', function () { applyTheme('1', true); });
-    btn2.addEventListener('click', function () { applyTheme('2', true); });
-  })();
-</script>
 <script type="module" src="/js/konfigurator/editor.mjs"></script>
+<?php include __DIR__ . '/includes/footer.php'; ?>
 </body>
 </html>
