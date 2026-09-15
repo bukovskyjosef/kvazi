@@ -89,17 +89,20 @@ Kvazi je otevřený kumulativní problém. Zveřejněné schválené řešení s
 - Na zveřejněné řešení lze navázat, upravit je nebo je prodloužit.
 - Lze převzít jednotlivé slovo, kvazislovo, morfologický nápad, syntaktickou konstrukci nebo jinou část zveřejněného řešení.
 - Jednotlivé herní nápady nejsou předmětem výhradního soutěžního vlastnictví.
-- Na jednom podání může spolupracovat více lidí a mohou být uvedeni jako spoluautoři; podíl zásluh se nevyčísluje.
-- Autory konkrétního podání jsou osoby uvedené u tohoto podání. Převzetí staršího zveřejněného řešení samo o sobě nepřenáší autorství původního podání na nové.
-- Přesně shodné řešení může podat více autorů. Při shodném skóre jde o společný rekord a pořadí podání nerozhoduje.
+- Na řešení může fakticky spolupracovat libovolný počet lidí; soutěž jejich počet ani identity nesleduje.
+- Každé podání vlastní a odevzdává právě jeden registrovaný účet.
+- Registrovaný účet může reprezentovat jednotlivce i libovolný kolektiv. Registrační e-mail může patřit jednotlivci nebo skupině.
+- Systém neeviduje samostatné spoluautory, jejich identity, podíly ani vztah jednotlivých osob k podání.
+- Veřejná atribuce používá pouze veřejnou identitu / `username` registrovaného účtu.
+- Přesně shodné řešení může podat více účtů. Při shodném primárním i sekundárním skóre jde o společný rekord a pořadí podání nerozhoduje.
 
-Projekt nezkoumá, zda byl zveřejněný herní nápad později znovu objeven nezávisle nebo převzat. Smyslem soutěže je posouvat nejdelší známou platnou kvazivětu, nikoli forenzně určovat původ každého dílčího nápadu.
+Projekt nezkoumá, zda byl zveřejněný herní nápad později znovu objeven nezávisle nebo převzat ani jaké osoby stojí za registrovaným účtem. Smyslem soutěže je posouvat nejdelší známou platnou kvazivětu, nikoli forenzně určovat původ nebo personální složení týmu.
 
 ## Veřejná prezentace schválených vět
 
 Veřejná prezentace má ukazovat výsledek a srozumitelně vysvětlit základní stavbu věty; nemá publikovat kompletní validační spis.
 
-Ve výsledkovém přehledu se zveřejňuje zejména samotná věta, skóre (počet slov a soutěžních znaků) a autor nebo spoluautoři.
+Ve výsledkovém přehledu se zveřejňuje zejména samotná věta, skóre (počet slov a soutěžních znaků) a veřejná identita (`username`) jednoho registrovaného účtu, který podání vlastní a odevzdal.
 
 V detailu věty se u jednotlivých slov veřejně uvádí zejména:
 
@@ -117,7 +120,8 @@ Veřejně se standardně nezveřejňuje:
 - úplná morfologická obhajoba,
 - detailní zdrojové a důkazní podklady,
 - interní katalogové stavy,
-- úplný záznam administrativního nebo rozhodcovského review.
+- úplný záznam administrativního nebo rozhodcovského review,
+- identita jednotlivých osob stojících za registrovaným účtem; systém ji ani nemá požadovat.
 
 Tyto neveřejné podklady mohou být zachovány pro posouzení, audit a případnou námitku. Omezený veřejný detail nemění pravidlo, že zveřejněné řešení lze jako celek i po částech legitimně použít při dalším hledání.
 
