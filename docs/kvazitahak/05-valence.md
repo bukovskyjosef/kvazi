@@ -2,6 +2,10 @@
 
 > **Status:** normativní princip je rozhodnutý. Valence je slovní obhajoba konkrétního použití slovesa, nikoli samostatný strukturovaný soutěžní model.
 
+## Místo v normativním balíku
+
+Tento modul je autoritativní **pro způsob valenční obhajoby konkrétního slovesného použití a její normativní důsledky**. Obecná pravidla platnosti řeší `../rules/02-rozhodcovska-specifikace.md`; syntaxi a morfologii řeší ostatní NORMATIVNÍ moduly `01-04` a `06-07`; AI a verzování mají vlastní dokumenty v `../rules/`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 ## NORMATIVNÍ princip
 
 Valence **není součástí morfologické ani soutěžní identity slovesa**.
