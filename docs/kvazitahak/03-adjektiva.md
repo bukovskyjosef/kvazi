@@ -2,6 +2,10 @@
 
 > **Status:** normativní adjektivní morfologie pro první rules verzi je zmrazena.
 
+## Místo v normativním balíku
+
+Tento modul je autoritativní **pro soutěžní adjektivní modely, jejich paradigmata, přivlastňovací odvození a stupňování**. Obecná pravidla platnosti řeší `../rules/02-rozhodcovska-specifikace.md`; syntaxi, substantiva, slovesa, valenci, hraniční pravidla a prefix `kvazi-` řeší ostatní NORMATIVNÍ moduly `01-02` a `04-07`; AI a verzování mají vlastní dokumenty v `../rules/`. Žádný jednotlivý soubor není „úplná pravidla“; úplnou mapu autority udržuje pouze `../README.md`.
+
 ## NORMATIVNÍ: obecný princip
 
 Adjektivní soutěžní model je stejně jako substantivní model **uzavřený herní morfologický model**.
