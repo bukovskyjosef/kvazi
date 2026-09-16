@@ -58,13 +58,15 @@ Operátor ověří skutečnou verzi a její API/healthcheck podporu; tento dokum
 - Build pack Dockerfile, base/build context **`/`**, Dockerfile **`docker/php/Dockerfile`**, exposed internal port **`80`**.
 - **Native Auto Deploy OFF** (`settings.is_auto_deploy_enabled=false`), žádný další přímý push deploy webhook ani preview na produkční doméně. Řízený trigger je GitHub deploy job.
 - Žádný veřejný direct port mapping PHP, source bind mount ani startup/pre/post-deployment DB command. Application má baked-in M4.5 image, DB je samostatný persistentní PG18 resource na kompatibilní interní síti.
-- Readiness zapnutá: **CMD healthcheck** s přesným příkazem níže, interval 10 s, timeout 5 s, start period 10 s, retries 12. Interní GET `/healthz` na portu 80 vyžaduje HTTP200 a přesný JSON `status:ok`, používá dostupné PHP.
+- Autoritativní readiness je součást image: **Docker `HEALTHCHECK` v `docker/php/Dockerfile`**, interval 10 s, timeout 5 s, start period 10 s, retries 12. Interní GET `/healthz` na portu 80 vyžaduje HTTP200 a přesný JSON `status:ok`, používá dostupné PHP.
 
-```sh
-php /usr/local/bin/kvazi-healthcheck.php
+```dockerfile
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=12 CMD ["php", "/usr/local/bin/kvazi-healthcheck.php"]
 ```
 
-Skript vyžaduje tento CMD a `running:healthy`; skutečný exit0/exit1 při DB outage ověřuje mandatory external-image acceptance. Oficiální [deployment job](https://github.com/coollabsio/coolify/blob/054c560cbdc578836ddfa95d8085761d6733e7c7/app/Jobs/ApplicationDeploymentJob.php) podporuje CMD, ale jeho safe-command grammar nepovoluje uvozovky/operátory inline `php -r`. Proto image obsahuje malý `docker/php/healthcheck.php` v `/usr/local/bin` mimo document root, allowlist contextu povoluje jen tento další packaging soubor. Příkaz vyhovuje skutečné grammar a nepřidává curl/wget ani jiný HTTP klient. To je konkrétní deployment blocker opravující packaging doplněk M4.5, ne změna business/runtime env/DB kontraktu. HTTP režim Coolify používá curl/wget. Pokud nainstalovaná verze CMD/API polí nepodporuje, reportujte blocker a ověřte podporované řešení; nevypínejte readiness.
+Docker provádí existující příkaz `php /usr/local/bin/kvazi-healthcheck.php`. Probe je mimo document root, ověřuje interní HTTP `/healthz` přes dostupné PHP a nepřidává curl/wget ani DB startup hook. Povinný packaging gate kontroluje přesný Dockerfile kontrakt, healthcheck konfiguraci postaveného image i běžícího kontejneru, skutečný Docker stav `healthy` a probe exit0/exit1 při dostupné/nedostupné DB.
+
+Instalovaný Coolify 4.3.21 nevrací healthcheck atributy v application API, ani když je CMD aktivní v UI. Release proto nevyžaduje `health_check_*` ani `custom_healthcheck_found`; konfiguraci readiness vlastní verzovaný image a ověřuje ji gate před deploymentem. Operátor před Environment approval ověří, že Coolify zachovává image healthcheck bez vypnutí nebo odlišného override. Finální `running:healthy` a všechny read-only HTTPS smoke kontroly jsou nadále povinné; chybějící healthcheck metadata sama o sobě nejsou release blocker, chybějící zdravý stav nebo neúspěšná readiness znamenají FAIL.
 
 Runtime env pouze v Coolify, ne build args:
 
@@ -99,7 +101,7 @@ Budoucí DB release: backup, review explicitního forward SQL pro skutečný sta
 
 ## Potvrzení deploymentu a failure
 
-`deploy-production.mjs` ověří application UUID/source/config/pin/readiness před triggerem, pošle autentizovaný `POST /api/v1/deploy` pro jedinou Application a vyžaduje přesně jeden deployment s `resource_uuid === COOLIFY_APP_UUID` a platným `deployment_uuid`. [GET deployment](https://coolify.io/docs/api/endpoints/deployments/get-deployment-by-uuid) polluje pouze tento UUID a ověřuje jej v každé odpovědi spolu s `pull_request_id === 0` a přesným commitem. Pokud application API poskytne interní `id`, kontroluje navíc shodu s `deployment.application_id`; absence `id` není chyba. Úspěch vyžaduje **`finished`**, nezměněný application contract včetně UUID, **`running:healthy`** a read-only HTTPS:
+Readiness kontrakt image ověřuje povinný gate. `deploy-production.mjs` ověří application UUID/source/config/pin před triggerem, pošle autentizovaný `POST /api/v1/deploy` pro jedinou Application a vyžaduje přesně jeden deployment s `resource_uuid === COOLIFY_APP_UUID` a platným `deployment_uuid`. [GET deployment](https://coolify.io/docs/api/endpoints/deployments/get-deployment-by-uuid) polluje pouze tento UUID a ověřuje jej v každé odpovědi spolu s `pull_request_id === 0` a přesným commitem. Pokud application API poskytne interní `id`, kontroluje navíc shodu s `deployment.application_id`; absence `id` není chyba. Úspěch vyžaduje **`finished`**, nezměněný application contract včetně UUID, **`running:healthy`** a read-only HTTPS:
 
 - `/healthz`: 200, přesný JSON `{"status":"ok"}`;
 - `/` a `/vety.php`: HTML/200, bez redirectu;

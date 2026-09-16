@@ -12,3 +12,5 @@ COPY app/public/ /var/www/html/
 COPY app/data/ /var/www/data/
 
 EXPOSE 80
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=12 CMD ["php", "/usr/local/bin/kvazi-healthcheck.php"]

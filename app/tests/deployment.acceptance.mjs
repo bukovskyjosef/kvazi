@@ -29,9 +29,10 @@ async function startApp() {
     '-e','TRUSTED_PROXY_CIDRS=192.0.2.7/32',image]);
   base = 'http://' + docker(['port',application,'80/tcp']).split('\n')[0];
   for (let i=0;i<100;i++) {
-    try {if ((await fetch(base+'/healthz',{redirect:'manual',signal:AbortSignal.timeout(500)})).status===200) return;}
+    try {if ((await fetch(base+'/healthz',{redirect:'manual',signal:AbortSignal.timeout(500)})).status===200 &&
+      inspect(application).State.Health?.Status === 'healthy') return;}
     catch {}
-    await new Promise(resolve=>setTimeout(resolve,100));
+    await new Promise(resolve=>setTimeout(resolve,300));
   }
   throw new Error('Self-contained application did not become ready');
 }
@@ -42,9 +43,10 @@ async function health(expected) {
   assert.equal(response.headers.get('set-cookie'),null);
   assert.equal(response.headers.get('cache-control'),'no-store');
   assert.deepEqual(await response.json(),{status:expected===200 ? 'ok' : 'unavailable'});
-  // Execute the exact Coolify CMD probe inside the production image, including DB outage.
-  if (expected === 200) docker(['exec',application,'sh','-c',HEALTHCHECK_COMMAND]);
-  else assert.throws(() => docker(['exec',application,'sh','-c',HEALTHCHECK_COMMAND]), error => error.status === 1);
+  // Execute the image's actual Docker HEALTHCHECK, including DB outage.
+  const probe = ['exec',application,...inspect(application).Config.Healthcheck.Test.slice(1)];
+  if (expected === 200) docker(probe);
+  else assert.throws(() => docker(probe), error => error.status === 1);
 }
 const snapshot = () => sql("SELECT md5(row_to_json(u)::text) FROM kvazi.user_account u WHERE username='m45_marker'")
   + '|' + sql("SELECT md5(string_agg(row_to_json(r)::text,'|' ORDER BY version)) FROM kvazi.rules_release r");
@@ -82,6 +84,12 @@ test('production root build: PHP8.3/extensions/layout/port, no DB/secrets/source
     assert.equal(layout[index],createHash('sha256').update(readFileSync(path)).digest('hex'));
   }
   const imageConfig=JSON.parse(docker(['image','inspect',image]))[0].Config;
+  assert.deepEqual(imageConfig.Healthcheck.Test,['CMD',...HEALTHCHECK_COMMAND.split(' ')]);
+  for (const [key,value] of Object.entries({Interval:10_000_000_000,Timeout:5_000_000_000,StartPeriod:10_000_000_000,Retries:12})) {
+    assert.equal(imageConfig.Healthcheck[key],value,key);
+  }
+  assert.deepEqual(app.Config.Healthcheck,imageConfig.Healthcheck);
+  assert.equal(app.State.Health.Status,'healthy');
   assert.ok(!(imageConfig.Env ?? []).some(v=>/^(DB_|POSTGRES_|TRUSTED_PROXY_CIDRS|AUTH_COOKIE_SECURE)/.test(v)));
   docker(['exec',application,'sh','-c',
     'test ! -e /var/www/html/.env && test ! -e /var/www/html/.git && test ! -e /var/www/html/node_modules && test ! -e /var/www/tests && ! command -v postgres']);
