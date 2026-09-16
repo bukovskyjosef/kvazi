@@ -47,12 +47,17 @@ Architektura, databáze, UI, validátor a aplikační kód pravidla implementuj�
 
 ## Struktura
 
+Tento přehled je pouze rychlá orientace; úplnou klasifikaci a autoritu artefaktů určuje `docs/README.md`.
+
 ```text
 AGENTS.md
 .github/
 app/
-db/
+db/                    # návrhové DB artefakty
+docker/                 # runtime/provozní artefakty včetně executable DB bootstrapu
+docker-compose.yml      # lokální runtime orchestrace
 docs/
+  archive/              # historické nenormativní materiály
   audit/
   rules/
   kvazitahak/
