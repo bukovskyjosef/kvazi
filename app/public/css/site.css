@@ -1237,9 +1237,6 @@ html[data-theme="1"] .sentence-row:hover { box-shadow: 0 0 22px rgba(99,102,241,
 
 /* Revision workflow uses the existing site cards and direct, wrapping navigation. */
 .nav-inner, .site-nav.scrolled .nav-inner { height: auto; min-height: var(--nav-h-sm); padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
-.nav-identity { font-size: 12px; max-width: 140px; overflow-wrap: anywhere; padding: 6px; }
-.nav-logout { margin: 0; }
-.nav-logout button { cursor: pointer; font-family: inherit; }
 .workflow { padding-top: 36px; padding-bottom: 60px; }
 .workflow h1, .workflow h2, .workflow h3 { margin: 20px 0 12px; }
 .workflow .card-site { margin: 20px 0; }

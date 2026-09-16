@@ -39,12 +39,12 @@ Hráč zadává konkrétní povrchové tvary jako samostatné tokeny.
 
 - mezera nebo Enter commitne aktuální token,
 - Backspace v prázdném vstupu může odstranit poslední token,
-- token lze vložit na konkrétní pozici,
+- nové tokeny se přidávají pouze na konec věty v pořadí zadání,
 - surface se normalizuje do Unicode NFC,
 - pořadí tokenů je stabilní a vazby používají jejich interní ID,
 - závěrečná interpunkce souvisí s typem věty.
 
-Povrchově chybný token může být ve formuláři vložen a dále editován. Validace je neblokující; neplatnost se projeví ve stavu kontroly a zablokuje submit.
+Surface vloženého tokenu je fixní; oprava vyžaduje smazání a nové vložení na konec. Deklarativní metadata zůstávají editovatelná. Placeholder hlavního vstupu se zobrazuje pouze při nulovém počtu tokenů a prázdném inputu. Validace je neblokující; neplatnost se projeví ve stavu kontroly a zablokuje submit.
 
 ## 3. Typ věty
 
@@ -94,7 +94,7 @@ Inference sama nezaručuje platnost tokenu.
 
 ### 4.4 Exact-match katalog
 
-Po úplném vyplnění identity a relevantního použitého tvaru nabízí token explicitní akci „Ověřit v katalogu“. Vyžaduje přihlášení a poskytne pouze potvrzení přesné deklarace, nebo zprávu „Tato přesná deklarace zatím v katalogu potvrzena není. Můžete ji přesto odeslat k posouzení.“ Neúplný kandidát akci nenabízí. Změna surface, identity/modelu či relevantního form field zneplatní starý výsledek; opožděná odpověď jej nesmí obnovit. Editace nikdy sama nespouští nový lookup. Obhajoby a povinná pole zůstávají viditelné a payload úplný; not found neovlivňuje submitReady.
+Po úplném vyplnění identity a relevantního použitého tvaru nabízí token explicitní akci „Ověřit v katalogu“. Vyžaduje přihlášení a poskytne pouze potvrzení přesné deklarace, nebo zprávu „Tato přesná deklarace zatím v katalogu potvrzena není. Můžete ji přesto odeslat k posouzení.“ Neúplný kandidát akci nenabízí. Smazání tokenu nebo změna identity/modelu či relevantního form field zneplatní starý výsledek; opožděná odpověď jej nesmí obnovit. Editace nikdy sama nespouští nový lookup. Obhajoby a povinná pole zůstávají viditelné a payload úplný; not found neovlivňuje submitReady.
 
 Zájmeno nemá produktivní model. Má čtyři explicitní selecty uložené jako `form.pronoun.{case,number,gender,person}`. Od `public-1.3` / validator `1.3.0` jsou všechny povinné pro autoritativní submit i katalogový lookup podle #109; chybění drží `structureOk=false` a `submitReady=false`. Povolené hodnoty FE/PHP čtou ze stejného `pronoun_form_signature` runtime datasetu. Každé pole nabízí explicitní „Nevztahuje se“ (`notApplicable`); prázdná hodnota ani null tuto deklaraci nenahrazují a vlastnosti se nedovozují z lemmatu. Přesný key kontrakt je v `06-review-services.md`. Enumy produktivních kategorií se nemění a historické releases zůstávají immutable.
 

@@ -44,9 +44,6 @@ export function renderTokens(draft, state, selectedId) {
     ? `<span class="token-chip"><button type="button" class="chip closing-punct" disabled><span class="chip-text">${esc(draft.closingPunct)}</span></button><button type="button" class="chip-remove" data-action="delete-punct" aria-label="Odebrat závěrečnou interpunkci">×</button></span>`
     : '';
   document.getElementById('tokens').innerHTML = wordChips + punctChip;
-  const place = document.getElementById('insertPlace'), previous = place.value;
-  place.innerHTML = '<option value="end">Na konec věty</option>' + draft.tokens.flatMap((w, i) => ['before', 'after'].map(side => `<option value="${side}:${esc(w.id)}">${side === 'before' ? 'Před' : 'Za'} ${i + 1}. ${esc(w.surface)}</option>`)).join('');
-  if ([...place.options].some(o => o.value === previous)) place.value = previous;
 }
 export function renderEditor(draft, state, selectedId, schema = publicSchema, catalogState = null) {
   const container = document.getElementById('editor');
@@ -68,8 +65,6 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema, ca
     return '';
   })() : '';
   container.innerHTML = `<h2 class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Deklarace slova ${esc(w.surface)}</span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><small style="font-size:10px;font-weight:400;opacity:.55;letter-spacing:.02em">Odborné termíny se přeloží do hovorových</small><button id="termToggle" type="button" style="font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:inherit;font-family:inherit">${esc(buttonLabel())}</button></span></h2><div class="card-body">
-    ${field('surface', 'Text slova', w.surface)}
-    <div class="token-actions"><button type="button" data-action="before">Vložit před slovo</button><button type="button" data-action="after">Vložit za slovo</button></div>
     <fieldset><legend>Identita a použitý tvar</legend><div class="config-grid">
       ${field('pos', 'Slovní druh', w.pos, functional ? posLabels : Object.fromEntries(Object.entries(posLabels).filter(([k]) => !functionalPos().includes(k))), 'word', functional || inferKvaziPrefix(w.surface))}
       ${!functional ? field('lemma', w.pos === 'verb' ? 'Neurčitek / základní tvar' : 'Základní tvar', w.lemma) + field('lexicalStatus', 'Deklarovaná identita', w.lexicalStatus, w.pos === 'pronoun' ? { real: 'Skutečné slovo' } : enumOptions('lexicalStatus', { real: 'Skutečné slovo', quasi: 'Kvazislovo' })) + field('model', w.pos === 'verb' ? 'Soutěžní časovací typ' : 'Soutěžní vzor', w.model, models, 'word', !Object.keys(models).length) : '<p>Slovní druh a role jsou určeny pravidlem jednopísmenné výjimky.</p>'}

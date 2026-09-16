@@ -11,6 +11,17 @@ try {
   const errors = [];
   for (const page of [user,admin]) page.on('pageerror', e => errors.push(e.message));
   const nav = page => page.getByRole('navigation',{name:'Hlavní navigace'});
+  const footer = page => page.locator('footer');
+  async function accountInFooter(page, name) {
+    assert.equal(await nav(page).getByRole('link',{name:'Moje věty',exact:true}).count(),0);
+    assert.equal(await nav(page).getByRole('button',{name:'Odhlásit se',exact:true}).count(),0);
+    assert.ok(!(await nav(page).innerText()).includes(name));
+    assert.equal(await footer(page).getByRole('link',{name:'Moje věty',exact:true}).count(),1);
+    assert.equal(await footer(page).getByRole('button',{name:'Odhlásit se',exact:true}).count(),1);
+    assert.ok((await footer(page).innerText()).includes(name));
+    assert.equal(await footer(page).locator('form').getAttribute('method'),'post');
+    assert.ok(await footer(page).locator('input[name=csrf]').inputValue());
+  }
   async function viewport(page,width) {
     await page.setViewportSize({width,height:900});
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),`no horizontal overflow at ${width}`);
@@ -22,25 +33,32 @@ try {
   await user.goto(BASE + '/vety.php');
   for (const width of [1440,390]) {
     await viewport(user,width);
-    assert.equal(await nav(user).getByRole('link',{name:'Přihlásit se',exact:true}).count(),1);
-    assert.equal(await nav(user).getByRole('link',{name:'Registrace',exact:true}).count(),1);
+    assert.equal(await nav(user).getByRole('link',{name:'Přihlásit se',exact:true}).count(),0);
+    assert.equal(await nav(user).getByRole('link',{name:'Registrace',exact:true}).count(),0);
+    assert.equal(await footer(user).getByRole('link',{name:'Přihlásit se',exact:true}).count(),1);
+    assert.equal(await footer(user).getByRole('link',{name:'Zaregistrovat se',exact:true}).count(),1);
+    assert.equal(await nav(user).getByRole('link',{name:'Přidat kvazivětu',exact:true}).getAttribute('href'),'/login.php?return=%2Fkonfigurator.php');
     assert.equal(await nav(user).getByRole('link',{name:'Moje věty',exact:true}).count(),0);
     assert.equal(await nav(user).getByRole('link',{name:'Ke schválení',exact:true}).count(),0);
     scenes++;
   }
-  await nav(user).getByRole('link',{name:'Registrace',exact:true}).click();
+  await footer(user).getByRole('link',{name:'Zaregistrovat se',exact:true}).click();
   assert.ok(user.url().endsWith('/register.php')); scenes++;
-  async function login(page,name) {
-    await page.goto(BASE + '/login.php');
+  async function login(page,name,viaReturn=false) {
+    if (!viaReturn) await page.goto(BASE + '/login.php');
     await page.locator('#identifier').fill(name); await page.locator('#password').fill(f.password);
     await Promise.all([page.waitForURL(url => !url.pathname.endsWith('/login.php')),page.locator('main button[type="submit"]').click()]);
   }
-  await login(user,f.username);
+  await user.goto(BASE + '/vety.php');
+  await nav(user).getByRole('link',{name:'Přidat kvazivětu',exact:true}).click();
+  assert.equal(new URL(user.url()).pathname,'/login.php');
+  assert.equal(new URL(user.url()).searchParams.get('return'),'/konfigurator.php');
+  await login(user,f.username,true);
+  assert.equal(new URL(user.url()).pathname,'/konfigurator.php');
   for (const width of [1440,390]) {
     await viewport(user,width);
-    assert.equal(await nav(user).getByRole('link',{name:'Moje věty',exact:true}).count(),1);
+    await accountInFooter(user,f.username);
     assert.equal(await nav(user).getByRole('link',{name:'Přidat kvazivětu',exact:true}).count(),1);
-    assert.equal(await nav(user).getByRole('button',{name:'Odhlásit se',exact:true}).count(),1);
     assert.equal(await nav(user).getByRole('link',{name:'Ke schválení',exact:true}).count(),0); scenes++;
   }
   await nav(user).getByRole('link',{name:'Přidat kvazivětu',exact:true}).click();
@@ -68,13 +86,15 @@ try {
     return {...f.context(body.revisionId),sentenceId:body.id};
   }
   const first = await submit();
-  await nav(user).getByRole('link',{name:'Moje věty',exact:true}).click();
+  await footer(user).getByRole('link',{name:'Moje věty',exact:true}).click();
   await user.locator(`a[href="/moje-veta.php?revisionId=${first.revisionId}"]`).click();
   assert.equal(await user.locator('[data-action="pending"]').count(),1);
   assert.equal(await user.getByRole('link',{name:'Upravit a znovu odeslat',exact:true}).count(),0); scenes++;
   await login(admin,f.adminName);
   for (const width of [1440,390]) {
     await viewport(admin,width);
+    await accountInFooter(admin,f.adminName);
+    assert.equal(await nav(admin).getByRole('link',{name:'Přidat kvazivětu',exact:true}).count(),1);
     assert.equal(await nav(admin).getByRole('link',{name:'Ke schválení',exact:true}).count(),1); scenes++;
   }
   await nav(admin).getByRole('link',{name:'Ke schválení',exact:true}).click();
@@ -96,7 +116,25 @@ try {
   assert.equal(await user.locator('.admin-reason b').count(),0);
   await user.getByRole('link',{name:'Upravit a znovu odeslat',exact:true}).click();
   assert.equal(await user.locator('#token-t1').count(),1); assert.ok(await user.locator('#submitButton').isEnabled());
+  assert.equal(await user.locator('#newSurface').getAttribute('placeholder'),null);
+  await user.locator('#token-t1').click();
+  assert.equal(await user.locator('#word-surface, #insertPlace').count(),0);
+  await user.getByRole('button',{name:'Smazat kvazi',exact:true}).click();
+  assert.equal(await user.locator('#newSurface').getAttribute('placeholder'),'Kvazivětu zadejte zde…');
+  await user.locator('#newSurface').fill('kvazi'); await user.locator('#newSurface').press('Enter');
+  await user.locator('#token-t2').click();
+  await user.getByLabel('Slovní druh',{exact:true}).selectOption('verb');
+  await user.getByLabel('Neurčitek / základní tvar',{exact:true}).fill('kvaziit');
+  await user.getByLabel('Deklarovaná identita').selectOption('quasi');
+  await user.getByLabel('Soutěžní časovací typ').selectOption('V-IT');
+  await user.getByLabel('Druh slovesného tvaru').selectOption('imperative');
+  await user.locator('#word-form-verbPerson').selectOption('2sg');
+  await user.getByLabel('Vid').selectOption('biaspectual');
+  await user.getByLabel('Větná funkce',{exact:true}).selectOption('predicate');
+  await user.getByLabel('Valenční obhajoba').fill('Opravená deklarace bez obligatorního doplnění, V-IT.');
+  await user.getByLabel('Morfologická obhajoba a odkaz na model').fill('Imperativ V-IT, 2. sg. PRIVATE_BROWSER_EVIDENCE');
   const second = await submit();
+  assert.equal(db(`SELECT draft_json::jsonb->'tokens'->0->>'id' FROM kvazi.sentence_revision WHERE id=${second.revisionId}`),'t2');
   assert.equal(second.sentenceId,first.sentenceId);
   assert.equal(db(`SELECT revision_no FROM kvazi.sentence_revision WHERE id=${second.revisionId}`),'2'); scenes++;
   await nav(admin).getByRole('link',{name:'Ke schválení',exact:true}).click();
@@ -107,7 +145,7 @@ try {
     await admin.locator('.morphology-status').filter({hasText:'APPROVED'}).waitFor();
   }
   assert.equal(await admin.locator('.morphology-status').innerText(),'APPROVED');
-  f.backupCatalog(second,'t1');
+  f.backupCatalog(second,'t2');
   await mutation(admin.getByRole('button',{name:'Potvrdit jako neskutečné slovo',exact:true}),'/api/admin/real-word-catalog.php');
   await admin.locator('.catalog-status').filter({hasText:'is_approved=false'}).waitFor();
   await admin.getByRole('button',{name:'Schválit',exact:true}).waitFor();
@@ -132,8 +170,9 @@ try {
   await user.goto(BASE + `/moje-veta.php?revisionId=${rejected.revisionId}`);
   assert.equal(await user.locator('.admin-reason').innerText(),'Finální zamítnutí.');
   assert.equal(await user.getByRole('link',{name:'Upravit a znovu odeslat',exact:true}).count(),0); scenes++;
-  await nav(user).getByRole('button',{name:'Odhlásit se',exact:true}).click();
-  await nav(user).getByRole('link',{name:'Přihlásit se',exact:true}).waitFor();
+  await footer(user).getByRole('button',{name:'Odhlásit se',exact:true}).click();
+  await footer(user).getByRole('link',{name:'Přihlásit se',exact:true}).waitFor();
+  assert.equal(await nav(user).getByRole('link',{name:'Přihlásit se',exact:true}).count(),0);
   assert.equal(await nav(user).getByRole('link',{name:'Moje věty',exact:true}).count(),0); scenes++;
   assert.deepEqual(errors,[]);
   console.log(`Playwright M3 workflow: ${scenes}/${scenes} PASS; desktop 1440px, mobile 390px; real UI submit/return/resubmit/review/approve/reject/public/logout.`);

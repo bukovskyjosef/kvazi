@@ -8,7 +8,6 @@
  */
 $activePage ??= '';
 $_navUser    = function_exists('auth_user') ? auth_user() : null;
-$_navCsrf    = function_exists('auth_csrf_token') ? auth_csrf_token() : '';
 $_navAdmin   = $_navUser && auth_is_admin();
 ?>
 <script>document.documentElement.dataset.theme=localStorage.getItem('kvazi-theme')||'2'</script>
@@ -32,18 +31,7 @@ $_navAdmin   = $_navUser && auth_is_admin();
 
       <span class="nav-divider" aria-hidden="true"></span>
 
-      <?php if ($_navUser): ?>
-        <a href="/moje-vety.php" class="nav-link<?= $activePage === 'moje' ? ' active' : '' ?>">Moje věty</a>
-        <?php if ($_navAdmin): ?><a href="/admin/vety.php" class="nav-link<?= $activePage === 'admin' ? ' active' : '' ?>">Ke schválení</a><?php endif; ?>
-        <span class="nav-identity"><?= htmlspecialchars($_navUser['username'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></span>
-        <form method="post" action="/logout.php" class="nav-logout">
-          <input type="hidden" name="csrf" value="<?= htmlspecialchars($_navCsrf) ?>">
-          <button type="submit" class="nav-btn">Odhlásit se</button>
-        </form>
-      <?php else: ?>
-        <a href="/login.php" class="nav-link">Přihlásit se</a>
-        <a href="/register.php" class="nav-link">Registrace</a>
-      <?php endif; ?>
+      <?php if ($_navAdmin): ?><a href="/admin/vety.php" class="nav-link<?= $activePage === 'admin' ? ' active' : '' ?>">Ke schválení</a><?php endif; ?>
       <a href="<?= $_navUser ? '/konfigurator.php' : '/login.php?return=%2Fkonfigurator.php' ?>"
          class="nav-btn nav-btn-accent<?= $activePage === 'konfigurator' ? ' active' : '' ?>">Přidat kvazivětu</a>
     </nav>

@@ -45,7 +45,7 @@ try {
   assert.equal(await page.locator('#word-form-pronoun-gender').inputValue(), 'notApplicable');
   assert.equal(await page.getByLabel('Morfologická obhajoba a odkaz na model').isVisible(), true);
 
-  // 2. Identity, form and surface changes invalidate; edits never trigger a lookup.
+  // 2. Identity and form changes and token deletion invalidate; edits never trigger a lookup.
   for (const [selector, value, restore] of [
     ['#word-lemma', token.lemma + 'z', token.lemma],
     ['#word-form-pronoun-gender', 'feminine', 'notApplicable'],
@@ -58,14 +58,16 @@ try {
     assert.equal(await result.textContent(), ''); assert.equal(lookups.length, before);
     await lookup(true);
   }
-  const beforeSurface = lookups.length;
-  await page.locator('#word-surface').fill('qazi');
-  assert.equal(await result.count(), 0); assert.equal(lookups.length, beforeSurface);
-  await page.locator('#word-surface').fill(token.surface);
+  const beforeReplacement = lookups.length;
+  await page.getByRole('button', { name: 'Smazat kvazi', exact: true }).click();
+  assert.equal(await result.count(), 0); assert.equal(lookups.length, beforeReplacement);
+  await page.locator('#newSurface').fill(token.surface); await page.locator('#newSurface').press('Enter');
+  await page.locator('#token-t2').click();
+  await page.getByLabel('Slovní druh', { exact: true }).selectOption('pronoun');
   await page.getByLabel('Základní tvar', { exact: true }).fill(token.lemma);
   await page.getByLabel('Deklarovaná identita').selectOption('real');
   for (const [field, value] of Object.entries(token.form.pronoun)) await page.locator(`#word-form-pronoun-${field}`).selectOption(value);
-  assert.equal(await result.textContent(), ''); assert.equal(lookups.length, beforeSurface);
+  assert.equal(await result.textContent(), ''); assert.equal(lookups.length, beforeReplacement);
   await lookup(true);
   await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Vlastní obhajoba.');
   assert.ok((await result.textContent()).includes('je v katalogu potvrzena'));
