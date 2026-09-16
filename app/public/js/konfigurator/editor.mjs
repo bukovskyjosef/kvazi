@@ -2,10 +2,12 @@ import { createDraft, mutateDraft, nfc } from './state.mjs';
 import { deriveValidationState, previewDraft, validateTokenSequence } from './validation.mjs';
 import { esc, renderSentence, renderTokens, renderEditor, renderValidation } from './view.mjs';
 import { toggleMode, buttonLabel } from './terms.mjs';
+import { catalogCandidate, catalogFingerprint } from './catalog.mjs';
 
 let draft = window.__resubmit?.draft ?? createDraft(), selectedId = null;
 const resubmitSentenceId = window.__resubmit?.sentenceId ?? null;
 let composing = false;
+const catalogResults = new Map();
 const element = id => document.getElementById(id);
 function render() {
   const focused = document.activeElement;
@@ -14,7 +16,11 @@ function render() {
   const state = deriveValidationState(draft);
   renderSentence(draft, state);
   renderTokens(draft, state, selectedId);
-  renderEditor(draft, state, selectedId);
+  for (const [id, result] of catalogResults) {
+    if (catalogFingerprint(draft.tokens.find(w => w.id === id)) !== result.fingerprint) catalogResults.delete(id);
+  }
+  const selected = draft.tokens.find(w => w.id === selectedId);
+  renderEditor(draft, state, selectedId, undefined, catalogCandidate(selected) ? (catalogResults.get(selectedId) ?? {}) : null);
   renderValidation(draft, state);
   if (focusId && element(focusId)) {
     element(focusId).focus({ preventScroll: true });
@@ -125,6 +131,34 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('click', e => {
   if (e.target.id === 'termToggle') { toggleMode(); render(); }
+});
+document.addEventListener('click', async e => {
+  if (e.target.id !== 'catalogCheck') return;
+  const tokenId = selectedId;
+  const token = draft.tokens.find(w => w.id === tokenId);
+  const candidate = catalogCandidate(token);
+  if (!candidate || catalogResults.get(tokenId)?.pending) return;
+  const result = { fingerprint: catalogFingerprint(token), pending: true, message: 'Ověřuji…' };
+  catalogResults.set(tokenId, result);
+  render();
+  try {
+    const response = await fetch('/api/real-word-catalog.php', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csrf: document.querySelector('meta[name="csrf"]')?.content ?? '', token: candidate }),
+    });
+    const data = await response.json();
+    result.message = response.status === 401 ? 'Pro ověření v katalogu se přihlaste.'
+      : data.ok && typeof data.exactMatch === 'boolean'
+        ? data.exactMatch ? 'Tato přesná deklarace je v katalogu potvrzena jako skutečné slovo.'
+          : 'Tato přesná deklarace zatím v katalogu potvrzena není. Můžete ji přesto odeslat k posouzení.'
+        : 'Katalogové ověření se nyní nepodařilo provést.';
+  } catch {
+    result.message = 'Katalogové ověření se nyní nepodařilo provést.';
+  } finally {
+    result.pending = false;
+    // Ignore a delayed response after any key change, even if the user changes back.
+    if (catalogResults.get(tokenId) === result && catalogFingerprint(draft.tokens.find(w => w.id === tokenId)) === result.fingerprint) render();
+  }
 });
 element('previewButton').addEventListener('click', () => {
   // Synchronous fresh derivation, even if a caller bypassed the normal render.

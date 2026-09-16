@@ -2,6 +2,7 @@ import { inferKvaziPrefix } from './state.mjs';
 import { enumOptions, functionalPos } from './rules-data.mjs';
 import { sentenceTypes, relationShapes, getModel, wordFields, getPath, isFunctional, publicSchema } from './schema.mjs';
 import { partsOfSpeechLabels, functionsLabels, translateOptions, buttonLabel } from './terms.mjs';
+import { pronounFields } from './catalog.mjs';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const options = (values, selected) => '<option value="">— vyberte —</option>' + Object.entries(values).map(([key, value]) => `<option value="${esc(key)}"${key === selected ? ' selected' : ''}>${esc(value)}</option>`).join('');
 function field(path, label, value, values, scope = 'word', disabled = false, multiline = false) {
@@ -48,7 +49,7 @@ export function renderTokens(draft, state, selectedId) {
   place.innerHTML = '<option value="end">Na konec věty</option>' + draft.tokens.flatMap((w, i) => ['before', 'after'].map(side => `<option value="${side}:${esc(w.id)}">${side === 'before' ? 'Před' : 'Za'} ${i + 1}. ${esc(w.surface)}</option>`)).join('');
   if ([...place.options].some(o => o.value === previous)) place.value = previous;
 }
-export function renderEditor(draft, state, selectedId, schema = publicSchema) {
+export function renderEditor(draft, state, selectedId, schema = publicSchema, catalogState = null) {
   const container = document.getElementById('editor');
   const w = draft.tokens.find(t => t.id === selectedId);
   container.hidden = !w;
@@ -74,8 +75,10 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
       ${field('pos', 'Slovní druh', w.pos, functional ? posLabels : Object.fromEntries(Object.entries(posLabels).filter(([k]) => !functionalPos().includes(k))), 'word', functional || inferKvaziPrefix(w.surface))}
       ${!functional ? field('lemma', w.pos === 'verb' ? 'Neurčitek / základní tvar' : 'Základní tvar', w.lemma) + field('lexicalStatus', 'Deklarovaná identita', w.lexicalStatus, w.pos === 'pronoun' ? { real: 'Skutečné slovo' } : enumOptions('lexicalStatus', { real: 'Skutečné slovo', quasi: 'Kvazislovo' })) + field('model', w.pos === 'verb' ? 'Soutěžní časovací typ' : 'Soutěžní vzor', w.model, models, 'word', !Object.keys(models).length) : '<p>Slovní druh a role jsou určeny pravidlem jednopísmenné výjimky.</p>'}
       ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? translateOptions(f.options) : null, 'word', false, f.multiline)).join('')}
+      ${w.pos === 'pronoun' ? pronounFields().map(f => field(f.path, f.label, getPath(w, f.path), f.options)).join('') : ''}
     </div>${w.pos === 'noun' && model ? `<p>Rod: ${esc({ masculine: 'mužský', feminine: 'ženský', neuter: 'střední' }[w.identity.gender])}${w.identity.animacy ? `, ${w.identity.animacy === 'animate' ? 'životný' : 'neživotný'}` : ''} (určeno zvoleným vzorem).</p>` : ''}
     ${formCheckHtml}
+    ${catalogState ? `<div><button id="catalogCheck" type="button" ${catalogState.pending ? 'disabled' : ''}>Ověřit v katalogu</button><p id="catalogResult" role="status">${esc(catalogState.message ?? '')}</p></div>` : ''}
     </fieldset>
     <fieldset><legend>Větná funkce a vazby</legend>
       ${field('role', functional ? 'Technická role' : 'Větná funkce', w.role, functional ? { [w.role]: w.role === 'preposition' ? 'Předložka – bez hlavní větné funkce' : 'Spojení souřadných částí' } : Object.fromEntries(Object.entries(funcLabels).filter(([key]) => key !== 'coordination')), 'word', functional)}

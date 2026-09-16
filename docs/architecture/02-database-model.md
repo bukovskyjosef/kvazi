@@ -52,13 +52,13 @@ Oddělená interní doména pro #6:
 - `morphology_review_decision`: stabilní ID, case/rules version, monotónní `decision_no`, `APPROVED/REJECTED`, důvod, admin a čas. `REJECTED` vyžaduje důvod. Oprava přidává další rozhodnutí; historii nepřepisuje. Pro budoucí exact lookup se použije nejvyšší `decision_no` daného case.
 - `validation_result_review`: explicitní stabilní vazba validation result + token ID → skutečně použité review decision. Composite FK brání propojení různých rules verzí. Jednou připojená reference se nemění ani nemaže.
 
-`UNKNOWN` znamená absenci rozhodnutí. Nová rules version nepřebírá staré znalosti. V M1 je připravena persistence; lookup, rozhodování a preconditions admin schválení se implementují v #6/#99/#100. Při zapojení těchto zápisů server ověří úplnost exact klíče a shodu s konkrétním tokenem immutable revize. Cache nikdy neposkytuje hráčský membership endpoint.
+`UNKNOWN` znamená absenci rozhodnutí. Nová rules version nepřebírá staré znalosti. M2 služby podle `06-review-services.md` implementují interní lookup, append-only rozhodování, stabilní vazby a reusable review preconditions. Server ověřuje úplnost exact klíče a rekonstruuje jej z konkrétního tokenu immutable revize/výsledku. Cache nikdy neposkytuje hráčský membership endpoint; admin detail a finální sentence approve navazují v #99/#100.
 
 ## Katalog skutečných slov
 
 `real_word_catalog` je samostatná provozní lexikální autorita pro #102. Exact key je úplná kanonická `identity_json` + `form_json` + NFC lowercase `surface_form`; není rules-version scoped. Uchovává lexikální schválení, zdroj/důvod, rozhodujícího admina a čas poslední změny. Není morfologickou review cache.
 
-M1 připravuje jen persistence. #102 doplní serverovou kontrolu úplnosti klíče a pouze potvrzení schváleného exact match vlastního kompletního návrhu. Žádný browse, autocomplete, prefix/fuzzy hledání ani alternativy. Nepotvrzený match není automatické zamítnutí. Pomocná sada `být` a jednopísmenné funkční tokeny jsou normativní výjimky mimo katalog; u prefixu katalog případně potvrzuje základ.
+M2 služby podle `06-review-services.md` poskytují serverovou kontrolu úplnosti klíče, hráčské potvrzení schváleného exact match a minimální ADMIN spravovací handler nad immutable revizí. Žádný browse, autocomplete, prefix/fuzzy hledání ani alternativy. Nepotvrzený match není automatické zamítnutí. Pomocná sada `být` a jednopísmenné funkční tokeny jsou normativní výjimky mimo katalog; u prefixu katalog případně potvrzuje základ.
 
 ## Bootstrap a upgrade
 

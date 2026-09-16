@@ -27,3 +27,8 @@ if grep -qi 'skipped' "$log"; then
   echo 'Mandatory browser scenarios were skipped' >&2
   exit 1
 fi
+node app/tests/catalog.browser.mjs | tee "$log"
+if grep -qi 'skipped' "$log"; then
+  echo 'Mandatory catalog browser scenarios were skipped' >&2
+  exit 1
+fi

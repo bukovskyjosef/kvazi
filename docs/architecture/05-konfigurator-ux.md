@@ -92,6 +92,14 @@ Pokud surface jednoznačně splní normativní podmínku pro inference prefixu:
 
 Inference sama nezaručuje platnost tokenu.
 
+### 4.4 Exact-match katalog
+
+Po úplném vyplnění identity a relevantního použitého tvaru nabízí token explicitní akci „Ověřit v katalogu“. Vyžaduje přihlášení a poskytne pouze potvrzení přesné deklarace, nebo zprávu „Tato přesná deklarace zatím v katalogu potvrzena není. Můžete ji přesto odeslat k posouzení.“ Neúplný kandidát akci nenabízí. Změna surface, identity/modelu či relevantního form field zneplatní starý výsledek; opožděná odpověď jej nesmí obnovit. Editace nikdy sama nespouští nový lookup. Obhajoby a povinná pole zůstávají viditelné a payload úplný; not found neovlivňuje submitReady.
+
+Zájmeno nemá produktivní model. Pro katalog má čtyři explicitní selecty: pád, číslo, rod a osoba, uložené jako `form.pronoun.{case,number,gender,person}`. Všechna pole jsou povinná pro lookup. Každé nabízí kromě svých closed hodnot „Nevztahuje se“ (`notApplicable`); prázdná hodnota není totéž a vlastnosti se nedovozují z lemmatu. Pád má 1–7, číslo singular/plural, rod masculineAnimate/masculineInanimate/feminine/neuter, osoba 1–3. Přesný kontrakt a ostatní POS fields jsou v `06-review-services.md`. Oddělená zájmenná signature nemění enumy produktivních kategorií ani deterministický validátor.
+
+Normativní funkční jednopísmenná slova a pomocná sada být akci nepotřebují. Katalog u prefixovaného substantiva ověřuje jen kompletní základ. Interní morphology cache není dostupná hráčskou akcí.
+
 ## 5. Syntaxe a vazby
 
 UI nabízí normativně povolené hlavní syntaktické funkce a technické role.
@@ -234,6 +242,7 @@ Povinně má pokrýt zejména:
 - skutečný authenticated submit do DB,
 - bezpečné odmítnutí surface-invalidního kandidáta,
 - žádné JS errors/XSS a základní responzivitu.
+- explicitní katalogové ověření úplného kandidáta, invalidaci po key změně včetně opožděné odpovědi a valid submit po not found.
 
 Není povinné proklikávat a deep-validovat každou globálně nedosažitelnou větev. Hotové deep-validator funkce mohou mít samostatné levné unit testy.
 

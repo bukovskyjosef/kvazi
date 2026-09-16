@@ -10,6 +10,7 @@ Doporučené pořadí čtení:
 4. `03-validation.md` – včetně závazného technického rozlišení úplné modelové nabídky, surface gate a dormant deep-validace
 5. `04-comments-auth-admin.md`
 6. `05-konfigurator-ux.md` – UX a funkční specifikace konfigurátoru
-7. `/db/schema-draft.sql`
+7. `06-review-services.md` – exact keys, oddělené katalogové/review API a stabilní vazby
+8. `/db/schema-draft.sql`
 
 Autoritu dokumentů určuje `/docs/README.md`. Aktuální závislosti a otevřená práce se zjišťují z GitHub Issues, ne z tohoto README.
