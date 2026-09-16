@@ -1,7 +1,7 @@
 import {pathToFileURL} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
 
-// A CMD readiness probe uses PHP already present in the M4.5 image.
+// Image-owned readiness contract, verified by the mandatory production packaging gate.
 export const HEALTHCHECK_COMMAND = 'php /usr/local/bin/kvazi-healthcheck.php';
 
 function requireValue(condition, message) {
@@ -59,8 +59,6 @@ export async function deployProduction({coolifyUrl, token, readToken, appUuid, e
       ['docker/php/Dockerfile', '/docker/php/Dockerfile'].includes(app.dockerfile_location) &&
       String(app.ports_exposes) === '80' && !app.ports_mappings, 'Coolify application packaging contract mismatch');
     requireValue(app.settings?.is_auto_deploy_enabled === false, 'Coolify native Auto Deploy must be OFF');
-    requireValue(app.health_check_enabled === true && app.health_check_type === 'cmd' &&
-      app.health_check_command === HEALTHCHECK_COMMAND, 'Coolify must use the verified PHP /healthz CMD readiness probe');
     requireValue(!app.pre_deployment_command && !app.post_deployment_command,
       'Unexpected Coolify deployment command; bootstrap and upgrades must be explicit');
   }

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {deployProduction, HEALTHCHECK_COMMAND} from '../tools/deploy-production.mjs';
 
 const sha = 'a'.repeat(40);
@@ -11,15 +12,17 @@ const application = {
   id: 17, uuid: appUuid, git_repository: 'https://github.com/bukovskyjosef/kvazi',
   git_branch: 'main', git_commit_sha: sha, build_pack: 'dockerfile', base_directory: '/',
   dockerfile_location: '/docker/php/Dockerfile', ports_exposes: '80', ports_mappings: null,
-  settings: {is_auto_deploy_enabled: false}, health_check_enabled: true,
-  health_check_type: 'cmd', health_check_command: HEALTHCHECK_COMMAND, status: 'running:healthy',
+  settings: {is_auto_deploy_enabled: false}, status: 'running:healthy',
 };
 const deployment = {deployment_uuid: deploymentUuid, application_id: '17', pull_request_id: 0, commit: sha, status: 'finished'};
 const applicationWithoutId = {...application, git_repository: 'bukovskyjosef/kvazi'};
 delete applicationWithoutId.id;
-test('Readiness CMD fits the actual Coolify safe-command grammar', () => {
-  assert.match(HEALTHCHECK_COMMAND, /^[a-zA-Z0-9 \-_.\/:=@,+]+$/);
-  assert.ok(HEALTHCHECK_COMMAND.length <= 1000);
+test('Dockerfile owns the exact production readiness command and timing', () => {
+  const dockerfile = readFileSync(new URL('../../docker/php/Dockerfile', import.meta.url), 'utf8');
+  assert.deepEqual(dockerfile.split('\n').filter(line => /^HEALTHCHECK\b/.test(line)), [
+    'HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=12 CMD ["php", "/usr/local/bin/kvazi-healthcheck.php"]',
+  ]);
+  assert.equal(HEALTHCHECK_COMMAND, 'php /usr/local/bin/kvazi-healthcheck.php');
 });
 function response(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {status, headers: {'content-type': 'application/json', ...headers}});
@@ -57,7 +60,8 @@ function fixture({app = application, triggered = {deployments: [{resource_uuid: 
 }
 
 for (const app of [application, applicationWithoutId]) {
-  test(`Exact deployment UUID is polled to finished, healthy and read-only production endpoints (${app.id === undefined ? 'without' : 'with'} application id)`, async () => {
+  test(`Application API without health fields reaches finished, healthy and read-only production endpoints (${app.id === undefined ? 'without' : 'with'} application id)`, async () => {
+    assert.ok(!Object.keys(app).some(key => /health/i.test(key)), 'Fixture omits all health metadata');
     const f = fixture({app, states: [{...deployment, status: 'queued'}, {...deployment, status: 'in_progress'}, deployment]});
     assert.deepEqual(await deployProduction(f.options), {deploymentUuid, commit: sha});
     const trigger = f.requests.find(r => r.url.pathname === '/api/v1/deploy');
@@ -77,8 +81,9 @@ for (const app of [application, applicationWithoutId]) {
     'another source': {git_repository: 'https://github.com/other/repo'}, 'another branch': {git_branch: 'develop'},
     'native Auto Deploy': {settings: {is_auto_deploy_enabled: true}}, 'missing Auto Deploy setting': {settings: {}},
     'wrong build context': {base_directory: '/app'}, 'wrong Dockerfile': {dockerfile_location: '/Dockerfile'},
-    'public direct port': {ports_mappings: '8080:80'}, 'disabled healthcheck': {health_check_enabled: false},
-    'no-op readiness': {health_check_command: 'true'}, 'deployment migration hook': {pre_deployment_command: 'psql init.sql'},
+    'public direct port': {ports_mappings: '8080:80'}, 'wrong build pack': {build_pack: 'nixpacks'},
+    'wrong port': {ports_exposes: '8080'}, 'deployment migration hook': {pre_deployment_command: 'psql init.sql'},
+    'post-deployment migration hook': {post_deployment_command: 'psql init.sql'},
   })) {
     test(`Reject ${name} before any deploy request (${app.id === undefined ? 'without' : 'with'} application id)`, async () => {
       const f = fixture({app: {...app, ...changes}});
@@ -130,7 +135,11 @@ test('Queued deployment reaches deadline and fails', async () => {
   assert.ok(!f.logs.some(line => line.includes('PASS')));
 });
 
-for (const [name, afterApp] of Object.entries({unhealthy: {...application, status: 'running:unhealthy'}, drift: {...application, git_commit_sha: 'b'.repeat(40)}})) {
+for (const [name, afterApp] of Object.entries({
+  unhealthy: {...application, status: 'running:unhealthy'}, 'unknown health': {...application, status: 'running'},
+  'starting health': {...application, status: 'running:starting'}, 'missing status': {...application, status: undefined},
+  drift: {...application, git_commit_sha: 'b'.repeat(40)},
+})) {
   test(`Finished deployment with ${name} fails`, async () => {
     const f = fixture({afterApp});
     await assert.rejects(deployProduction(f.options));
