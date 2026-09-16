@@ -1,338 +1,250 @@
-# Konfigurátor kvazivěty – funkční a vzhledová specifikace
+# Konfigurátor kvazivěty – funkční a UX specifikace
 
-> **Status:** nenormativní UX a funkční specifikace konfigurátoru. Shrnuje cílové chování, uživatelské požadavky a podle potřeby také stav existujícího prototypu. Soutěžní pravidla sama neurčuje a musí být vždy v souladu s aktuálním normativním balíkem podle `docs/README.md`.
+> **Status:** nenormativní funkční specifikace aktivního konfigurátoru. Soutěžní pravidla sama neurčuje a musí být vždy v souladu s aktuálním normativním balíkem podle `docs/README.md` a s aktuálními GitHub Issues.
 
-## 0. Jak tento dokument číst
+## 0. Role dokumentu
 
-Tento dokument je přehledový pracovní kontrakt pro **UX a funkční chování konfigurátoru**: co má uživatel při vkládání kvazivěty vidět, zadávat a co má aplikace dělat. Smí současně popisovat již implementované chování i cílový stav.
+Konfigurátor umožňuje hráči zapsat konkrétní kvazivětu, deklarovat analýzu jednotlivých slov a odeslat podání. Nemá hru řešit, generovat kandidáty ani hráči prozrazovat, které normativní cesty jsou podle aktuálního motivu slepé.
 
-Jednotlivé části mohou být výslovně označené jako **BLOCKED** a uvést, jakým nerozhodnutým pravidlem, závislostí nebo implementačním předpokladem jsou blokované. Takové označení je užitečný snapshot pro orientaci; **nenahrazuje živý stav GitHub Issue, jeho prioritu ani `open/closed` stav**. Jediným živým backlogem zůstávají GitHub Issues.
+Klíčový UX princip:
 
-Před tím, než se tento dokument použije jako zadání pro implementaci, musí proběhnout cílený audit/synchronizace proti:
+> **Normativní nabídka je úplná; validační hloubka může být podmíněná dřívějším rozhodujícím gate.**
 
-1. aktuálnímu normativnímu balíku pravidel,
-2. aktuálním GitHub Issues a přijatým rozhodnutím,
-3. skutečnému stavu implementace konfigurátoru.
+To znamená například:
 
-Teprve po takovém ověření lze konkrétní části považovat za aktuální implementační zadání.
+- model `kuře` zůstává normálně v roletě substantivních modelů,
+- `otcův` a `matčin` zůstávají v nabídce adjektivních modelů,
+- všech pět normativních slovesných typů zůstává v nabídce,
+- normativní druhy slovesných tvarů se neschovávají pouze kvůli reachability,
+- konfigurátor hráče neupozorňuje, že některá volba je podle současné abecedy nebo motivu slepá.
 
-> **Upozornění k současnému obsahu:** Detailní specifikace níže vznikla nad starším stavem prototypu a **nebyla ještě kompletně re-auditována po pozdějších rozhodnutích projektu**. Může proto obsahovat zastaralé prvky. Historické auditní Markdown soubory nejsou zdrojem aktuálních produktových požadavků; aktuální požadavky se při auditu odvozují z normativních pravidel, přijatých rozhodnutí a GitHub Issues.
+Reachability nesmí fungovat jako nápověda.
 
----
+## 1. Základní struktura stránky
 
-## 1. Architektura stránky
+Aktivní konfigurátor je `app/public/konfigurator.php` a používá moduly v `app/public/js/konfigurator/`.
 
-Stránka se skládá ze čtyř logických karet:
+Hlavní části UI:
 
-1. **Zadání věty** – preview, typ věty, vkládání slov.
-2. **Deklarace slova** – editor vybraného tokenu (skrytý, dokud není nic vybráno).
-3. **Kontrola deklarace** – validační panel.
-4. **Akce** – local preview JSON, základ pro budoucí submit.
+1. **Zadání věty** – preview, typ věty, vkládání a pořadí tokenů.
+2. **Deklarace slova** – editor vybraného tokenu.
+3. **Kontrola** – živý přehled povrchové, strukturální a případně deep-validace.
+4. **Akce** – lokální JSON preview a skutečný submit.
 
-Stav žije čistě v paměti stránky (`draft` v `editor.mjs`). Nic se neodesílá ani neukládá.
+Submit používá autentizovanou backend cestu a serverovou autoritativní validaci. Konfigurátor není pouze lokální prototyp.
 
----
+## 2. Vkládání slov
 
-## 2. Záhlaví (header)
+Hráč zadává konkrétní povrchové tvary jako samostatné tokeny.
 
-- Gradient pozadí: `#0f172a → #1e3a5f`.
-- Vlevo: název „Konfigurátor kvazivěty" + podtitulek „Nejdelší kvazivěta · prototyp".
-- Vpravo (`.header-nav`):
-  - Tlačítko **terminologický přepínač** (`#termToggle`) – přepíná mezi odbornými
-    a českými názvy (viz sekce 7).
-  - Odkaz **← Úvod** vedoucí na `/`.
+- mezera nebo Enter commitne aktuální token,
+- Backspace v prázdném vstupu může odstranit poslední token,
+- token lze vložit na konkrétní pozici,
+- surface se normalizuje do Unicode NFC,
+- pořadí tokenů je stabilní a vazby používají jejich interní ID,
+- závěrečná interpunkce souvisí s typem věty.
 
----
+Povrchově chybný token může být ve formuláři vložen a dále editován. Validace je neblokující; neplatnost se projeví ve stavu kontroly a zablokuje submit.
 
-## 3. Vkládání slov (sentence entry)
+## 3. Typ věty
 
-### 3.1 Vstupní pole
+Konfigurátor nabízí normativní typy věty z aktivního rules release.
 
-- Jedno textové pole `#newSurface` uvnitř flexibilního `.sentence-entry` kontejneru.
-- Slova se oddělují mezerou nebo Enterem – po každé mezeře/Enteru se aktuální
-  obsah pole rozdělí na tokeny a každý se stane chipem.
-- Backspace v prázdném poli smaže poslední chip.
-- Pole podporuje IME kompozici (čínština, japonština apod.) – commit probíhá
-  až po `compositionend`.
+U rozkazovací věty lze podle pravidel deklarovat normativně dovolený nevyjádřený podmět.
 
-### 3.2 Chipy tokenů
+Závěrečná interpunkce se odvozuje deterministicky z typu věty a nesmí vytvořit vlastní pravidlo mimo release data.
 
-Každé slovo je reprezentováno jako `.token-chip` (inline-flex):
+## 4. Deklarace tokenu
 
-- **Levá část** (`.chip` + `button[data-action=select]`): kliknutí vybere token
-  do editoru.
-- **Pravá část** (`.chip-remove` + `button[data-action=delete-chip]`): odstraní token.
+### 4.1 Obecná pole
 
-Vizuální stav chipu:
+Podle slovního druhu a zvoleného modelu hráč deklaruje zejména:
 
-| Třída    | Podmínka                        | Efekt                          |
-|----------|---------------------------------|--------------------------------|
-| `.ok`    | token je kompletní              | zelený rámeček (`#86efac`)     |
-| `.err`   | token má chybějící pole         | červený rámeček, světle červené pozadí |
-| `.active`| token je právě vybrán v editoru | modrý rámeček + `box-shadow`   |
+- slovní druh,
+- lemma / základní tvar / infinitiv,
+- status skutečné slovo / kvazislovo,
+- soutěžní model,
+- morfologické vlastnosti konkrétního použitého tvaru,
+- větnou funkci nebo technickou roli,
+- požadované vazby na další tokeny,
+- morfologickou a případně významovou obhajobu,
+- u slovesa valenční obhajobu volným textem.
 
-Barvy chipů podle slovního druhu (třídy `pos-*`, neaplikují se při `.active`):
+Podle #86 hráč **nevyplňuje celé paradigma** ani nepoužité tvary.
 
-| Třída              | Barva pozadí | Barva textu |
-|--------------------|--------------|-------------|
-| `.pos-noun`        | modrá        | tmavě modrá |
-| `.pos-adjective`   | zelená       | tmavě zelená |
-| `.pos-verb`        | žlutá        | hnědooranžová |
-| `.pos-pronoun`     | fialová      | tmavě fialová |
-| `.pos-preposition` | světle šedá  | šedá |
-| `.pos-conjunction` | azurová      | tmavě cyan |
+### 4.2 Úplná modelová nabídka
 
-Třídy jsou přidány renderem podle hodnoty `w.pos` tokenu.
+Model selectors se sestavují z aktivních normativních dat a **nesmějí být filtrovány reachability analýzou**.
 
-### 3.3 Vkládání na konkrétní pozici
+Konfigurátor tedy nesmí vytvářet druhý seznam „aktivních modelů“ založený na tom, zda v současném motivu známe použitelný surface.
 
-Skrytý `<select id="insertPlace">` (v DOM kvůli logice, uživateli neviditelný)
-uchovává aktuální cílovou pozici (za/před konkrétní token nebo na konec).
-Po vložení se pozice automaticky posune za právě vložené slovo.
+Toto pravidlo platí i pro globálně nedosažitelné větve. Jejich nabídka ve formuláři je záměrná a umožňuje hráči samostatně objevovat slepé cesty.
 
----
+### 4.3 Prefix `kvazi-`
 
-## 4. Metadata věty (sentenceFields)
+Prefix se ručně nevolí.
 
-Renderuje se do `#sentenceFields` po každém volání `render()`.
+Pokud surface jednoznačně splní normativní podmínku pro inference prefixu:
 
-### 4.1 Typ věty
+- POS se automaticky nastaví na substantivum,
+- interní `kvaziPrefix` se odvodí z normativních dat,
+- hráč tyto odvozené hodnoty pro daný surface nemůže přepsat.
 
-Tři radio buttony jako `.radio-label` uvnitř `.radio-group` (flex řádek):
+Inference sama nezaručuje platnost tokenu.
 
-- **Oznamovací** (`declarative`) – default.
-- **Tázací** (`interrogative`).
-- **Rozkazovací** (`imperative`).
+## 5. Syntaxe a vazby
 
-### 4.2 Podmět není vyjádřen (implicitní podmět)
+UI nabízí normativně povolené hlavní syntaktické funkce a technické role.
 
-Zobrazuje se **pouze** pro typ `imperative`. Checkbox je renderován přímo
-v `.radio-group` flex řádku (nikoli na novém řádku) ve stylu `.radio-label`,
-takže vizuálně navazuje na skupinu radiobuttonů.
+Podle role se zobrazí příslušné vazby na jiné tokeny, například:
 
-Label: „Podmět není vyjádřen".
+- řídící slovo,
+- přísudek,
+- jmenný cíl,
+- dvě části koordinace.
 
-### 4.3 Volitelné pole (optional-wrap)
+Vazby musí používat stabilní token ID a nesmějí mířit na neexistující nebo nepovolený cíl.
 
-Zbylá nepovinná pole jsou sbalená v `<details class="optional-wrap">`:
+Valenční obhajoba slovesa je volný text; konfigurátor nemá hráči generovat nebo navrhovat valenční rámec.
 
-- **Fiktivní význam celé věty** – textové pole.
-- **Další obhajoba celé věty** – textové pole.
+## 6. Validační UX
 
-`details` zachovává svůj `open` stav přes re-rendery (stav se čte před přepsáním
-innerHTML a obnoví se po něm).
+### 6.1 Povrchová brána
 
----
+První viditelná validační vrstva kontroluje zejména:
 
-## 5. Preview věty
+- Unicode NFC,
+- povolené znaky,
+- délku,
+- jednopísmenné výjimky,
+- prefixovou povrchovou výjimku,
+- globální motivovou/tokenovou sekvenci.
 
-- Element `#sentencePreview` nad kartou zadání.
-- Font: Georgia/Times New Roman (serif), 28 px.
-- Prázdný stav: kurzíva, světle šedá, nápis „Věta se zobrazí zde…".
-- Zobrazuje tokeny oddělené mezerou + závěrečnou interpunkci podle typu věty.
+Tato vrstva je společná všem modelům a má přednost před deep validační diagnostikou.
 
----
+### 6.2 Deep-validace se nespouští zbytečně
 
-## 6. Editor deklarace slova
+Pokud konkrétní token nebo věta už na povrchové vrstvě deterministicky selže, submit je neplatný. UI nemusí v takové situaci současně zobrazovat detailní branch-specific morfologické chyby, které už konečný verdikt nemohou změnit.
 
-Zobrazuje se pouze pokud je vybrán token (`selectedId != null`). Renderuje se
-jako obsah `#editor` karty.
+Doporučené uživatelské chování je:
 
-### 6.1 Sekce: Identita a použitý tvar
+- povrchová chyba je zobrazena jasně,
+- deep morfologická kontrola je označena jako **neprovedená / nevyhodnocená kvůli povrchové chybě**, nikoli jako úspěšná,
+- hráč není zahlcen sekundárními chybami odvozenými z větve, ke které se aktivní validace vůbec nemusela dostat,
+- `submitReady` zůstává `false`.
 
-- **Slovní druh** – select s odbornou/českou terminologií (viz sekce 7).
-  Pro funkční slova (předložka, spojka) je disabled a ukazuje jen svůj druh.
-- **Základní tvar** – text input (neurčitek pro slovesa).
-- **Deklarovaná identita** – select (Skutečné slovo / Kvazislovo).
-- **Soutěžní vzor / časovací typ** – select ze vzorů definovaných v `schema.mjs`.
-- **Pád, Číslo** (podstatná jména, zájmena) a **Rod, Pád, Číslo** (přídavná jména)
-  použitého tvaru – selecty.
-- **Prefix kvazi-** (podstatná jména) – select.
-- **Druh slovesného tvaru** (slovesa) – select: přítomný/budoucí, rozkazovací způsob,
-  l-příčestí. Podle vybrané hodnoty se kontextově zobrazí:
-  - *přítomný/budoucí* → Osoba (1/2/3), Číslo.
-  - *rozkazovací způsob* → Osoba/číslo (2.sg / 1.pl / 2.pl).
-  - *l-příčestí* → Rod (mužský/ženský/střední), Číslo, a pokud maskulinum plurál,
-    pak i Životnost.
-- **Vid** – select (Nedokonavý / Dokonavý / Obouvidový).
-- **Valenční obhajoba** – multiline text area.
+### 6.3 Surface-validní kandidát
 
-Pod formulářem se zobrazí výsledek morfologické kontroly tvaru (viz sekce 8).
+Pokud povrchová brána projde, konfigurátor provede relevantní strukturální a deterministickou deep-validaci:
 
-### 6.2 Sekce: Větná funkce a vazby
+- completeness/closed enums,
+- konkrétní morfologický form-check,
+- syntaktické vazby,
+- deterministickou shodu,
+- prefixové invarianty,
+- další pravidlově jednoznačné kontroly.
 
-- **Větná funkce** – select s odbornou/českou terminologií.
-- **Řídící slovo / Predikát / Nominál / Levá-pravá část** – selecty s tokeny věty
-  (dle `relationShapes` pro danou roli).
-- Checkbox **„Vztah je významově nejasný nebo závisí na fiktivním významu"**
-  – pokud zaškrtnuto, zobrazí se text inputy pro obhajobu a českou analogii.
+Klientská kontrola je pouze UX; backend vše potřebné autoritativně zopakuje.
 
-### 6.3 Sekce: Podklady pro posouzení
+## 7. Dormant deep-validace
 
-- **Morfologická obhajoba** – text input.
-- **Zdroj** (jen pro skutečná slova) – select (IJP / ASSČ).
-- **Konkrétní heslo a doklad** – text input.
+Současná codebase může obsahovat funkční deep-validátory normativních větví, které se při aktuálním surface/motivu prakticky nebo globálně nedostanou do aktivního submit flow.
 
-### 6.4 Přehled zbývajícího
+Takovou implementaci:
 
-Na konci editoru je shrnutí všeho, co u tokenu chybí (issues, missing,
-chyba morfologické shody).
+- **nemažeme pouze kvůli současné reachability**,
+- **nezakomentováváme jako velký mrtvý blok**,
+- necháváme normálně syntakticky aktivní a udržovatelnou,
+- odpojíme pouze její volání z cesty, kde už surface gate definitivně rozhodl INVALID,
+- můžeme chránit levnými unit/regression testy,
+- nemusíme pro ni udržovat samostatný browser/HTTP/DB/E2E scénář.
 
----
+Důvodem je možnost budoucí rules verze s jinou abecedou nebo motivem. Při takové změně se nejprve prověří, zda lze zachovanou implementaci znovu zapojit.
 
-## 7. Terminologický přepínač
+## 8. Validační panel
 
-### 7.1 Výchozí stav
+Panel má odlišit minimálně:
 
-**Výchozí jsou odborné termíny** (latinsko-řecké). Tlačítko zobrazuje
-„Přepnout do češtiny".
+1. **Povrchová / znaková a motivová kontrola**,
+2. **Strukturované údaje a syntax**,
+3. **Morfologická kontrola**,
+4. **Připravenost k odeslání**,
+5. počet slov a autoritativně odvoditelné skóre pro aktuální draft.
 
-### 7.2 Přepnutý stav
+Morfologický stav nemá být nuceně binární `OK/FAIL`, pokud kontrola nebyla kvůli dřívějšímu failure provedena. UI smí používat třetí stav typu „nevyhodnoceno“.
 
-Po kliknutí se zobrazují české termíny. Tlačítko zobrazuje „Přepnout na odborné".
+Per-token detail má primárně zobrazovat chyby relevantní pro aktuální validační fázi a nemá zahlcovat hráče výsledky dormant větví po definitivním surface failure.
 
-### 7.3 Pokrytí
+## 9. Lokální preview
 
-Modul `terms.mjs` překládá tyto pojmy:
+Tlačítko pro JSON preview:
 
-| Koncept       | Odborný termín         | Český termín            |
-|---------------|------------------------|-------------------------|
-| noun          | Substantivum           | Podstatné jméno         |
-| adjective     | Adjektivum             | Přídavné jméno          |
-| verb          | Verbum                 | Sloveso                 |
-| pronoun       | Pronomen               | Zájmeno                 |
-| preposition   | Prepozice              | Předložka               |
-| conjunction   | Konjunkce              | Spojka                  |
-| subject       | Subjekt                | Podmět                  |
-| predicate     | Predikát               | Přísudek                |
-| object        | Objekt                 | Předmět                 |
-| agreeingAttr. | Atribut shodný         | Přívlastek shodný       |
-| attribute     | Atribut neshodný       | Přívlastek neshodný     |
-| adverbial     | Adverbiale             | Příslovečné určení      |
-| supplement    | Predikativum           | Doplněk                 |
-| coordination  | Koordinace             | Spojení souřadných částí|
-| 1.–7. pád     | Nominativ … Instrumentál | 1. pád … 7. pád       |
-| singular      | Singulár               | Jednotné                |
-| plural        | Plurál                 | Množné                  |
-| masculineAnim.| M živ                  | Mužský životný          |
-| masculineInan.| M neživ                | Mužský neživotný        |
-| feminine      | F                      | Ženský                  |
-| neuter        | N                      | Střední                 |
-| imperfective  | Imperfektivum          | Nedokonavý              |
-| perfective    | Perfektivum            | Dokonavý                |
-| biaspectual   | Biaspektuální          | Obouvidový              |
+- vždy pracuje s aktuálním draftem,
+- nic samo neodesílá,
+- po změně draftu se starý preview stav zneplatní,
+- může zobrazit odvozený validační stav včetně informace, že určitá deep kontrola nebyla provedena.
 
-Přepnutí okamžitě překreslí celý UI (jeden `toggleMode()` + `render()`).
-Termíny jsou aplikovány v: selectech slovního druhu a větné funkce, headrech
-a řádcích morfologické tabulky, selectech pádu/čísla/rodu/vidu.
+Preview není autoritou pro serverový submit.
 
----
+## 10. Submit
 
-## 8. Morfologická shoda
+Submit je dostupný pouze tehdy, když klientská validace považuje draft za připravený.
 
-Modul `morpho.mjs` obsahuje normativní paradigmatické tabulky pro všechny soutěžní vzory a modely
-a exportuje funkci `validateForm(w)`. Ta dostane token a synchronně vrátí:
+Backend však klientskému výsledku nedůvěřuje a znovu autoritativně vyhodnotí request.
 
-```js
-{ ok: boolean, expected: string | null, message: string | null }
-```
+Backend smí short-circuitovat po definitivním surface failure stejně jako frontend, ale musí:
 
-- `ok: true, expected: 'kvaz'` — deklarovaný tvar byl deterministicky odvozen a povrchový tvar
-  tokenu mu odpovídá (nebo se liší jen nefunkčně, v tom případě se zobrazí poznámka).
-- `ok: false, message: '…'` — tvar nelze ověřit nebo povrchový tvar neodpovídá očekávanému.
-- `ok: true, expected: null` — ověření nebylo možné (neznámý vzor, funkční slovo): bere se jako OK.
+- request bezpečně odmítnout,
+- nevytvořit novou `sentence_revision`,
+- nepřevzít klientský score, rules version, prefix/POS odvozeninu ani jiný derived state jako autoritu.
 
-### 8.1 Pokrytí paradigmat
+Surface-valid direct request musí projít dostatečnou kontrolou deklarace i tehdy, když klient tvrdí model nebo větev, která je při běžném používání globálně nedosažitelná.
 
-| Kategorie         | Vzory / modely                                         |
-|-------------------|--------------------------------------------------------|
-| Podstatná jména   | 14 vzorů (pán, muž, předseda, soudce, hrad, stroj, žena, růže, píseň, kost, město, moře, kuře, stavení) |
-| Přídavná jména    | mladý, jarní, otcův, matčin (+ gradace 1.–3. stupně)  |
-| Slovesa           | V-AT, V-IT, V-NOUT, V-ÝT, V-OVAT × {přítomný, rozkazovací, l-příčestí} |
+## 11. Resubmit a historie
 
-### 8.2 Zobrazení výsledku v editoru
+Vrácené podání se načítá z immutable předchozí revize do nového editovatelného draftu.
 
-Ve fieldsettu „Identita a použitý tvar" se pod formulářovými poli zobrazí:
+- starší revision se nepřepisuje,
+- staré administrativní rozhodnutí neopravňuje libovolně další revize,
+- další submit vytváří novou revision stejné sentence pouze podle revision-scoped workflow.
 
-- **✓ Morfologická shoda** (zelený odstavec) – tvar odpovídá deklaraci, uveden očekávaný tvar.
-  Pokud se povrchový tvar liší od očekávaného (liší se diakritika apod.), zobrazí se upozornění.
-- **Chybí: …** (červený odstavec) – konkrétní chybová hláška (např. „Pád nebo číslo není nastaveno.",
-  „Očekávaný tvar je ‚kvaz', ale povrchový tvar je ‚kvazi'.").
-- Pro funkční slova (předložka, spojka) a pro neznámé vzory se výsledek nezobrazuje.
+Reachability optimalizace nemá měnit uloženou hráčskou deklaraci ani historická data.
 
-### 8.3 Agregace do morfologyOk
+## 12. Přístupnost a bezpečné renderování
 
-`deriveValidationState()` agreguje `formCheck.ok` přes všechny tokeny do `morphologyOk`.
-Validační panel zobrazuje „Morfologická shoda ověřena" (✓) nebo „Morfologická shoda ověřena" (Chybí:).
-`submitReady` je `false`, dokud není `morphologyOk === true`.
+- viditelné formulářové prvky mají mít label nebo ekvivalentní accessible name,
+- user-entered text se escapuje a nesmí vytvořit XSS,
+- focus se při re-renderu nemá zbytečně ztrácet,
+- konfigurátor musí být použitelný i na mobilním viewportu,
+- validace nesmí spoléhat na klientské UI jako bezpečnostní hranici.
 
----
+## 13. Testovací kontrakt konfigurátoru
 
-## 9. Validační panel
+Browser test má dokazovat reprezentativní skutečnou hráčskou cestu, nikoli úplný kartézský součin normativních paradigmat.
 
-Zobrazuje se v `#validation`. Zobrazuje:
+Povinně má pokrýt zejména:
 
-1. Znaková kontrola (DFA motivů, délky, výjimky) – ✓ / Chybí.
-2. Větná struktura a syntaktické vazby – ✓ / Chybí.
-3. Strukturované údaje úplné – ✓ / Chybí.
-4. Morfologická shoda ověřena – ✓ / Chybí.
-5. Připraveno k odeslání – ✓ / Chybí.
-6. Počet slov a znaků (Q = 1, KV = 2).
-7. Seznam aktuálních problémů na úrovni věty.
-8. Per-token sbalitelné detaily (`<details>`).
+- vkládání/editaci tokenů,
+- NFC a základní povrchovou kontrolu,
+- úplnost model selectorů včetně reprezentativní slepé možnosti (`kuře` je minimální regression anchor),
+- syntaktické vazby,
+- prefix inference,
+- reprezentativní surface-valid noun/adjective/verb deklaraci,
+- pozitivní `submitReady`,
+- skutečný authenticated submit do DB,
+- bezpečné odmítnutí surface-invalidního kandidáta,
+- žádné JS errors/XSS a základní responzivitu.
 
----
+Není povinné proklikávat a deep-validovat každou globálně nedosažitelnou větev. Hotové deep-validator funkce mohou mít samostatné levné unit testy.
 
-## 10. Zachování focusu
+## 14. Anti-goals
 
-Při každém `render()` se před přepsáním DOM zaznamená `document.activeElement.id`
-a rozsah textové selekce. Po přepsání se focus i selekce obnoví na stejný element
-(pokud stále existuje). Tím se zamezí ztrátě kurzoru při psaní.
+Konfigurátor nesmí:
 
----
-
-## 11. Designový systém
-
-### 11.1 Barvy
-
-| Role                | Hodnota       |
-|---------------------|---------------|
-| Header gradient od  | `#0f172a`     |
-| Header gradient do  | `#1e3a5f`     |
-| Pozadí stránky      | `#eef1f6`     |
-| Karta (pozadí)      | `#ffffff`     |
-| Karta (rámeček)     | `#e2e8f0`     |
-| Akcent (focus/link) | `#3b82f6`     |
-| Úspěch              | `#16a34a`     |
-| Chyba               | `#fca5a5`     |
-
-### 11.2 Typografie
-
-- Systémový sans-serif stack (`-apple-system`, `BlinkMacSystemFont`, `Segoe UI`).
-- Věta v preview: Georgia/Times New Roman, 28 px.
-- UI labels: 11 px uppercase s letter-spacing pro kategorie.
-
-### 11.3 Karty
-
-- `border-radius: 10px`, `box-shadow: 0 1px 3px … 0 4px 16px …`.
-- Card header: `#f8fafc` pozadí, uppercase label.
-
-### 11.4 Formulářové prvky
-
-- Inputy a selecty: `border: 1.5px solid #d1d9e6`, `border-radius: 6px`.
-- Focus: `border-color: #3b82f6` + `box-shadow` s modrou průhledností.
-
-### 11.5 Responzivita
-
-Pod 600 px se header zalamuje, container má menší padding, preview má menší font.
-
----
-
-## 12. Aktuální omezení prototypu (záměrná)
-
-- Žádný backend submit – pouze local JSON preview.
-- Valenční rámec (`valency.declaration`) je textový popis; sémantická validace
-  valenčního slotu pro předmět je jen zástupný bod (#5).
-- `submitReady` bude `false`, dokud nejsou potřebná data úplná a morfologická
-  shoda ověřena.
-- Bez přihlášení, autorizace ani perzistence.
+- filtrovat normativní modely podle reachability,
+- označovat hráči slepé cesty,
+- z konkrétního surface nabízet jen modely, které by mohly projít,
+- generovat kandidátní slova nebo věty,
+- navrhovat alternativní morfologickou/syntaktickou analýzu,
+- zaměnit `deep validation not evaluated` za `deep validation passed`,
+- mazat fungující dormant validator jen kvůli současnému motivu bez samostatného technického důvodu.
