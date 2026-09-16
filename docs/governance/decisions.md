@@ -116,6 +116,17 @@ Technické/resource limity formuláře jsou nenormativní a nesmějí vytvořit 
 
 Reachability je analytická informace, nikoli normativní filtr. Normativně povolený model, morfologická větev nebo jiný mechanismus zůstává součástí pravidel i tehdy, pokud se ukáže prakticky nebo prokazatelně nedosažitelný. UI ani hráčský tahák jej nesmějí skrýt jen kvůli reachability a hráčské materiály nemají známé slepé cesty předem prozrazovat.
 
+### Úplná nabídka modelů versus validační hloubka — rozhodnutí #88
+
+- Všechny normativně povolené modely a hlavní varianty zůstávají nabízené v konfigurátoru bez ohledu na aktuální reachability; například `kuře` zůstává v substantivním model selectoru.
+- Reachability nesmí model nebo větev skrýt, označit jako slepou ani podle konkrétního hráčského surface filtrovat nabídku na „nadějné“ analýzy.
+- Obecná surface validace (NFC, charset, délka, motiv/tokenová sekvence a prefixová povrchová pravidla) je legitimní časný gate.
+- Pokud konkrétní request už na této vrstvě deterministicky selže, deep branch-specific validace, která konečný INVALID verdikt nemůže změnit, nemusí být spuštěna ani mít samostatnou drahou browser/HTTP/DB/cross-engine testovací matici.
+- Surface-valid request musí dál projít dostatečnou serverovou kontrolou deklarace; short-circuit nesmí umožnit podstrčení modelu, enumu, prefixu, POS, score ani jiné klientské odvozeniny.
+- Funkční deep-validator, který už pro dnes nedosažitelnou normativní větev existuje, se pouze kvůli současnému motivu **nemaže ani hromadně nezakomentovává**. Preferuje se zachování jako dormant/reusable kódu odpojeného z aktivní cesty, kde předchozí gate už rozhodl neplatnost.
+- Dormant implementace může mít levné unit/regression testy proti zahnívání. Její existence sama nevytváří povinnost exhaustive integračního pokrytí.
+- Pokud budoucí rules release změní povrchová pravidla a dříve dormant větev se stane dosažitelnou, nejprve se prověří a znovu zapojí zachovaný validator a teprve pro nově aktivní cestu se doplní odpovídající integrační testy.
+
 ## Skutečná slova, katalog a zveřejnění
 
 ### Spravovaný katalog skutečných slov — rozhodnutí #68
