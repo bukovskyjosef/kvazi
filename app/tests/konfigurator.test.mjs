@@ -251,28 +251,31 @@ test('auxiliary být: formCheck validates against normative closed set', () => {
   Object.assign(jsiUpper, { pos: 'verb', role: 'auxiliary', lemma: 'být', lexicalStatus: 'real' });
   assert.equal(validateForm(jsiUpper).ok, true, 'normative form matching is case-insensitive');
 });
-test('edit, insert and delete preserve stable IDs and independent references', () => {
+test('append and declaration edits preserve stable IDs; delete cleans references', () => {
   const original = fixture();
-  let d = mutateDraft(original, { type: 'insert', anchor: 't1', side: 'after', surface: 'qazi' }, schema);
-  assert.deepEqual(d.tokens.map(w => w.id), ['t1', 't3', 't2']);
+  let d = mutateDraft(original, { type: 'insert', surface: 'qazi' }, schema);
+  assert.deepEqual(d.tokens.map(w => w.id), ['t1', 't2', 't3']);
   assert.equal(d.tokens[0].relations.head, 't2');
-  d = mutateDraft(d, { type: 'surface', id: 't1', value: 'vázi' }, schema);
-  assert.equal(d.tokens[0].id, 't1'); assert.equal(d.tokens[0].relations.head, 't2');
-  assert.equal(d.tokens[0].lemma, '');
+  d = mutateDraft(d, { type: 'field', id: 't1', path: 'lemma', value: 'NEWLEMMA' }, schema);
+  assert.equal(d.tokens[0].surface, 'vazi');
+  assert.equal(d.tokens[0].lemma, 'newlemma');
+  assert.equal(d.tokens[0].relations.head, 't2');
   d = mutateDraft(d, { type: 'delete', id: 't2' }, schema);
   assert.deepEqual(d.tokens[0].relations, {});
   assert.equal(original.tokens[0].lemma, 'testnoun');
-  d = mutateDraft(d, { type: 'insert', anchor: 't1', side: 'before', surface: 'k' }, schema);
-  assert.equal(d.tokens[0].id, 't4');
-  assert.throws(() => mutateDraft(d, { type: 'insert', anchor: 'missing', surface: 'k' }));
+  d = mutateDraft(d, { type: 'insert', surface: 'k' }, schema);
+  assert.deepEqual(d.tokens.map(w => w.id), ['t1', 't3', 't4']);
+  assert.equal(d.nextId, 5);
 });
-test('functional surface edits derive the new role and remove incompatible relations', () => {
-  let d = mutateDraft(createDraft(), { type: 'insert', surface: 'k' });
-  d.tokens[0].relations.nominal = 'other';
-  d = mutateDraft(d, { type: 'surface', id: 't1', value: 'a' });
-  assert.equal(d.tokens[0].pos, 'conjunction'); assert.deepEqual(d.tokens[0].relations, {});
-  d = mutateDraft(d, { type: 'surface', id: 't1', value: 'azi' });
-  assert.equal(d.tokens[0].pos, '');
+test('deleting the middle token and inserting a new token always appends', () => {
+  let d = createDraft();
+  for (const surface of ['a', 'b', 'c']) d = mutateDraft(d, { type: 'insert', surface });
+  assert.deepEqual(d.tokens.map(w => w.surface), ['a', 'b', 'c']);
+  d = mutateDraft(d, { type: 'delete', id: 't2' });
+  d = mutateDraft(d, { type: 'insert', surface: 'd' });
+  assert.deepEqual(d.tokens.map(w => w.surface), ['a', 'c', 'd']);
+  assert.deepEqual(d.tokens.map(w => w.id), ['t1', 't3', 't4']);
+  assert.equal(d.nextId, 5);
 });
 test('previewDraft synchronously revalidates', () => {
   const d = fixture();
@@ -289,13 +292,29 @@ test('duplicate identities ignore case, declared real/quasi status, case and num
   assert.ok(deriveValidationState(d, schema).tokens.t3.missing.some(x => x.includes('identita')));
 });
 
-test('editing verb surface to prefix re-infers noun POS',()=> {
-  let d=createDraft();
-  d=mutateDraft(d,{type:'insert',surface:'kvazí'});
-  d=mutateDraft(d,{type:'field',id:'t1',path:'pos',value:'verb'});
-  d=mutateDraft(d,{type:'surface',id:'t1',value:'kvaziqazi'});
-  assert.equal(d.tokens[0].pos,'noun');
-  assert.equal(d.tokens[0].kvaziPrefix,global.__normative.kvazi_prefix);
+test('delete and replace derives fresh functional or prefix declarations and cleans all links', () => {
+  let d = fixture();
+  const prep = createToken('t3', 'k'); prep.relations = { nominal: 't1' };
+  const coord = createToken('t4', 'a'); coord.relations = { left: 't1', right: 't2' };
+  const supplement = createToken('t5', 'qazi'); supplement.relations = { nominal: 't1', predicate: 't2' };
+  d.tokens.push(prep, coord, supplement); d.nextId = 6;
+  d = mutateDraft(d, { type: 'delete', id: 't1' });
+  assert.deepEqual(d.tokens[1].relations, {});
+  assert.deepEqual(d.tokens[2].relations, { right: 't2' });
+  assert.deepEqual(d.tokens[3].relations, { predicate: 't2' });
+  d = mutateDraft(d, { type: 'insert', surface: 'KVAZIQAZI' });
+  const replacement = d.tokens.at(-1);
+  assert.equal(replacement.id, 't6');
+  assert.equal(replacement.surface, 'kvaziqazi');
+  assert.equal(replacement.pos, 'noun');
+  assert.equal(replacement.kvaziPrefix, global.__normative.kvazi_prefix);
+  assert.equal(replacement.lemma, '');
+  assert.deepEqual(replacement.relations, {});
+  d = mutateDraft(d, { type: 'delete', id: 't3' });
+  d = mutateDraft(d, { type: 'insert', surface: 'I' });
+  assert.equal(d.tokens.at(-1).pos, 'conjunction');
+  assert.equal(d.tokens.at(-1).role, 'coordination');
+  assert.deepEqual(d.tokens.at(-1).relations, {});
 });
 
 // ── Staged validation: surface gate → deep short-circuit (#91) ──

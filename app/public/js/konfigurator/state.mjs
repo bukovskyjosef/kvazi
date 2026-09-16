@@ -39,9 +39,7 @@ export function mutateDraft(current, action, schema = publicSchema) {
   const w = draft.tokens.find(t => t.id === action.id);
   if (action.type === 'insert') {
     if (draft.closingPunct) return current;
-    const index = action.anchor == null ? draft.tokens.length : draft.tokens.findIndex(t => t.id === action.anchor);
-    if (index < 0) throw new Error('Neexistující místo vložení.');
-    draft.tokens.splice(index + (action.anchor != null && action.side === 'after' ? 1 : 0), 0, createToken(`t${draft.nextId++}`, action.surface));
+    draft.tokens.push(createToken(`t${draft.nextId++}`, action.surface));
   } else if (action.type === 'sentence') {
     if (!['sentenceType', 'implicitSubject', 'meaning', 'defense'].includes(action.path)) throw new Error('Neznámé pole věty.');
     draft[action.path] = typeof action.value === 'string' ? nfc(action.value) : action.value;
@@ -60,15 +58,6 @@ export function mutateDraft(current, action, schema = publicSchema) {
     for (const t of draft.tokens) {
       for (const key of Object.keys(t.relations)) if (t.relations[key] === w.id) delete t.relations[key];
     }
-  } else if (action.type === 'surface' && w.surface !== nfc(action.value)) {
-    // Text-dependent declarations are reset; unrelated syntactic links survive.
-    const replacement = createToken(w.id, action.value);
-    if (!isFunctional(w) && !isFunctional(replacement)) {
-      replacement.pos = inferKvaziPrefix(replacement.surface) ? replacement.pos : w.pos;
-      replacement.role = w.role;
-      replacement.relations = w.relations;
-    } else if (w.pos === replacement.pos) replacement.relations = w.relations;
-    Object.assign(w, replacement);
   } else if (action.type === 'field') {
     if (action.path === 'pos' && (isFunctional(createToken(w.id, w.surface)) || inferKvaziPrefix(w.surface))) return current;
     const previous = getPath(w, action.path);

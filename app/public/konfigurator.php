@@ -92,7 +92,6 @@ try {
                  spellcheck="false" aria-label="Nové slovo (bez mezer)"
                  aria-describedby="inputStatus" placeholder="Kvazivětu zadejte zde…">
         </div>
-        <select id="insertPlace" hidden></select>
         <p id="inputStatus" role="status"></p>
       </form>
     </div>

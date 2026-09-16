@@ -9,6 +9,11 @@ const resubmitSentenceId = window.__resubmit?.sentenceId ?? null;
 let composing = false;
 const catalogResults = new Map();
 const element = id => document.getElementById(id);
+function updateInputPlaceholder() {
+  const input = element('newSurface');
+  if (draft.tokens.length === 0 && input.value === '') input.setAttribute('placeholder', 'Kvazivětu zadejte zde…');
+  else input.removeAttribute('placeholder');
+}
 function render() {
   const focused = document.activeElement;
   const focusId = focused?.id;
@@ -29,6 +34,7 @@ function render() {
   const termBtn = element('termToggle');
   if (termBtn) termBtn.textContent = buttonLabel();
   element('newSurface').hidden = !!draft.closingPunct;
+  updateInputPlaceholder();
   const submitBtn = element('submitButton');
   if (submitBtn) submitBtn.disabled = !state.submitReady;
   const deepNotEvaluated = !state.sequence.ok && draft.tokens.length > 0;
@@ -46,7 +52,7 @@ function dispatch(action) {
 function updateField(target) {
   if (target.dataset.path) {
     const value = target.type === 'checkbox' ? target.checked : target.value;
-    dispatch({ type: target.dataset.scope === 'sentence' ? 'sentence' : target.dataset.path === 'surface' ? 'surface' : 'field', id: selectedId, path: target.dataset.path, value });
+    dispatch({ type: target.dataset.scope === 'sentence' ? 'sentence' : 'field', id: selectedId, path: target.dataset.path, value });
   }
 }
 document.addEventListener('compositionstart', () => { composing = true; });
@@ -59,15 +65,12 @@ document.addEventListener('change', e => {
 });
 function insertWord(surface) {
   if (!surface) return;
-  const [side, anchor] = element('insertPlace').value.split(':');
   selectedId = `t${draft.nextId}`;
-  dispatch({ type: 'insert', surface: nfc(surface), side, anchor });
-  // Continue typing in order at the chosen insertion point.
-  if (anchor) element('insertPlace').value = `after:${selectedId}`;
+  dispatch({ type: 'insert', surface: nfc(surface) });
 }
 function consumeInput(commitLast = false) {
   const input = element('newSurface');
-  if (draft.closingPunct) { input.value = ''; return; }
+  if (draft.closingPunct) { input.value = ''; updateInputPlaceholder(); return; }
   const raw = nfc(input.value);
   // Detect closing punctuation anywhere in the current input value.
   const punctIdx = raw.search(/[.?!]/);
@@ -76,6 +79,7 @@ function consumeInput(commitLast = false) {
     for (const surface of before.split(/\s+/u).filter(Boolean)) insertWord(surface);
     dispatch({ type: 'close', punct: raw[punctIdx] });
     input.value = '';
+    updateInputPlaceholder();
     element('inputStatus').textContent = '';
     return;
   }
@@ -83,6 +87,7 @@ function consumeInput(commitLast = false) {
   const remainder = commitLast ? '' : parts.pop();
   for (const surface of parts.filter(Boolean)) insertWord(surface);
   input.value = remainder;
+  updateInputPlaceholder();
   const result = validateTokenSequence([{ id: 'input', surface: remainder }]);
   element('inputStatus').textContent = remainder ? result.issues.map(i => i.message).join(' ') : '';
 }
@@ -92,6 +97,7 @@ function deleteWord(id) {
   dispatch({ type: 'delete', id });
 }
 element('newSurface').addEventListener('input', () => {
+  updateInputPlaceholder();
   if (!composing) consumeInput();
 });
 element('newSurface').addEventListener('compositionend', () => consumeInput());
@@ -114,16 +120,13 @@ document.addEventListener('click', e => {
   const button = e.target.closest('button[data-action]');
   if (!button) return;
   const action = button.dataset.action;
-  if (action === 'select') { selectedId = button.dataset.id; render(); element('word-surface').focus(); }
-  else if (action === 'before' || action === 'after') {
-    element('insertPlace').value = `${action}:${selectedId}`;
-    element('newSurface').focus();
-  } else if (action === 'delete-punct') {
+  if (action === 'select') { selectedId = button.dataset.id; render(); element(`token-${selectedId}`).focus(); }
+  else if (action === 'delete-punct') {
     dispatch({ type: 'open' });
     element('newSurface').focus();
   } else if (action === 'delete' || action === 'delete-chip') {
     deleteWord(button.dataset.id || selectedId);
-    (action === 'delete-chip' ? element('newSurface') : element('word-surface') || element('newSurface')).focus();
+    element('newSurface').focus();
   } else {
     dispatch({ type: action, id: selectedId });
     element('editor').querySelector(`[data-action="${action}"]`)?.focus();

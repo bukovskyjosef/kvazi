@@ -113,13 +113,16 @@ try {
   await page.getByLabel('Druh slovesného tvaru').selectOption('present');
   await page.getByLabel('Větná funkce', { exact: true }).selectOption('predicate');
 
-  // ── Scene 3: Insert a third word at a specific position ──────────────────
-  // Use the visible insertion action, then type 'k'.
+  // ── Scene 3: Append a third word despite selecting an earlier token ──────────────────
+  // Selection only opens a declaration; insertion still appends.
   await page.locator('#token-t1').click();
-  await page.getByRole('button', {name:'Vložit před slovo',exact:true}).click();
   await page.locator('#newSurface').fill('k');
   await page.keyboard.press('Enter');
   assert.equal(await page.locator('#tokens .token-chip').count(), 3);
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'kvazi', 'k']);
+  assert.equal(await page.locator('#insertPlace, #word-surface').count(), 0);
+  assert.equal(await page.getByRole('button', {name:/Vložit (před|za) slovo/}).count(), 0);
+  assert.equal(await page.getByLabel('Text slova', {exact:true}).count(), 0);
 
   // Click the new preposition token ('k') — its id is t3 (nextId increments).
   await page.locator('#token-t3').click();
@@ -132,20 +135,20 @@ try {
   assert.equal(await page.getByLabel('Řídící slovo', { exact: true }).inputValue(), 't2');
 
   // ── Scene 4: NFC normalisation — surface should be stored as NFC ─────────
-  await page.locator('#token-t1').click();
-  await page.getByLabel('Text slova', { exact: true }).fill('va\u0301zi'); // decomposed á
-  assert.equal(await page.getByLabel('Text slova', { exact: true }).inputValue(), 'vázi'); // composed NFC
-  // After surface change, declaration fields that depended on surface reset.
+  await entry.fill('VA\u0301ZI');
+  await entry.press('Enter');
+  await page.locator('#token-t4').click();
   assert.equal(await page.getByLabel('Základní tvar', { exact: true }).inputValue(), '');
-  // Head link still pointing to t2 (surface change does not clear independent relations).
-  assert.equal(await page.getByLabel('Řídící slovo', { exact: true }).inputValue(), 't2');
+  assert.equal(await page.locator('#word-surface').count(), 0);
+  assert.equal(await page.locator('#token-t4').evaluate(el => el === document.activeElement), true);
 
   // ── Scene 5: Preview JSON ─────────────────────────────────────────────────
   await page.getByRole('button', { name: 'Zobrazit náhled JSON (neodesílá)' }).click();
   const payload = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.deepEqual(payload.draft.tokens.map(w => w.id), ['t3', 't1', 't2']);
+  assert.deepEqual(payload.draft.tokens.map(w => w.id), ['t1', 't2', 't3', 't4']);
   assert.equal(payload.validation.submitReady, false); // incomplete declarations
   assert.equal(payload.submitted, false);
+  assert.equal(payload.draft.tokens[3].surface, 'vázi');
   assert.ok(payload.validation.text.includes('vázi'), `preview text should contain vázi`);
 
   // ── Scene 6: All visible form inputs must have an associated label ────────
@@ -157,7 +160,8 @@ try {
   assert.deepEqual(unlabelled, [], `Unlabelled visible inputs: ${unlabelled.join(', ')}`);
 
   // ── Scene 7: XSS — injected markup must not render ───────────────────────
-  await page.getByLabel('Text slova', { exact: true }).fill('<img src=x onerror=alert(1)>');
+  await page.getByLabel('Základní tvar', { exact: true }).fill('<img src=x onerror=alert(1)>');
+  await entry.fill('<img/src=x/onerror=alert(1)>'); await entry.press('Enter');
   assert.equal(await page.locator('#payload pre').count(), 0); // preview cleared on field change
   assert.equal(await page.locator('#editor img, #tokens img').count(), 0);
 
@@ -398,25 +402,69 @@ try {
     await page.locator('#submitResult .alert-ok').waitFor({timeout:10000});
     assert.equal(dbCount('kvazi.sentence','user_id = (SELECT id FROM kvazi.user_account WHERE username=:u)',{u:BRW_USR}),2);
   }
-  // Keep a correctly formed indicative predicate; only subject exception is invalid.
+  // Build a correctly formed indicative through delete and fresh append.
+  await page.getByRole('button',{name:'Smazat kvazi',exact:true}).click();
+  await page.locator('#newSurface').fill('kvazí'); await page.locator('#newSurface').press('Enter');
+  await page.locator('#token-t2').click();
+  await page.getByLabel('Slovní druh', {exact:true}).selectOption('verb');
   await page.getByLabel('Neurčitek / základní tvar', {exact:true}).fill('kvazit');
+  await page.getByLabel('Deklarovaná identita').selectOption('quasi');
+  await page.getByLabel('Soutěžní časovací typ').selectOption('V-IT');
   await page.getByLabel('Druh slovesného tvaru').selectOption('present');
   await page.locator('#word-form-verbPerson').selectOption('3');
   await page.getByLabel('Číslo', {exact:true}).selectOption('plural');
-  await page.locator('#word-surface').fill('kvazí');
+  await page.getByLabel('Vid').selectOption('imperfective');
+  await page.getByLabel('Větná funkce', {exact:true}).selectOption('predicate');
+  await page.getByLabel('Valenční obhajoba').fill('Indikativ bez obligatorního doplnění.');
+  await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('3. pl V-IT.');
+  await page.locator('#previewButton').click();
+  const indicative = JSON.parse(await page.locator('#payload pre').textContent());
+  assert.equal(indicative.validation.tokens.t2.formCheck.ok, true);
   assert.equal(await page.locator('#submitButton').isDisabled(),true);
   assert.ok((await page.locator('#validation').textContent()).includes('skutečný imperativní'));
 
   // ── Scene 18: Browser logout uses CSRF-protected POST ─────────────────────
   if(dbUp) {
-    await page.getByRole('navigation',{name:'Hlavní navigace'}).getByRole('button',{name:'Odhlásit se',exact:true}).click();
+    await page.locator('footer').getByRole('button',{name:'Odhlásit se',exact:true}).click();
     await page.waitForURL(baseUrl+'/');
-    assert.equal(await page.getByRole('navigation',{name:'Hlavní navigace'}).getByRole('link',{name:'Přihlásit se',exact:true}).count(),1);
+    assert.equal(await page.getByRole('navigation',{name:'Hlavní navigace'}).getByRole('link',{name:'Přihlásit se',exact:true}).count(),0);
+    assert.equal(await page.locator('footer').getByRole('link',{name:'Přihlásit se',exact:true}).count(),1);
     assert.equal(await page.getByRole('button',{name:'Odhlásit se',exact:true}).count(),0);
   }
 
+  // ── Scene 19: Placeholder lifecycle and linear append/delete order ──────
+  await page.goto(`${baseUrl}/konfigurator.php`);
+  const linearEntry = page.locator('#newSurface');
+  const placeholder = 'Kvazivětu zadejte zde…';
+  assert.equal(await linearEntry.inputValue(), '');
+  assert.equal(await linearEntry.getAttribute('placeholder'), placeholder);
+  assert.equal(await linearEntry.evaluate(el => el.matches(':placeholder-shown')), true);
+  await linearEntry.fill('A');
+  assert.equal(await linearEntry.inputValue(), 'A');
+  assert.equal(await linearEntry.getAttribute('placeholder'), null);
+  assert.equal(await linearEntry.evaluate(el => el.matches(':placeholder-shown')), false);
+  await linearEntry.fill('');
+  assert.equal(await linearEntry.getAttribute('placeholder'), placeholder);
+  for (const surface of ['A', 'B', 'C']) { await linearEntry.fill(surface); await linearEntry.press('Enter'); }
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['A', 'b', 'c']);
+  assert.equal(await linearEntry.getAttribute('placeholder'), null);
+  assert.equal(await linearEntry.evaluate(el => el.matches(':placeholder-shown')), false);
+  await page.locator('#token-t1').click();
+  assert.equal(await page.locator('#insertPlace, #word-surface').count(), 0);
+  assert.equal(await page.getByLabel('Text slova', {exact:true}).count(), 0);
+  assert.equal(await page.getByRole('button', {name:/Vložit (před|za) slovo/}).count(), 0);
+  await page.getByRole('button', {name:'Smazat b',exact:true}).click();
+  assert.equal(await linearEntry.evaluate(el => el === document.activeElement), true);
+  await linearEntry.fill('D'); await linearEntry.press('Enter');
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['A', 'c', 'd']);
+  for (const surface of ['a', 'c', 'd']) await page.getByRole('button', {name:`Smazat ${surface}`,exact:true}).click();
+  assert.equal(await linearEntry.inputValue(), '');
+  assert.equal(await linearEntry.getAttribute('placeholder'), placeholder);
+  assert.equal(await linearEntry.evaluate(el => el.matches(':placeholder-shown')), true);
+  assert.equal(await linearEntry.evaluate(el => el === document.activeElement), true);
+
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: 18 scenarios; actual-imperative, indicative-rejection, API-error-XSS, POST-logout, insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
+  console.log('Browser checks passed: 19 scenarios; placeholder-lifecycle, append-delete-order, fixed-surface, actual-imperative, indicative-rejection, API-error-XSS, POST-logout, insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
 } finally {
   if (dbUp) {
     deleteTestUser(BRW_USR);
