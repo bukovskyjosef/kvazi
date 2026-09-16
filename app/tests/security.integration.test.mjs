@@ -76,8 +76,10 @@ test('HTTP session rotation, pre-login CSRF separation, two-hour expiry and old-
   assert.notEqual(postCsrf,preCsrf);
   assert.equal((await post('/api/submit.php',{cookie:authenticated,csrf:preCsrf},{draft:validDraft()})).status,403);
   const sid = authenticated.match(/PHPSESSID=([A-Za-z0-9,-]+)/)[1];
-  execFileSync('docker',['exec',process.env.KVAZI_PHP_CONTAINER || 'kvazi_php','php','-r',
-    'session_id($argv[1]); session_start(); $_SESSION["started_at"]=time()-7200; session_write_close();',sid],{timeout:10000});
+  // Match the Apache session owner. Hardened Linux blocks root O_CREAT on another
+  // user's file in sticky /tmp; never silently continue if the fixture wasn't read.
+  execFileSync('docker',['exec','--user','www-data',process.env.KVAZI_PHP_CONTAINER || 'kvazi_php','php','-r',
+    'session_id($argv[1]); if(!session_start() || ($_SESSION["auth_user"]["id"] ?? null)!==(int)$argv[2] || !isset($_SESSION["started_at"])) exit(2); $_SESSION["started_at"]=time()-7200; if(!session_write_close()) exit(3);',sid,String(f.user)],{timeout:10000});
   const expired = await f.get('/moje-vety.php',{cookie:authenticated}); assert.equal(expired.status,302);
   assert.equal((await post('/api/submit.php',{cookie:authenticated,csrf:postCsrf},{draft:validDraft()})).status,401);
   const session = await login(f.username,f.password);
