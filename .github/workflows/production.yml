@@ -1,0 +1,40 @@
+name: Production release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Serialize the entire release, including its gate. Never cancel an active deploy.
+concurrency:
+  group: kvazi-production
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Full release gate
+    uses: ./.github/workflows/release-gate.yml
+  deploy:
+    name: Confirm production release
+    needs: gate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.gate.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Deploy exact commit and verify read-only endpoints
+        run: node app/tools/deploy-production.mjs
+        env:
+          COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_READ_TOKEN: ${{ secrets.COOLIFY_READ_TOKEN }}
+          COOLIFY_APP_UUID: ${{ secrets.COOLIFY_APP_UUID }}
+          EXPECTED_SHA: ${{ github.sha }}

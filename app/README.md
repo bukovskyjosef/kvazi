@@ -38,6 +38,8 @@ Compose používá stejný root Dockerfile jako production image, source bind mo
 
 ## Production image a samostatná PostgreSQL 18 DB
 
+GitHub/Coolify release flow, Environment secrets, infra handoff, backup/restore a post-merge acceptance popisuje [produkční provozní kontrakt](../docs/operations/production-release.md).
+
 Z rootu repozitáře buildněte samostatný PHP/Apache image:
 
 ```sh

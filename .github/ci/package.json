@@ -1,0 +1,8 @@
+{
+  "name": "kvazi-ci-tools",
+  "private": true,
+  "version": "1.0.0",
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
