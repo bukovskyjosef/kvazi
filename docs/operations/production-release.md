@@ -99,7 +99,7 @@ Budoucí DB release: backup, review explicitního forward SQL pro skutečný sta
 
 ## Potvrzení deploymentu a failure
 
-`deploy-production.mjs` ověří source/config/pin/readiness před triggerem, pošle autentizovaný `POST /api/v1/deploy` pro jedinou Application a získá jediný matching `deployment_uuid`. [GET deployment](https://coolify.io/docs/api/endpoints/deployments/get-deployment-by-uuid) polluje pouze tento UUID; kontroluje application ID, ne-preview a přesný commit. Úspěch vyžaduje **`finished`**, nezměněný application contract, **`running:healthy`** a read-only HTTPS:
+`deploy-production.mjs` ověří application UUID/source/config/pin/readiness před triggerem, pošle autentizovaný `POST /api/v1/deploy` pro jedinou Application a vyžaduje přesně jeden deployment s `resource_uuid === COOLIFY_APP_UUID` a platným `deployment_uuid`. [GET deployment](https://coolify.io/docs/api/endpoints/deployments/get-deployment-by-uuid) polluje pouze tento UUID a ověřuje jej v každé odpovědi spolu s `pull_request_id === 0` a přesným commitem. Pokud application API poskytne interní `id`, kontroluje navíc shodu s `deployment.application_id`; absence `id` není chyba. Úspěch vyžaduje **`finished`**, nezměněný application contract včetně UUID, **`running:healthy`** a read-only HTTPS:
 
 - `/healthz`: 200, přesný JSON `{"status":"ok"}`;
 - `/` a `/vety.php`: HTML/200, bez redirectu;
