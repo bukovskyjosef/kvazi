@@ -1,6 +1,19 @@
 # Validace
 
-> **Status:** cílové hranice deterministické validace MVP.
+> **Status:** cílové hranice deterministické validace MVP. Tento dokument je technický, nikoli normativní; soutěžní platnost určuje normativní balík podle `docs/README.md`.
+
+## Základní princip
+
+Validátor ověřuje konkrétní hráčův návrh. Nemá hledat kandidáty, navrhovat lepší model ani filtrovat hráči normativně povolené možnosti podle reachability.
+
+Současně se validační pipeline nemá zbytečně prokousávat specializovanými větvemi, pokud už obecnější pravidlo definitivně rozhodlo neplatnost.
+
+Proto jsou oddělené dvě věci:
+
+1. **úplná nabídka modelů a hlavních voleb v konfigurátoru**, která odpovídá normativním pravidlům a reachability ji nefiltruje,
+2. **aktivní validační hloubka**, která může skončit po časném deterministickém failure, pokud další deep-validace už nemůže změnit verdikt.
+
+Například model `kuře` zůstává hráči normálně dostupný. Jestliže konkrétní použitý surface selže už na povolených znacích, délce nebo motivu, není pro tento request nutné dále vyhodnocovat celé specializované paradigma `kuře`, aby bylo zřejmé, že submit není platný.
 
 ## Vstup
 
@@ -11,61 +24,130 @@ Uživatel explicitně deklaruje typ věty. Z něj plyne závěrečná interpunkc
 - tázací → `?`,
 - rozkazovací → `!`.
 
-## Znaková validace
+## Validační fáze
 
-Aplikace může deterministicky kontrolovat:
-- Unicode NFC a povolené znaky,
-- délku běžného slova a zvláštní pravidlo prefixu `kvazi-`,
-- automatickou inference prefixovaného substantiva v jednoznačném případě popsaném níže,
+### Fáze 1 — obecná surface a sekvenční brána
+
+Nejdříve se kontroluje vše, co lze rozhodnout pouze z konkrétního zapsaného povrchu a pořadí tokenů:
+
+- Unicode NFC,
+- povolené soutěžní znaky,
+- délka běžného slova,
 - jednopísmenné výjimky,
-- pořadí tokenů,
-- globální motivovou posloupnost včetně normativní prefixové výjimky,
-- počet slov,
-- sekundární skóre včetně nulové skórové hodnoty pěti znaků normativního prefixu `kvazi-`,
-- typ věty a odpovídající závěrečnou interpunkci.
+- zvláštní povrchové pravidlo prefixu `kvazi-`,
+- globální motivová/tokenová sekvence,
+- jednoznačná inference normativního prefixu a POS tam, kde ji pravidla stanoví,
+- závěrečná interpunkce odvozená z typu věty,
+- základní skórové odvozeniny založené na skutečně platném povrchu.
 
-Hráč nezadává rozklad na motivy.
+Hráč nezadává rozklad na motivy. Interní implementace může použít konečný automat, parser nebo jiný ekvivalentní deterministický postup.
 
-Interní implementace může použít regulární výraz, konečný automat, parser nebo jiný deterministický postup. Implementace není sama pravidlem hry; musí být ekvivalentní slovnímu normativnímu popisu.
+### Fáze 2 — levná integrita deklarace
 
-### Automatická inference normativního `kvazi-`
+Pro surface-validního kandidáta se ověřuje obecná integrita strukturovaného payloadu:
 
-Pokud je po NFC a kanonické normalizaci velikosti písmen povrchový token delší než 5 soutěžních znaků a začíná sekvencí `kvazi`, konfigurátor i backend deterministicky odvodí:
+- povolené closed enum hodnoty,
+- platný slovní druh a model,
+- systémově odvozený prefix/POS versus klientská deklarace,
+- úplnost polí vyžadovaných zvolenou normativní možností,
+- platnost referencí mezi tokeny,
+- základní strukturální invarianty.
+
+Tato vrstva je důležitá i proti direct HTTP klientovi. To, že nějakou hodnotu UI běžně nenabídne nebo že je určitá normativní větev dnes globálně povrchově nedosažitelná, neznamená, že backend smí klientské hodnotě slepě věřit.
+
+### Fáze 3 — deep deterministická validace
+
+Pokud surface kandidát projde předchozími vrstvami, validátor provede relevantní detailní kontroly schopné změnit jeho verdikt, zejména:
+
+- vztah deklarované morfologické identity + konkrétních morfologických hodnot k použitému `surfaceForm`,
+- morfosyntaktickou shodu v deterministicky odvoditelných kategoriích,
+- syntaktické vazby, rekci a globální strukturální invarianty,
+- prefixovou validaci základu a skórovou výjimku,
+- další deterministické kontroly definované aktuální rules verzí.
+
+### Short-circuit po surface failure
+
+Pokud konkrétní token nebo věta už ve fázi 1 deterministicky selže, konečný submit verdict je neplatný. Aktivní runtime proto **nemusí spouštět specializovanou deep-validaci, která tento verdikt nemůže změnit**.
+
+To neznamená `morphologyOk=true`. Doporučený technický stav je explicitní `notEvaluated` / `skippedBecauseSurfaceInvalid` nebo ekvivalent, aby UI ani API nepředstíraly, že neprovedená kontrola uspěla.
+
+`submitReady` zůstává `false`.
+
+## Úplná UI nabídka versus reachability
+
+Reachability se nesmí stát filtrem konfigurátoru.
+
+- všechny normativně povolené modely a hlavní volby zůstávají v roletkách a relevantních formulářových větvích,
+- UI nesmí hráči říkat, která normativní možnost je podle současné abecedy nebo motivu slepá,
+- konfigurátor nesmí podle konkrétního hráčova surface kandidáta zužovat modely na ty, které by mohly vyjít,
+- reachability analýza je interní informace pro architekturu a testovací strategii, nikoli herní nápověda.
+
+## Dormant deep-validace
+
+Pokud už existuje funkční deep-validace normativní větve, která je při aktuálních surface pravidlech globálně nedosažitelná, **nemá se pouze kvůli této nedosažitelnosti mazat nebo hromadně zakomentovávat**.
+
+Preferovaný stav:
+
+- implementace zůstane normálně zkompilovatelná/parsovatelná v codebase,
+- může mít levné unit/regression testy, které brání jejímu tichému rozpadu,
+- z aktivního validačního flow se nevolá tam, kde surface gate už rozhodl neplatnost,
+- nepovažuje se za důvod udržovat samostatnou browser/HTTP/DB/cross-engine E2E matici,
+- při budoucí rules verzi se změněnou abecedou nebo motivem lze implementaci znovu zapojit a teprve tehdy rozšířit aktivní integrační pokrytí.
+
+Dormant implementace je zachovaný kód, nikoli komentovaný archiv. Git komentář má vysvětlovat důvod neaktivního zapojení, ne deaktivovat celé funkční bloky syntaktickým komentářem.
+
+## Bezpečnostní hranice short-circuitu
+
+Short-circuit je povolen pouze tehdy, když dřívější kontrola sama stačí k definitivnímu zamítnutí daného konkrétního requestu.
+
+Nesmí vzniknout situace:
+
+- surface projde,
+- klient podstrčí jiný model / branch / enum / POS,
+- backend přeskočí kontrolu jen proto, že tato branch bývá v aktuálním rules release globálně nedosažitelná,
+- request se omylem přijme.
+
+Pro surface-valid payload musí backend buď použít existující deep-validator, nebo levnější obecný rejection/integrity mechanismus, který bezpečně prokáže neplatnost deklarace. Optimalizace nesmí rozšířit množinu přijatých řešení.
+
+## Automatická inference normativního `kvazi-`
+
+Pokud je po NFC a kanonické normalizaci velikosti písmen povrchový token delší než normativní délka prefixu a začíná přesnou sekvencí `kvazi`, konfigurátor i backend deterministicky odvodí:
+
 - POS = substantivum,
 - interní `kvaziPrefix = kvazi`.
 
-Hráč prefix ručně nevolí a UI pro něj nesmí zobrazovat roletku, checkbox ani jiný ovladač. Pro takový povrchový tvar nelze ručně zvolit jiný POS. Po změně povrchového tvaru se odvozené hodnoty znovu přepočítají.
+Hráč prefix ručně nevolí. Pro takový surface nelze ručně zvolit jiný POS. Po změně surface se odvozené hodnoty znovu přepočítají.
 
-Porovnání je bez ohledu na velikost písmen (`kvazi…`, `Kvazi…`, `KVAZI…`), ale neprovádí jiné lexikální nebo diakritické normalizace: `qazi…`, `kvázi…`, `quasi…` se tímto mechanismem nerozpoznávají.
+Inference sama neznamená platnost: konkrétní token musí projít povrchovými pravidly a, pokud se k nim validace dostane, také normativní kontrolou základního substantiva a ostatními podmínkami `07-prefix-kvazi.md`.
 
-Automatická inference sama neznamená, že je token platný. Následně musí projít úplná normativní kontrola `07-prefix-kvazi.md`, zejména platnost základního substantiva, globální replaceability a motivová pravidla. Skórová výjimka se použije až na takto odvozený a normativně platný prefix.
+## Strukturální a syntaktická validace
 
-## Živá strukturální a morfologická validace formuláře
+Pro kandidáta, který není už definitivně neplatný na dřívější vrstvě, strukturální kontrola ověřuje zejména:
 
-Před konečným odesláním může formulář živě ověřovat zveřejněnou strukturu podání a deterministicky odvoditelné vlastnosti konkrétního hráčova návrhu:
-- zda jsou vyplněna všechna povinná pole aktuálního field schema,
-- zda zvolené hodnoty patří do veřejných seznamů aktuální verze pravidel,
-- zda deklarovaná morfologická identita a morfologické hodnoty konkrétního použití podle normativní tabulky vytvářejí právě hráčem zadaný `surfaceForm`,
-- zda automaticky odvozený `kvaziPrefix` a POS odpovídají povrchovému tvaru,
-- zda syntaktické odkazy míří na existující tokeny téhož draftu,
-- zda je vložen požadovaný počet strukturovaných vztahů a podkladů,
-- právě jeden plnovýznamový slovesný token a pouze normativně dovolené pomocné tokeny `být`,
-- deterministické invarianty jednopísmenných výjimek a jejich veřejných rolí.
-
-Podle #86 se nevyžaduje celé uživatelsky editovatelné paradigma ani jeho snapshotové potvrzení. Normativní tabulka je zdrojem pravdy pro odvození konkrétního použitého tvaru.
-
-Počet a typ povinných syntaktických odkazů se odvozuje od zvolené hlavní syntaktické funkce nebo technické role. Živá kontrola sama neposuzuje, zda valenční nebo významová obhajoba skutečně obstojí.
-
-Pro MVP strukturální kontrola vyžaduje:
-- u běžného závislého členu právě jedno řídící slovo,
+- právě jeden plnovýznamový slovesný token,
+- právě jeden přísudek,
+- právě jeden podmět, není-li normativně povolen nevyjádřený podmět imperativu,
+- u běžného závislého členu požadované řídící slovo,
 - u přísudku žádné řídící slovo,
-- u doplňku právě jednu vazbu k přísudku a právě jednu vazbu k podmětu nebo předmětu,
-- u koordinace právě dvě různé spojované části,
-- u předložek `k/v/z` technickou prepoziční roli a právě jednu vazbu na řízené jmenné slovo; předložka sama nemá hlavní větnou funkci.
+- u doplňku vazbu k přísudku a k podmětu/předmětu,
+- u koordinace dvě různé spojované části,
+- u `k/v/z` technickou prepoziční roli, vazbu na jmenný člen a deterministickou rekci,
+- zákaz cyklů a neplatných referencí,
+- deterministicky odvoditelnou shodu podmětu a přísudku.
 
-Volný text nemůže chybějící strukturovanou syntaktickou vazbu nahradit.
+Valence samotná zůstává slovní obhajobou a její jazyková přesvědčivost není automatický closed-set validator.
 
-## Dva odlišné katalogové mechanismy
+## Morfologická deklarace podle #86
+
+Hráč ručně nevyplňuje celé paradigma. Deklaruje:
+
+1. údaje potřebné k určení soutěžní identity,
+2. morfologické vlastnosti konkrétního použitého tvaru,
+3. skutečně použitý surface.
+
+Normativní tabulky zůstávají úplné. Deep-validátor může z těchto dat určit právě jeden očekávaný tvar tam, kde je tato kontrola součástí aktivní validační cesty.
+
+## Dva oddělené katalogové mechanismy
 
 Validace musí důsledně rozlišovat:
 
@@ -74,7 +156,6 @@ Validace musí důsledně rozlišovat:
 - není obecně scoped na jednu `rules_version`,
 - hráč smí po zadání kompletního vlastního návrhu použít pouze exact-match kontrolu úplné soutěžní identity + konkrétního použitého tvaru,
 - výsledek pouze potvrzuje nebo nepotvrzuje existující schválený exact match,
-- nenalezený exact match není sám o sobě zamítnutí,
 - žádný browse, prefix search, autocomplete, podobné položky nebo nabídka alternativ.
 
 ### Interní morfologická review cache
@@ -83,61 +164,43 @@ Validace musí důsledně rozlišovat:
 - používá `APPROVED / REJECTED / UNKNOWN`,
 - membership této cache se hráči před submittem ani po exact-match dotazu katalogu skutečných slov neprozrazuje.
 
-Tyto mechanismy mohou být oba použity v jednom review workflow, ale nesmějí být implementovány jako jeden významově smíšený lookup.
-
-## Katalog skutečných slov – exact match hráče
-
-Po kompletním zadání identity a konkrétního použití může hráč požádat o exact-match ověření, zda je tato přesná kombinace v katalogu skutečných slov už uznána jako skutečné slovo.
-
-Kontrola nesmí doplňovat chybějící pole ani nabízet možné kandidáty. Z částečné deklarace se dotaz neprovádí.
-
-Negativní exact-match odpověď znamená pouze „tato přesná kombinace není aktuálně potvrzena katalogem“; neznamená automaticky „slovo je neplatné“ nebo „jde o kvazislovo“.
+Tyto mechanismy se nesmějí slít do jednoho významově nejasného lookupu.
 
 ## Konečný submit
 
-Submit musí vždy provést autoritativní server-side přepočet všech deterministických blockerů nad aktuálním obsahem. Stav tlačítka nebo dřívější FE validace není důkazem přijatelnosti requestu.
+Submit musí vždy autoritativně serverově zopakovat všechny kontroly potřebné k rozhodnutí requestu. FE stav tlačítka ani dřívější klientská validace nejsou autoritou.
 
-Úspěšný submit vytvoří immutable `sentence_revision`.
+Serverová pipeline smí stejně jako frontend short-circuitovat po definitivním surface failure, ale musí bezpečně odmítnout request a nesmí vytvořit `sentence_revision`.
 
-Backend u tokenů deklarovaných jako skutečná slova znovu vyhodnotí relevantní stav katalogu skutečných slov. Pokud exact match chybí, případ může jít k ručnímu posouzení a případné správě katalogu; samotná absence není automatickým jazykovým zamítnutím.
+Úspěšný submit vytvoří immutable `sentence_revision` a autoritativní validační výsledek.
 
-Následné rozhodcovské morfologické review může využít interní review cache.
-
-## Interní morfologická review cache v MVP
-
-Review cache je povinnou provozní součástí MVP, nikoli však lexikálním katalogem skutečných slov.
-
-Pro každou relevantní deklarovanou soutěžní identitu/tvar backend po submitu interně zjistí pro konkrétní `rules_version`:
-- `APPROVED` — lze automaticky znovu použít předchozí morfologické schválení v téže `rules_version`,
-- `REJECTED` — admin dostane předchozí negativní rozhodnutí a jeho důvod,
-- `UNKNOWN` — musí následovat ruční posouzení.
-
-`UNKNOWN` je absence rozhodné znalosti, nikoli neplatnost.
-
-Schválením neznámého případu vzniká znalost použitelná pro budoucí shodné výskyty v téže rules verzi. Zamítnutím vzniká negativní znalost s důvodem.
-
-Nová `rules_version` nezačne automaticky používat schválení předchozí verze. Historie se zachová, ale nový review prostor začíná bez přenesených schválení.
-
-## Porovnání deklarace
-
-Deterministická morfologická kontrola porovnává deklarovanou soutěžní identitu, model a morfologické hodnoty konkrétního použití s hráčem zadaným tvarem. Pokud z normativních dat deklarovaný tvar neplyne, deklarace neprojde mechanickou morfologickou kontrolou.
-
-Samotná shoda zápisu s reálným slovem nesmí způsobit odmítnutí odlišné platné kvaziidentity; deklaraci shodnou s katalogově potvrzenou skutečnou identitou naopak nelze přijmout jako kvazislovo.
-
-Katalog skutečných slov řeší lexikální status. Interní review cache řeší opakované rozhodcovské morfologické posouzení. Výsledky těchto dvou vrstev se nesmějí zaměňovat.
+Backend nesmí přijmout klientský score, rules version, prefix flag ani jinou odvozeninu jako autoritativní hodnotu.
 
 ## Revalidace
 
-Jedna immutable revize může mít samostatný obsahový validační výsledek pro více `rules_version`. Starý verdikt zůstává historicky zachován; aktuální žebříček používá aktuální rules verzi.
+Jedna immutable revize může mít samostatný validační výsledek pro více `rules_version`. Starý verdikt zůstává zachován; revalidace nevytváří novou `sentence_revision`.
 
-Při obsahové revalidaci se znovu neposuzuje historická procesní compliance původního podání podle novější AI/tool policy. Procesní compliance je historický fakt vázaný na podání a tehdy platnou policy.
+Každý rozhodující validační výsledek musí mít potřebnou provenance: revizi věty, rules verzi, validator version, relevantní katalog/review provenance, automatický nebo ruční původ, čas a případného rozhodujícího admina.
 
-Pokud se změní scoring semantics, skóre se ukládá/odvozuje jako součást konkrétního validačního výsledku pro konkrétní rules verzi.
+Změna rules verze může změnit surface reachability. V takovém případě se nesmí automaticky předpokládat, že dříve dormant validační větev zůstává dormant; vývojář musí znovu provést reachability audit a případně zachovanou deep implementaci vrátit do aktivního flow.
 
-Každý rozhodující validační výsledek musí mít úplnou provenance: revizi věty, rules verzi, validator version, relevantní review-cache provenance, automatický/ruční původ, čas a případného rozhodujícího admina. Pokud verdict závisel na tehdejším stavu katalogu skutečných slov, musí být dohledatelná i příslušná lexikální katalogová položka/revize.
+## Testovací strategie
+
+Testy rozlišují:
+
+### Obecný surface gate
+Musí mít kvalitní regresní pokrytí pro NFC, charset, délku, motiv/token boundary, prefix surface a jednopísmenné výjimky.
+
+### Aktivní deep mechanismy
+Mechanismy, které mohou změnit verdikt surface-validního kandidáta, mají odpovídající unit/parity/integration pokrytí podle rizika.
+
+### Dormant deep mechanismy
+Hotový dormant validator může mít levné unit testy proti zahnívání. Není však povinnost vytvářet explicitní browser/HTTP/DB/cross-engine scénář každé větve jen proto, že je uvedena v normativním paradigmatu.
+
+Browser a povinná integration suite mají dokazovat skutečný aktivní submit flow, server authority a reprezentativní hráčské cesty, nikoli exhaustive kartézský součin normativních tabulek.
 
 ## Bez generování řešení
 
-Validátor ani exact-match rozhraní nesmějí navrhovat jiné slovo, jiné lemma, jiný tvar, jiné rozdělení slov, jinou analýzu ani jiné syntaktické vazby. Smějí pouze vyhodnotit konkrétní zadaný návrh v rozsahu povolených deterministických kontrol.
+Validátor ani exact-match rozhraní nesmějí navrhovat jiné slovo, jiné lemma, jiný tvar, jiné rozdělení slov, jinou analýzu ani jiné syntaktické vazby. Smějí pouze vyhodnotit konkrétní zadaný návrh v rozsahu potřebném pro bezpečný verdikt.
 
-Rozhraní nesmí být navrženo pro dávkové nebo automatizované testování kandidátů ani pro vytěžování katalogu skutečných slov nebo interní review cache. Systematické iterativní zkoušení variant za účelem nalezení řešení není povoleným ověřením konkrétního lidského nápadu.
+Systematické iterativní zkoušení variant za účelem nalezení řešení není povoleným ověřením konkrétního lidského nápadu.
