@@ -36,15 +36,26 @@ Vyžaduje přihlášeného uživatele pro submit; samotná stránka se zobrazí 
 
 Hlavní frontendové moduly jsou v `public/js/konfigurator/`:
 
-- `schema.mjs` — technická reprezentace polí a číselníků používaných aktuálním prototypem,
+- `rules-data.mjs` — jediná JS přístupová vrstva k versioned normative release datům,
+- `schema.mjs` — technická reprezentace formulářových polí a úplné normativní modelové nabídky,
 - `state.mjs` — kanonický klientský stav draftu a mutace,
-- `validation.mjs` — deterministické klientské kontroly,
+- `validation.mjs` — orchestrace deterministických klientských kontrol,
+- `morpho.mjs` — deep morfologická logika nad normativními tabulkami,
 - `view.mjs` — DOM rendering odvozeného stavu,
 - `editor.mjs` — události a koordinace editoru,
-- `morpho.mjs` — morfologická logika aktuální implementace,
 - `terms.mjs` — textové/terminologické konstanty UI.
 
 Konkrétní význam polí, pravidlové požadavky a cílové chování konfigurátoru se neudržují v tomto README; řídí se aktuální dokumentací a GitHub Issues.
+
+## Aktivní a dormant validační cesta
+
+Model selectors se reachability analýzou nefiltrují. Všechny normativně povolené modely zůstávají v UI dostupné.
+
+Validační orchestrace ale může po definitivním surface/motiv failure skončit dřív a nespouštět branch-specific deep-validaci, která už nemůže změnit INVALID verdikt.
+
+Pokud `morpho.mjs` nebo backend už obsahují funkční deep-validator pro dnes nedosažitelnou větev, takový kód se pouze kvůli současnému motivu nemaže ani hromadně nezakomentovává. Může zůstat jako dormant/reusable implementace a mít levné unit testy; povinné browser/HTTP/DB/E2E pokrytí se soustředí na aktivní flow a server authority.
+
+Detailní kontrakt je v `/docs/architecture/03-validation.md` a `/docs/architecture/05-konfigurator-ux.md`.
 
 ## Testy
 
