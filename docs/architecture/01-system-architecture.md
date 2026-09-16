@@ -109,7 +109,9 @@ Po zadání slov následuje povinná strukturovaná analýza slovo po slově. U 
 - všechny povinné odkazy na konkrétní další výskyty slov,
 - minimální obhajobu a zdroje vyžadované pravidly.
 
-Podle rozhodnutí #86 hráč ručně nevyplňuje celé paradigma ani nepoužité tvary. Normativní tabulky systém používá k deterministickému ověření konkrétního deklarovaného tvaru.
+Podle rozhodnutí #86 hráč ručně nevyplňuje celé paradigma ani nepoužité tvary. Normativní tabulky systém používá k deterministickému ověření konkrétního deklarovaného tvaru tam, kde se validační pipeline dostane k deep kontrole.
+
+**Modelová nabídka formuláře se reachability analýzou nefiltruje.** Všechny normativně povolené modely a hlavní varianty zůstávají hráči dostupné i v případě, že jejich konkrétní povrchy jsou při aktuální abecedě nebo motivu globálně nedosažitelné.
 
 ### Exact-match kontrola skutečného slova
 
@@ -132,6 +134,14 @@ Povinnou vazbu nelze nahradit volným textem.
 
 Během editace formulář smí kontrolovat zveřejněná mechanická a strukturální pravidla, úplnost deklarace a deterministicky odvoditelnou morfologii konkrétního hráčova návrhu. Nesmí generovat kandidáty, navrhovat jiný model nebo řešit valenci, významové či nedeterministické syntaktické spory za hráče.
 
+Validační pipeline je vrstvená. Nejprve se ověřuje konkrétní surface: NFC, charset, délka, jednopísmenné výjimky, prefixová povrchová pravidla a motiv/tokenová sekvence. Pokud tato vrstva už konkrétní request definitivně označí za neplatný, aktivní runtime nemusí spouštět detailní branch-specific validaci, která tento verdikt nemůže změnit.
+
+Takový short-circuit **nesmí být prezentován jako úspěšná morfologická validace**. Stav může být technicky `notEvaluated` nebo ekvivalentní a `submitReady` zůstává false.
+
+Pokud surface projde, musí klientská i zejména backendová cesta stále ověřit dostatečnou integritu deklarace a relevantní deep pravidla. Nelze vynechat serverovou kontrolu jen proto, že klient deklaruje model nebo větev, která je při běžném použití dnes nedosažitelná.
+
+Hotová deep-validace dnes nedosažitelné větve se kvůli reachability nemaže ani hromadně nezakomentovává. Preferuje se zachovat ji jako dormant/reusable kód a pouze ji nevolat z cesty, kde dřívější gate už bezpečně rozhodl INVALID. Podrobnosti stanoví `03-validation.md`.
+
 Exact-match kontrola katalogu skutečných slov je zvláštní povolený lookup kompletního vlastního návrhu. Naproti tomu interní review cache je vždy neveřejná a její membership se před submittem neprozrazuje.
 
 Pokud pravidly přípustný případ formulář neumí reprezentovat, přímo ve formuláři je viditelná informace o možnosti kontaktovat rozhodčího e-mailem. Pro MVP se nezavádí speciální fallback workflow ani zvláštní stav podání.
@@ -148,15 +158,17 @@ Nová verze pravidel nevytváří novou revizi věty; nad stejnou immutable revi
 
 ## MVP schvalovací workflow
 
-1. Registrovaný účet odešle draft; vznikne immutable revize.
-2. Backend zopakuje všechny deterministické kontroly včetně odvození konkrétních morfologických tvarů.
-3. U tokenů deklarovaných jako skutečná slova se jejich status řeší proti samostatnému katalogu skutečných slov; případný chybějící exact match není sám o sobě automatické zamítnutí a může jít k review/správě katalogu.
-4. Nad uzamčenou revizí proběhne neveřejný lookup relevantních morfologických posouzení v interní review cache pro danou `rules_version`.
-5. `APPROVED` review cache se pro tutéž verzi pravidel znovu použije automaticky.
-6. `REJECTED` poskytne adminovi existující negativní rozhodnutí a důvod.
-7. `UNKNOWN` musí admin ručně posoudit. Schválením vzniká budoucí `APPROVED`, zamítnutím `REJECTED` v review cache pro danou rules verzi.
-8. Admin může revizi schválit, zamítnout nebo vrátit k doplnění.
-9. Čekající a zamítnuté revize nejsou veřejné. Zveřejní se až revize administrativně uznaná a obsahově platná podle příslušné verze pravidel.
+1. Registrovaný účet odešle draft.
+2. Backend nejprve autoritativně provede obecnou surface/sekvenční validaci a další kontroly potřebné k bezpečnému rozhodnutí requestu. Pokud už surface gate definitivně selže, request se odmítne bez vytvoření revize a bez povinnosti dopočítat deep branch-specific diagnostiku.
+3. Pokud request projde surface gate, backend provede relevantní strukturální, morfologické a syntaktické kontroly potřebné k autoritativnímu verdiktu.
+4. Teprve platný submit vytvoří immutable revizi a příslušný validační výsledek.
+5. U tokenů deklarovaných jako skutečná slova se jejich status řeší proti samostatnému katalogu skutečných slov; případný chybějící exact match není sám o sobě automatické zamítnutí a může jít k review/správě katalogu.
+6. Nad uzamčenou revizí proběhne neveřejný lookup relevantních morfologických posouzení v interní review cache pro danou `rules_version`.
+7. `APPROVED` review cache se pro tutéž verzi pravidel znovu použije automaticky.
+8. `REJECTED` poskytne adminovi existující negativní rozhodnutí a důvod.
+9. `UNKNOWN` musí admin ručně posoudit. Schválením vzniká budoucí `APPROVED`, zamítnutím `REJECTED` v review cache pro danou rules verzi.
+10. Admin může revizi schválit, zamítnout nebo vrátit k doplnění.
+11. Čekající a zamítnuté revize nejsou veřejné. Zveřejní se až revize administrativně uznaná a obsahově platná podle příslušné verze pravidel.
 
 Veřejné peer review není součástí MVP.
 
@@ -184,6 +196,8 @@ Historické schválení podle starší verze pravidel je neměnný fakt. Po vyd�
 Historická procesní compliance původního podání (např. tehdy platná AI/tool policy) se při obsahové revalidaci retroaktivně nepřepisuje.
 
 Každý rozhodující validační záznam musí být reprodukovatelný a uvádět příslušnou rules/review-cache/validator provenance. Pokud rozhodnutí záviselo na tehdejším stavu katalogu skutečných slov, musí být dohledatelná i tato lexikální provenance, aniž by se katalog skutečných slov tímto stal součástí `rules_version`.
+
+Změna povrchových pravidel mezi rules verzemi může změnit, které deep větve jsou aktivně dosažitelné. Taková změna vyžaduje nový audit validační orchestrace; dříve dormant implementace se nemá přepisovat od nuly, pokud lze bezpečně znovu zapojit zachovaný kód.
 
 ## Bez komentářů v MVP
 
