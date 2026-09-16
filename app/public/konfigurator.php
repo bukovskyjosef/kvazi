@@ -95,7 +95,7 @@ try {
           <div id="tokens" aria-label="Slova věty"></div>
           <input id="newSurface" class="word-input" type="text" autocomplete="off"
                  spellcheck="false" aria-label="Nové slovo (bez mezer)"
-                 aria-describedby="inputStatus" placeholder="Pište slova…">
+                 aria-describedby="inputStatus" placeholder="Kvazivětu zadejte zde…">
         </div>
         <select id="insertPlace" hidden></select>
         <p id="inputStatus" role="status"></p>

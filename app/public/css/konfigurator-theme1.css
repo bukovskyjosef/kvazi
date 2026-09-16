@@ -245,7 +245,7 @@ h2.card-header {
   font-weight: 500;
   flex: 1;
 }
-.word-input::placeholder { color: #c4b5fd; text-transform: none; font-weight: 400; }
+.word-input::placeholder { color: #4ade80; text-transform: none; font-weight: 700; }
 
 /* ── Sentence entry box ── */
 .sentence-entry {
