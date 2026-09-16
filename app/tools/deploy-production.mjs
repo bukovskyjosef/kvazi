@@ -49,7 +49,7 @@ export async function deployProduction({coolifyUrl, token, readToken, appUuid, e
     return json(response, 'Coolify API');
   }
   function checkApplication(app) {
-    requireValue(app?.uuid === appUuid && app.id !== undefined, 'Coolify returned another application');
+    requireValue(app?.uuid === appUuid, 'Coolify returned another application');
     requireValue(['https://github.com/bukovskyjosef/kvazi', 'https://github.com/bukovskyjosef/kvazi.git',
       'git@github.com:bukovskyjosef/kvazi.git', 'bukovskyjosef/kvazi'].includes(app.git_repository) &&
       app.git_branch === 'main', 'Coolify Git source must be bukovskyjosef/kvazi main');
@@ -75,7 +75,9 @@ export async function deployProduction({coolifyUrl, token, readToken, appUuid, e
   for (;;) {
     remaining();
     const deployment = await api(`/deployments/${deploymentUuid}`);
-    requireValue(deployment?.deployment_uuid === deploymentUuid && String(deployment.application_id) === String(app.id) &&
+    // The trigger binds this deployment UUID to appUuid; internal IDs are optional in the application API.
+    requireValue(deployment?.deployment_uuid === deploymentUuid &&
+      (app.id === undefined || String(deployment.application_id) === String(app.id)) &&
       deployment.pull_request_id === 0, 'Coolify deployment identity mismatch');
     requireValue(deployment.commit === expectedSha, 'Coolify deployment Git SHA mismatch');
     if (deployment.status === 'finished') break;

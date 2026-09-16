@@ -15,6 +15,8 @@ const application = {
   health_check_type: 'cmd', health_check_command: HEALTHCHECK_COMMAND, status: 'running:healthy',
 };
 const deployment = {deployment_uuid: deploymentUuid, application_id: '17', pull_request_id: 0, commit: sha, status: 'finished'};
+const applicationWithoutId = {...application, git_repository: 'bukovskyjosef/kvazi'};
+delete applicationWithoutId.id;
 test('Readiness CMD fits the actual Coolify safe-command grammar', () => {
   assert.match(HEALTHCHECK_COMMAND, /^[a-zA-Z0-9 \-_.\/:=@,+]+$/);
   assert.ok(HEALTHCHECK_COMMAND.length <= 1000);
@@ -54,57 +56,72 @@ function fixture({app = application, triggered = {deployments: [{resource_uuid: 
   return {options, requests, logs};
 }
 
-test('Exact deployment UUID is polled to finished, healthy and read-only production endpoints', async () => {
-  const f = fixture({states: [{...deployment, status: 'queued'}, {...deployment, status: 'in_progress'}, deployment]});
-  assert.deepEqual(await deployProduction(f.options), {deploymentUuid, commit: sha});
-  const trigger = f.requests.find(r => r.url.pathname === '/api/v1/deploy');
-  assert.equal(trigger.init.method, 'POST');
-  assert.deepEqual(JSON.parse(trigger.init.body), {uuid: appUuid, force: false});
-  assert.equal(f.requests.filter(r => r.url.pathname === `/api/v1/deployments/${deploymentUuid}`).length, 3);
-  assert.deepEqual(f.requests.filter(r => r.url.host === 'kvazi.cz').map(r => r.url.pathname), ['/healthz', '/', '/vety.php', '/api/normative.php']);
-  assert.ok(f.requests.every(r => r.init.redirect === 'error' && r.init.signal instanceof AbortSignal));
-  assert.ok(f.logs.some(line => line.includes('Production release PASS')));
-  assert.ok(f.logs.every(line => !line.includes(token) && !line.includes(readToken)));
-});
-
-for (const [name, changes] of Object.entries({
-  'unpinned HEAD': {git_commit_sha: 'HEAD'}, 'another SHA': {git_commit_sha: 'b'.repeat(40)},
-  'another source': {git_repository: 'https://github.com/other/repo'}, 'another branch': {git_branch: 'develop'},
-  'native Auto Deploy': {settings: {is_auto_deploy_enabled: true}}, 'missing Auto Deploy setting': {settings: {}},
-  'wrong build context': {base_directory: '/app'}, 'wrong Dockerfile': {dockerfile_location: '/Dockerfile'},
-  'public direct port': {ports_mappings: '8080:80'}, 'disabled healthcheck': {health_check_enabled: false},
-  'no-op readiness': {health_check_command: 'true'}, 'deployment migration hook': {pre_deployment_command: 'psql init.sql'},
-})) {
-  test(`Reject ${name} before any deploy request`, async () => {
-    const f = fixture({app: {...application, ...changes}});
-    await assert.rejects(deployProduction(f.options));
-    assert.equal(f.requests.length, 1);
-    assert.equal(f.logs.length, 0);
+for (const app of [application, applicationWithoutId]) {
+  test(`Exact deployment UUID is polled to finished, healthy and read-only production endpoints (${app.id === undefined ? 'without' : 'with'} application id)`, async () => {
+    const f = fixture({app, states: [{...deployment, status: 'queued'}, {...deployment, status: 'in_progress'}, deployment]});
+    assert.deepEqual(await deployProduction(f.options), {deploymentUuid, commit: sha});
+    const trigger = f.requests.find(r => r.url.pathname === '/api/v1/deploy');
+    assert.equal(trigger.init.method, 'POST');
+    assert.deepEqual(JSON.parse(trigger.init.body), {uuid: appUuid, force: false});
+    assert.equal(f.requests.filter(r => r.url.pathname === `/api/v1/deployments/${deploymentUuid}`).length, 3);
+    assert.equal(f.requests.filter(r => r.url.pathname === `/api/v1/applications/${appUuid}`).length, 2);
+    assert.deepEqual(f.requests.filter(r => r.url.host === 'kvazi.cz').map(r => r.url.pathname), ['/healthz', '/', '/vety.php', '/api/normative.php']);
+    assert.ok(f.requests.every(r => r.init.redirect === 'error' && r.init.signal instanceof AbortSignal));
+    assert.ok(f.logs.some(line => line.includes('Production release PASS')));
+    assert.ok(f.logs.every(line => !line.includes(token) && !line.includes(readToken)));
   });
-}
 
-for (const triggered of [ {}, {deployments: []}, {deployments: [{resource_uuid: 'other_app_12345678', deployment_uuid: deploymentUuid}]},
-  {deployments: [{resource_uuid: appUuid}]}, {deployments: [{resource_uuid: appUuid, deployment_uuid: '../bad'}]},
-  {deployments: [{resource_uuid: appUuid, deployment_uuid: deploymentUuid}, {resource_uuid: appUuid, deployment_uuid: deploymentUuid}]} ]) {
-  test(`Accepted trigger is not success: ${JSON.stringify(triggered)}`, async () => {
-    const f = fixture({triggered});
-    await assert.rejects(deployProduction(f.options), /deployment UUID/);
-    assert.equal(f.requests.length, 2);
-    assert.equal(f.logs.length, 0);
-  });
-}
+  for (const [name, changes] of Object.entries({
+    'another application UUID': {uuid: 'other_app_12345678'},
+    'unpinned HEAD': {git_commit_sha: 'HEAD'}, 'another SHA': {git_commit_sha: 'b'.repeat(40)},
+    'another source': {git_repository: 'https://github.com/other/repo'}, 'another branch': {git_branch: 'develop'},
+    'native Auto Deploy': {settings: {is_auto_deploy_enabled: true}}, 'missing Auto Deploy setting': {settings: {}},
+    'wrong build context': {base_directory: '/app'}, 'wrong Dockerfile': {dockerfile_location: '/Dockerfile'},
+    'public direct port': {ports_mappings: '8080:80'}, 'disabled healthcheck': {health_check_enabled: false},
+    'no-op readiness': {health_check_command: 'true'}, 'deployment migration hook': {pre_deployment_command: 'psql init.sql'},
+  })) {
+    test(`Reject ${name} before any deploy request (${app.id === undefined ? 'without' : 'with'} application id)`, async () => {
+      const f = fixture({app: {...app, ...changes}});
+      await assert.rejects(deployProduction(f.options));
+      assert.equal(f.requests.length, 1);
+      assert.equal(f.logs.length, 0);
+    });
+  }
 
-for (const [name, change] of Object.entries({
-  'build failure': {status: 'failed'}, 'cancelled': {status: 'cancelled-by-user'}, 'unknown status': {status: 'success'},
-  'wrong commit': {commit: 'b'.repeat(40)}, 'missing commit': {commit: undefined},
-  'wrong UUID': {deployment_uuid: 'another_deploy_12345678'}, 'wrong application': {application_id: '18'}, 'preview': {pull_request_id: 1},
-})) {
-  test(`Deployment ${name} fails without production smoke`, async () => {
-    const f = fixture({states: [{...deployment, ...change}]});
-    await assert.rejects(deployProduction(f.options));
-    assert.equal(f.requests.filter(r => r.url.host === 'kvazi.cz').length, 0);
-    assert.ok(!f.logs.some(line => line.includes('PASS')));
-  });
+  for (const triggered of [ {}, {deployments: []}, {deployments: [{resource_uuid: 'other_app_12345678', deployment_uuid: deploymentUuid}]},
+    {deployments: [{resource_uuid: appUuid}]}, {deployments: [{resource_uuid: appUuid, deployment_uuid: '../bad'}]},
+    {deployments: [{resource_uuid: appUuid, deployment_uuid: deploymentUuid}, {resource_uuid: appUuid, deployment_uuid: deploymentUuid}]} ]) {
+    test(`Accepted trigger is not success (${app.id === undefined ? 'without' : 'with'} application id): ${JSON.stringify(triggered)}`, async () => {
+      const f = fixture({app, triggered});
+      await assert.rejects(deployProduction(f.options), /deployment UUID/);
+      assert.equal(f.requests.length, 2);
+      assert.equal(f.logs.length, 0);
+    });
+  }
+
+  for (const [name, change] of Object.entries({
+    'build failure': {status: 'failed'}, 'cancelled': {status: 'cancelled-by-user'}, 'unknown status': {status: 'success'},
+    'wrong commit': {commit: 'b'.repeat(40)}, 'missing commit': {commit: undefined},
+    'wrong UUID': {deployment_uuid: 'another_deploy_12345678'}, 'preview': {pull_request_id: 1},
+    ...(app.id === undefined ? {} : {'wrong application': {application_id: '18'}, 'missing application id': {application_id: undefined}}),
+  })) {
+    test(`Deployment ${name} fails without production smoke (${app.id === undefined ? 'without' : 'with'} application id)`, async () => {
+      const f = fixture({app, states: [{...deployment, ...change}]});
+      await assert.rejects(deployProduction(f.options));
+      assert.equal(f.requests.filter(r => r.url.host === 'kvazi.cz').length, 0);
+      assert.ok(!f.logs.some(line => line.includes('PASS')));
+    });
+  }
+  for (const [name, changes] of Object.entries({
+    'another application UUID': {uuid: 'other_app_12345678'}, 'another SHA': {git_commit_sha: 'b'.repeat(40)},
+  })) {
+    test(`Final application ${name} fails without production smoke (${app.id === undefined ? 'without' : 'with'} application id)`, async () => {
+      const f = fixture({app, afterApp: {...app, ...changes}});
+      await assert.rejects(deployProduction(f.options));
+      assert.equal(f.requests.filter(r => r.url.host === 'kvazi.cz').length, 0);
+      assert.ok(!f.logs.some(line => line.includes('PASS')));
+    });
+  }
 }
 
 test('Queued deployment reaches deadline and fails', async () => {
