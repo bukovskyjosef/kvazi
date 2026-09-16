@@ -16,7 +16,19 @@ Pravidla popisují povolený herní prostor podle morfologické, syntaktické a 
 
 Je záměrně přípustné, aby pravidla obsahovala i slepé cesty. Hráč má mít možnost sám zkoumat, kombinovat a zjistit, že určitá pravidlově povolená cesta v konkrétním znakovém systému nikam nevede. Toto bádání a objevování neúspěšných cest je součástí hry a jejího vzdělávacího rozměru.
 
-Interní reachability analýza může pomáhat autorovi pravidel a vývojářům chápat herní prostor, testovat implementaci nebo hledat nečekané důsledky. Nesmí však sama rozhodovat, které jinak normativně povolené modely nebo mechanismy hráči dostanou k dispozici. Hráčské materiály nemají známé slepé cesty označovat ani předem prozrazovat, pokud to není nutné k vysvětlení samotného pravidla.
+Interní reachability analýza může pomáhat autorovi pravidel a vývojářům chápat herní prostor, testovat implementaci nebo hledat nečekané důsledky. Nesmí však sama rozhodovat, které jinak normativně povolené modely nebo mechanismy hráči dostanou k dispozici. Hráčské materiály ani konfigurátor nemají známé slepé cesty skrývat, označovat nebo předem prozrazovat, pokud to není nutné k vysvětlení samotného pravidla.
+
+### Úplná nabídka neznamená stejnou implementační hloubku
+
+Úplnost normativního systému a úplnost nabídky hráči je potřeba oddělit od technické hloubky validace.
+
+Konfigurátor má nabízet všechny normativně povolené modely a hlavní varianty, například i model, jehož žádný konkrétní tvar při aktuální soutěžní abecedě a motivu nemůže projít. To je záměrná součást objevování slepých cest.
+
+Zároveň však aplikace nemusí pro takovou větev budovat stejně drahou specializovanou validační a integrační infrastrukturu jako pro skutečně dosažitelné cesty. Pokud konkrétní hráčův povrch deterministicky selže už na obecné kontrole znaků, délky, motivu nebo tokenové sekvence, tento neplatný výsledek je dostatečný pro aktivní submit flow a detailní branch-specific validace, která už nemůže verdikt změnit, nemusí být spuštěna.
+
+Již hotová a funkční deep-validace normativní větve se kvůli současné nedosažitelnosti nemaže. Preferuje se zachovat ji jako dormant implementaci odpojenou od aktivního flow, aby ji bylo možné znovu použít, pokud budoucí rules verze změní povrchový motiv nebo abecedu. Levné unit testy takové zachované implementace mohou zůstat; není však cílem vytvářet pro každý globálně mrtvý případ samostatnou browser/HTTP/DB/E2E matici.
+
+Toto zjednodušení nesmí oslabit serverovou autoritu ani vytvořit nápovědu: surface-valid request musí dál projít dostatečnou kontrolou deklarace a aplikace nesmí filtrovat modely podle konkrétního hráčova kandidáta.
 
 ## Manifest férovosti a důvěry
 
