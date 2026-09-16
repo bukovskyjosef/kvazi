@@ -7,7 +7,7 @@ Doporučené pořadí čtení:
 1. `00-boundaries.md`
 2. `01-system-architecture.md`
 3. `02-database-model.md`
-4. `03-validation.md`
+4. `03-validation.md` – včetně závazného technického rozlišení úplné modelové nabídky, surface gate a dormant deep-validace
 5. `04-comments-auth-admin.md`
 6. `05-konfigurator-ux.md` – UX a funkční specifikace konfigurátoru
 7. `/db/schema-draft.sql`
