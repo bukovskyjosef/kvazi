@@ -1,4 +1,3 @@
 {
-  "_comment": "Aktivní rules release. Mění se pouze při vydání nové rules verze. Server načte tuto hodnotu dynamicky; RULES_VERSION se nesmí hardcoodovat v aplikačním kódu.",
-  "version": "public-1"
+  "version": "public-1.1"
 }

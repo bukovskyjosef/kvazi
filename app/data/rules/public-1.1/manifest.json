@@ -1,0 +1,9 @@
+{
+  "version": "public-1.1",
+  "normative_hash": "cfc0e48d78cf34caaa4c7b3949d18264c16f3ee49e94a619f8320f42ec283e58",
+  "normative_file": "normative.json",
+  "validator_version": "1.1.0",
+  "activated_at": "2026-09-15T00:00:00Z",
+  "description": "Corrective runtime release: explicit closed field enums and shared motif/syntax data; implements existing normative rules.",
+  "_integrity_note": "normative_hash = SHA-256 normative.json. Každá změna normative.json schopná změnit verdict vyžaduje nový rules release s novou verzí."
+}

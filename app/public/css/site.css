@@ -1025,7 +1025,8 @@ a:focus-visible {
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 680px) {
   :root { --nav-h: 56px; --nav-h-sm: 44px; }
-  .nav-inner { padding: 0 16px; }
+  .nav-inner, .site-nav.scrolled .nav-inner { padding: 8px 16px; height: auto; flex-wrap: wrap; }
+  .nav-links { margin-left: 0; flex-wrap: wrap; max-width: 100%; }
   .container, .container-sm { padding: 0 16px; }
   .hero { padding: 72px 0 56px; }
   .page-header { padding: 40px 0 28px; }

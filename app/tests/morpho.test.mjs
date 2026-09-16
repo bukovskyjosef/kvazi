@@ -175,16 +175,13 @@ test('jarní degree 1: stem = lemma minus -í, all forms use -í table', () => {
   // pl-7: 'kvaz'+'ími'='kvazími'
   assert.deepEqual(validateForm(adj('kvazí', 'jarní', 'neuter', 7, 'plural', 'kvazími')), { ok: true, expected: 'kvazími', message: null });
 });
-test('mladý degree 2: lemma ends -ější, stem = lemma minus -ější, uses jarní table', () => {
-  // lemma='kvazější', stem='kvaz', neuter sg-1: 'kvaz'+'í'='kvazí'
-  assert.deepEqual(validateForm(adj('kvazější', 'mladý', 'neuter', 1, 'singular', 'kvazí', { form: { degree: '2', case: '1', number: 'singular', gender: 'neuter' } })), { ok: true, expected: 'kvazí', message: null });
-  // wrong lemma
-  assert.equal(validateForm(adj('kvazý', 'mladý', 'neuter', 1, 'singular', 'kvazé', { form: { degree: '2', case: '1', number: 'singular', gender: 'neuter' } })).ok, false);
+test('degree preserves base identity and declines comparative stem', () => {
+  for (const [degree,surface] of [['2','kvazější'],['3','nejkvazější']]) {
+    assert.deepEqual(validateForm(adj('kvazý','mladý','neuter',1,'singular',surface,{form:{degree,case:'1',number:'singular',gender:'neuter'}})),{ok:true,expected:surface,message:null});
+    assert.equal(validateForm(adj('kvazý','mladý','neuter',1,'singular','kvazí',{form:{degree,case:'1',number:'singular',gender:'neuter'}})).ok,false);
+  }
 });
-test('mladý degree 3: lemma starts nej- and ends -ější', () => {
-  // lemma='nejkvazější', stem='nejkvaz', feminíne sg-1: 'nejkvaz'+'í'='nejkvazí'
-  assert.deepEqual(validateForm(adj('nejkvazější', 'mladý', 'feminine', 1, 'singular', 'nejkvazí', { form: { degree: '3', case: '1', number: 'singular', gender: 'feminine' } })), { ok: true, expected: 'nejkvazí', message: null });
-});
+
 test('otcův: derived from masculine noun, stem from source noun + ův ending', () => {
   // source noun 'kvaz' model 'hrad' (masculine, cond=endsConsonant ok), stem='kvaz'
   // adj lemma='kvazův', stem='kvaz', masculineAnimate sg-1: 'kvaz'+'ův'='kvazův'

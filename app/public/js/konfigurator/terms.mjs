@@ -1,3 +1,4 @@
+import { validPos, relationShapes, fieldEnums } from './rules-data.mjs';
 // Presentation layer: expert ↔ Czech terminology toggle.
 // All label consumers (view.mjs) call the *Labels() functions each render,
 // so a single toggleMode() + re-render is enough to switch everything.
@@ -51,19 +52,19 @@ const idx = () => czechMode ? 1 : 0;
 export const T = key => (TERMS[key] ?? [key, key])[idx()];
 
 export const partsOfSpeechLabels = () => Object.fromEntries(
-  ['noun', 'adjective', 'verb', 'pronoun', 'preposition', 'conjunction'].map(k => [k, T(k)])
+  validPos().map(k => [k, T(k)])
 );
 export const functionsLabels = () => Object.fromEntries(
-  ['subject', 'predicate', 'auxiliary', 'object', 'agreeingAttribute', 'attribute', 'adverbial', 'supplement', 'coordination'].map(k => [k, T(k)])
+  Object.keys(relationShapes()).filter(k => k !== 'preposition').map(k => [k, T(k)])
 );
 export const gendersLabels = () => Object.fromEntries(
-  ['masculineAnimate', 'masculineInanimate', 'feminine', 'neuter'].map(k => [k, T(k)])
+  fieldEnums().gender.map(k => [k, T(k)])
 );
 export const casesLabels = () => Object.fromEntries(
-  Array.from({ length: 7 }, (_, n) => [String(n + 1), T(String(n + 1))])
+  fieldEnums().case.map(k => [k, T(k)])
 );
 export const numbersLabels = () => Object.fromEntries(
-  ['singular', 'plural'].map(k => [k, T(k)])
+  fieldEnums().number.map(k => [k, T(k)])
 );
 
 // Translate an options object {key: czechLabel} through TERMS (for schema-embedded options).

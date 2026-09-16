@@ -16,8 +16,10 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { execSync, execFileSync } from 'node:child_process';
 
+const ACTIVE_VERSION = JSON.parse(readFileSync(new URL('../data/active-release.json', import.meta.url))).version;
 const BASE = (process.env.KVAZI_TEST_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '');
 
 // ── Reachability check ────────────────────────────────────────────────────────
@@ -39,6 +41,7 @@ function dbReachable() {
 const httpUp = await serverReachable();
 const dbUp   = dbReachable();
 const allUp  = httpUp && dbUp;
+if (!allUp && process.env.KVAZI_INTEGRATION_REQUIRED === '1') throw new Error('Mandatory integration requires HTTP and DB');
 
 function integrationTest(name, fn) {
   if (!allUp) {
@@ -166,7 +169,7 @@ async function loginSession(username, password) {
   return { cookie: sessionCookie, apiCsrf };
 }
 
-// ── A valid, submitReady draft (pán pl-1 + V-IT present 3sg) ─────────────────
+// ── A valid, submitReady draft (pán pl-1 + V-IT present 3pl) ─────────────────
 // charScore=10, wordCount=2 (both verified by JS validator above).
 
 const VALID_DRAFT = {
@@ -187,10 +190,10 @@ const VALID_DRAFT = {
       id: 't2', surface: 'kvazí', kvaziPrefix: '',
       pos: 'verb', lemma: 'kvazit', model: 'V-IT', lexicalStatus: 'quasi',
       identity: { gender: '', animacy: '' },
-      form: { verbFormType: 'present', verbPerson: '3', number: 'singular', aspect: 'imperfective' },
+      form: { verbFormType: 'present', verbPerson: '3', number: 'plural', aspect: 'imperfective' },
       role: 'predicate', relations: {},
       valency: { modelVerb: '', declaration: 'Opírá se o české sloveso dělat; nevyžaduje doplnění.' },
-      evidence: { source: '', reference: '', morphology: 'Přítomný čas 3. osoby singuláru vzoru V-IT.', needsAnalogy: false, explanation: '', analogy: '' },
+      evidence: { source: '', reference: '', morphology: 'Přítomný čas 3. osoby plurálu vzoru V-IT.', needsAnalogy: false, explanation: '', analogy: '' },
     },
   ],
 };
@@ -249,6 +252,9 @@ integrationTest('valid submit: HTTP 200 and DB rows created', async () => {
   const [cs, ws] = storedScores.split('|').map(Number);
   assert.equal(cs, 10, 'DB char_score should be 10');
   assert.equal(ws, 2,  'DB word_score should be 2');
+  const manifest=JSON.parse(readFileSync(new URL(`../data/rules/${ACTIVE_VERSION}/manifest.json`,import.meta.url)));
+  assert.equal(dbQuery('SELECT normative_hash, validator_version FROM kvazi.rules_release WHERE version = :v',{v:ACTIVE_VERSION}),`${manifest.normative_hash}|${manifest.validator_version}`);
+
 });
 
 // ── Test 2: Invalid draft → 422, no revision created ─────────────────────────
@@ -292,6 +298,10 @@ integrationTest('revision lifecycle: rev1 → return → rev2 → 409 → return
   const revisionId1 = rev1.revisionId;
   assert.equal(rev1.revisionNo, 1, 'rev1 should be revision 1');
 
+  const snapshot = () => dbQuery('SELECT row_to_json(r) FROM kvazi.sentence_revision r WHERE id = :rid', {rid:revisionId1});
+  const resultSnapshot = () => dbQuery('SELECT row_to_json(v) FROM kvazi.validation_result v WHERE revision_id = :rid', {rid:revisionId1});
+  const beforeRevision = snapshot(), beforeValidation = resultSnapshot();
+
   // ── Admin return rev1 (insert admin_decision directly via DB) ──────────────
   const adminId = dbQuery('SELECT id FROM kvazi.user_account WHERE username = :u', { u: ADM }).trim();
   dbExec(
@@ -314,6 +324,26 @@ integrationTest('revision lifecycle: rev1 → return → rev2 → 409 → return
   const rev2 = JSON.parse(text);
   assert.equal(rev2.revisionNo, 2, 'resubmit should be revision 2');
   const revisionId2 = rev2.revisionId;
+  assert.equal(rev2.id,sentenceId);
+
+  assert.equal(snapshot(), beforeRevision, 'rev1 remains byte-for-byte immutable');
+  assert.equal(resultSnapshot(), beforeValidation, 'rev1 validation remains immutable');
+  const preload = async () => {
+    const r = await fetch(`${BASE}/konfigurator.php?sentenceId=${sentenceId}`, {headers:{Cookie:cookie}});
+    assert.equal(r.status,200);
+    return JSON.parse((await r.text()).match(/window\.__resubmit = (.*?);<\/script>/)[1]);
+  };
+  assert.equal(await preload(),null,'return rev1 cannot preload pending rev2');
+  const read = await fetch(`${BASE}/moje-vety.php`, {headers:{Cookie:cookie}});
+  assert.equal(read.status,200);
+  const html = await read.text();
+  const card = html.split(`<span class="submission-id">#${sentenceId}</span>`)[1].split('<div class="submission-card">')[0];
+  assert.ok(card.includes('Rev.1') && card.includes('Rev.2'));
+  const rev2Section = card.split('Rev.2')[1].split('Rev.1')[0];
+  const rev1Section = card.split('Rev.1')[1];
+  assert.ok(rev1Section.includes('Vráceno'));
+  assert.ok(!rev2Section.includes('Vráceno'));
+  assert.ok(!card.includes('Upravit a znovu odeslat'));
 
   // ── Attempt rev3 without new return → 409 ─────────────────────────────────
   const konfPage3 = await fetch(`${BASE}/konfigurator.php`, { headers: { 'Cookie': cookie } });
@@ -336,6 +366,12 @@ integrationTest('revision lifecycle: rev1 → return → rev2 → 409 → return
     { sid: String(sentenceId), rid: String(revisionId2), aid: adminId, act: 'return' }
   );
 
+  const loaded = await preload();
+  assert.equal(loaded.sentenceId,sentenceId);
+  assert.deepEqual(loaded.draft, JSON.parse(dbQuery('SELECT draft_json FROM kvazi.sentence_revision WHERE id = :rid',{rid:revisionId2})), 'returned latest revision is preloaded');
+  for (const rid of [revisionId1,revisionId2]) {
+    assert.equal(dbCount('kvazi.administrative_decision', "sentence_id = :sid AND revision_id = :rid AND action = 'return'",{sid:sentenceId,rid}),1);
+  }
   const konfPage4 = await fetch(`${BASE}/konfigurator.php`, { headers: { 'Cookie': cookie } });
   const apiCsrf4  = extractCsrfFromMeta(await konfPage4.text());
 
@@ -348,11 +384,53 @@ integrationTest('revision lifecycle: rev1 → return → rev2 → 409 → return
   assert.equal(r.status, 200, `rev3 submit after return rev2: ${text}`);
   const rev3 = JSON.parse(text);
   assert.equal(rev3.revisionNo, 3, 'should be revision 3');
+  assert.equal(rev3.id,sentenceId);
 
   // Verify 3 revisions exist
   const finalRevCount = dbCount('kvazi.sentence_revision', 'sentence_id = :sid', { sid: String(sentenceId) });
   assert.equal(finalRevCount, 3, 'Three revisions should exist');
+  assert.equal(dbCount('kvazi.sentence','id = :sid',{sid:sentenceId}),1);
+  assert.equal(dbQuery('SELECT string_agg(CAST(revision_no AS text), \',\' ORDER BY revision_no) FROM kvazi.sentence_revision WHERE sentence_id = :sid',{sid:sentenceId}),'1,2,3');
+  assert.equal(snapshot(),beforeRevision);
+  assert.equal(resultSnapshot(),beforeValidation);
 });
+
+
+for (const scenario of ['score','rules version','false prefix','hidden prefix','prefix POS','aspect','agreement']) {
+  integrationTest(`tampering: ${scenario}`, async () => {
+    const {cookie,apiCsrf} = await loginSession(USR,USR_PASS);
+    const draft=structuredClone(VALID_DRAFT);
+    const payload={csrf:apiCsrf,draft};
+    let status=200, expectedScore=10;
+    if (scenario==='score') {
+      Object.assign(payload,{charScore:999999,wordScore:999999});
+      Object.assign(draft,{charScore:999999,wordScore:999999,validation:{submitReady:true,charScore:999999}});
+    }
+    if (scenario==='rules version') {payload.rulesVersion='fake-version';draft.rulesVersion='fake-version';}
+    if (scenario==='false prefix') draft.tokens[0].kvaziPrefix='kvazi';
+    if (scenario==='hidden prefix' || scenario==='prefix POS') {
+      Object.assign(draft.tokens[0],{surface:'kvaziqazi',lemma:'kvaziqaz',kvaziPrefix:''});
+      expectedScore=9;
+      if (scenario==='prefix POS') {draft.tokens[0].pos='adjective';status=422;}
+    }
+    if (scenario==='aspect') {draft.tokens[1].form.aspect='banana';status=422;}
+    if (scenario==='agreement') {draft.tokens[1].form.number='singular';status=422;}
+    const count=()=>dbCount('kvazi.sentence_revision','submitted_by = (SELECT id FROM kvazi.user_account WHERE username = :u)',{u:USR});
+    const before=count();
+    const r=await fetch(`${BASE}/api/submit.php`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify(payload)});
+    const body=await r.json();
+    assert.equal(r.status,status,JSON.stringify(body));
+    if(status===422) {
+      assert.equal(count(),before,'rejected tampering persists no revision');
+      assert.equal(body.validation.submitReady,false);
+    } else {
+      assert.equal(count(),before+1);
+      const row=dbQuery('SELECT char_score, word_score, rules_version FROM kvazi.validation_result WHERE revision_id = :rid',{rid:body.revisionId});
+      assert.equal(row,`${expectedScore}|2|${ACTIVE_VERSION}`);
+      assert.equal(body.charScore,expectedScore);
+    }
+  });
+}
 
 // ── Cleanup ───────────────────────────────────────────────────────────────────
 

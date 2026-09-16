@@ -4,7 +4,7 @@
  *
  * Čte normativní data z app/data/rules/<version>/normative.json.
  * Implementuje stejnou deterministickou semantiku jako JS validation.mjs + morpho.mjs.
- * Paralelní normativní zdroj: app/data/rules/public-1/normative.json.
+ * Společný zdroj obou enginů: aktivní versioned normative.json.
  *
  * Oba enginy (JS i PHP) musí pro stejný kanonický vstup vrátit stejný výsledek.
  *
@@ -75,14 +75,7 @@ class KvaziValidator {
 
     private function dfaTransition(int $state, string $c): int {
         $c = mb_strtoupper($c, 'UTF-8');
-        return match ($state) {
-            0 => match ($c) { 'K' => 1, 'Q' => 2, default => -1 },
-            1 => $c === 'V' ? 2 : -1,
-            2 => in_array($c, ['A', 'Á'], true) ? 3 : -1,
-            3 => $c === 'Z' ? 4 : -1,
-            4 => in_array($c, ['I', 'Í', 'Y', 'Ý'], true) ? 0 : -1,
-            default => -1,
-        };
+        return $this->nd['motif_transitions'][$state][$c] ?? -1;
     }
 
     // ─────────────────────────────────────────────────────────
@@ -149,7 +142,7 @@ class KvaziValidator {
 
         $fits = false;
         if (!empty($tokens)) {
-            for ($start = 0; $start <= 4; $start++) {
+            for ($start = 0; $start < count($this->nd['motif_transitions']); $start++) {
                 $state = $start;
                 $ok = true;
                 foreach ($segments as $seg) {
@@ -181,7 +174,7 @@ class KvaziValidator {
         $byId = [];
         foreach ($words as $w) { $byId[$w['id']] = $w; }
 
-        $nominal = fn($w) => $w && in_array($w['pos'] ?? '', ['noun', 'adjective', 'pronoun'], true);
+        $nominal = fn($w) => $w && in_array($w['pos'] ?? '', $this->nd['nominal_pos'], true);
         $isPredicate = fn($w) => $w && ($w['role'] ?? '') === 'predicate' && ($w['pos'] ?? '') === 'verb';
 
         $shapes = $this->nd['relation_shapes'];
@@ -229,11 +222,11 @@ class KvaziValidator {
                 }
             }
 
-            if (in_array($role, ['subject', 'object', 'adverbial'], true) && !$isPredicate($head)) {
+            if (in_array($role, $this->nd['syntax_role_sets']['predicate_head'], true) && !$isPredicate($head)) {
                 $add('Řídícím slovem musí být přísudek.');
             }
 
-            if (in_array($role, ['agreeingAttribute', 'attribute'], true) && !$nominal($head)) {
+            if (in_array($role, $this->nd['syntax_role_sets']['nominal_head'], true) && !$nominal($head)) {
                 $add('Přívlastek musí odkazovat na jmenný člen.');
             }
 
@@ -259,7 +252,7 @@ class KvaziValidator {
                 $predTarget = isset($relations['predicate']) ? ($byId[$relations['predicate']] ?? null) : null;
                 $nomTarget  = isset($relations['nominal']) ? ($byId[$relations['nominal']] ?? null) : null;
                 if (!$isPredicate($predTarget) || !$nominal($nomTarget) ||
-                    !in_array($nomTarget['role'] ?? '', ['subject', 'object'], true)) {
+                    !in_array($nomTarget['role'] ?? '', $this->nd['syntax_role_sets']['supplement_target'], true)) {
                     $add('Doplněk vyžaduje přísudek a jmenný podmět nebo předmět.');
                 }
             }
@@ -267,7 +260,7 @@ class KvaziValidator {
             if ($role === 'coordination') {
                 $leftW  = isset($relations['left']) ? ($byId[$relations['left']] ?? null) : null;
                 $rightW = isset($relations['right']) ? ($byId[$relations['right']] ?? null) : null;
-                $allowedCoordRoles = ['object', 'agreeingAttribute', 'attribute', 'adverbial', 'supplement'];
+                $allowedCoordRoles = $this->nd['syntax_role_sets']['coordination'];
                 if (($w['pos'] ?? '') !== 'conjunction' || !$leftW || !$rightW ||
                     $leftW['id'] === $rightW['id'] ||
                     ($leftW['role'] ?? '') !== ($rightW['role'] ?? '') ||
@@ -312,7 +305,7 @@ class KvaziValidator {
     // ─────────────────────────────────────────────────────────
 
     private function isVowel(string $c): bool {
-        return preg_match('/[aeiouyáéíóúůýě]/iu', $c) === 1;
+        return mb_strpos($this->nd['vowels'], mb_strtolower($c, 'UTF-8')) !== false;
     }
 
     private function endsConsonant(string $s): bool {
@@ -407,6 +400,7 @@ class KvaziValidator {
             return ['ok' => true, 'expected' => null, 'message' => null];
         }
 
+        if (!in_array($degree, $adjModels[$modelName]['degrees'], true)) return ['ok'=>false,'expected'=>null,'message'=>'Neplatný stupeň modelu.'];
         $caseNum = $form['case'] ?? '';
         $number  = $form['number'] ?? '';
         $gender  = $form['gender'] ?? '';
@@ -419,7 +413,7 @@ class KvaziValidator {
         $tables   = $this->nd['adj_tables'];
 
         // Přivlastňovací adjektiva
-        if ($modelName === 'otcův' || $modelName === 'matčin') {
+        if (isset($adjModels[$modelName]['source_gender'])) {
             $srcLemma = mb_strtolower($identity['sourceNounLemma'] ?? '', 'UTF-8');
             $srcModel = $identity['sourceNounModel'] ?? '';
             if (!$srcLemma || !$srcModel) {
@@ -435,72 +429,24 @@ class KvaziValidator {
             }
             $srcStem = $this->nounStem($srcM['stem'], $srcLemma);
 
-            if ($modelName === 'otcův') {
-                if ($srcM['gender'] !== 'masculine') {
-                    return ['ok' => false, 'expected' => null, 'message' => 'Model otcův se odvozuje pouze z mužského substantiva.'];
-                }
-                $expectedLemma = $srcStem . 'ův';
-                if ($lemma !== $expectedLemma) {
-                    return ['ok' => false, 'expected' => null, 'message' => "Lemma adjektiva musí být „{$expectedLemma}\" (zdrojový kmen + ův)."];
-                }
-                $ending = $tables['ADJ_OTCUV'][$tableKey] ?? null;
-                if ($ending === null) {
-                    return ['ok' => false, 'expected' => null, 'message' => "Kombinace rod/číslo/pád „{$tableKey}\" není v tabulce modelu otcův."];
-                }
-                $expected = $srcStem . $ending;
-            } else {
-                if ($srcM['gender'] !== 'feminine') {
-                    return ['ok' => false, 'expected' => null, 'message' => 'Model matčin se odvozuje pouze z ženského substantiva.'];
-                }
-                $expectedLemma = $srcStem . 'in';
-                if ($lemma !== $expectedLemma) {
-                    return ['ok' => false, 'expected' => null, 'message' => "Lemma adjektiva musí být „{$expectedLemma}\" (zdrojový kmen + in)."];
-                }
-                $ending = $tables['ADJ_MATCIN'][$tableKey] ?? null;
-                if ($ending === null) {
-                    return ['ok' => false, 'expected' => null, 'message' => "Kombinace rod/číslo/pád „{$tableKey}\" není v tabulce modelu matčin."];
-                }
-                $expected = $srcStem . $ending;
-            }
+            $def = $adjModels[$modelName];
+            if ($srcM['gender'] !== $def['source_gender']) return ['ok' => false, 'expected' => null, 'message' => 'Rod zdrojového substantiva neodpovídá přivlastňovacímu modelu.'];
+            $expectedLemma = $srcStem . $def['lemma_suffix'];
+            if ($lemma !== $expectedLemma) return ['ok' => false, 'expected' => null, 'message' => "Lemma adjektiva musí být {$expectedLemma}."];
+            $ending = $tables[$def['table']][$tableKey] ?? null;
+            if ($ending === null) return ['ok' => false, 'expected' => null, 'message' => 'Neplatná kombinace rodu, čísla a pádu.'];
+            $expected = $srcStem . $ending;
 
             return $expected === $surface
                 ? ['ok' => true, 'expected' => $expected, 'message' => null]
                 : ['ok' => false, 'expected' => $expected, 'message' => "Použitý tvar „{$surface}\" neodpovídá modelu {$modelName} (očekáváno „{$expected}\")."];
         }
 
-        // Produktivní modely mladý a jarní (+ stupňování)
-        $tableName = null;
-        $adjStem   = null;
-
-        if ($degree === '1') {
-            if ($modelName === 'mladý') {
-                if (!str_ends_with($lemma, 'ý')) {
-                    return ['ok' => false, 'expected' => null, 'message' => 'Lemma modelu mladý (1. stupeň) musí zakončit na -ý.'];
-                }
-                $adjStem   = mb_substr($lemma, 0, -1, 'UTF-8');
-                $tableName = 'ADJ_MLADY';
-            } else { // jarní
-                if (!str_ends_with($lemma, 'í')) {
-                    return ['ok' => false, 'expected' => null, 'message' => 'Lemma modelu jarní (1. stupeň) musí zakončit na -í.'];
-                }
-                $adjStem   = mb_substr($lemma, 0, -1, 'UTF-8');
-                $tableName = 'ADJ_JARNI';
-            }
-        } elseif ($degree === '2') {
-            if (!str_ends_with($lemma, 'ější')) {
-                return ['ok' => false, 'expected' => null, 'message' => '2. stupeň: lemma musí zakončit na -ější.'];
-            }
-            $adjStem   = mb_substr($lemma, 0, -4, 'UTF-8');
-            $tableName = 'ADJ_JARNI';
-        } elseif ($degree === '3') {
-            if (!str_starts_with($lemma, 'nej') || !str_ends_with($lemma, 'ější')) {
-                return ['ok' => false, 'expected' => null, 'message' => '3. stupeň: lemma musí začínat na nej- a zakončit na -ější.'];
-            }
-            $adjStem   = 'nej' . mb_substr($lemma, 3, $this->mbLen($lemma) - 7, 'UTF-8');
-            $tableName = 'ADJ_JARNI';
-        } else {
-            return ['ok' => false, 'expected' => null, 'message' => "Neznámý stupeň „{$degree}\"."];
-        }
+        $def = $adjModels[$modelName];
+        if (!str_ends_with($lemma, $def['lemma_suffix'])) return ['ok'=>false,'expected'=>null,'message'=>'Lemma neodpovídá základnímu modelu.'];
+        $d = $this->nd['adjective_degrees'][$degree];
+        $adjStem = $d['prefix'] . mb_substr($lemma, 0, -$this->mbLen($def['lemma_suffix']), 'UTF-8') . $d['stem_suffix'];
+        $tableName = $d['table'] ?? $def['table'];
 
         $ending = $tables[$tableName][$tableKey] ?? null;
         if ($ending === null) {
@@ -546,7 +492,7 @@ class KvaziValidator {
         if ($vft === 'present') {
             $person = $form['verbPerson'] ?? '';
             $number = $form['number'] ?? '';
-            if (!$person || !$number) {
+            if (!in_array($person, $this->nd['field_enums']['verbPerson'], true) || !in_array($number, $this->nd['field_enums']['number'], true)) {
                 return ['ok' => false, 'expected' => null, 'message' => 'Chybí osoba nebo číslo přítomného/budoucího tvaru.'];
             }
             $p   = (int)$person - 1;
@@ -567,7 +513,7 @@ class KvaziValidator {
             if (!$vp) {
                 return ['ok' => false, 'expected' => null, 'message' => 'Chybí osoba/číslo rozkazovacího způsobu.'];
             }
-            $impIdx = ['2sg' => 0, '1pl' => 1, '2pl' => 2];
+            $impIdx = array_flip($this->nd['field_enums']['imperativePerson']);
             $idx = $impIdx[$vp] ?? null;
             if ($idx === null) {
                 return ['ok' => false, 'expected' => null, 'message' => 'Rozkazovací způsob dovoluje jen 2.sg, 1.pl, 2.pl.'];
@@ -583,14 +529,14 @@ class KvaziValidator {
             $gender  = $form['verbGender'] ?? '';
             $number  = $form['number'] ?? '';
             $animacy = $form['verbAnimacy'] ?? '';
-            if (!$gender || !$number) {
+            if (!in_array($gender, $this->nd['field_enums']['verbGender'], true) || !in_array($number, $this->nd['field_enums']['number'], true)) {
                 return ['ok' => false, 'expected' => null, 'message' => 'Chybí rod nebo číslo l-příčestí.'];
             }
             if ($number === 'singular') {
                 $idx = match ($gender) { 'masculine' => 0, 'feminine' => 1, 'neuter' => 2, default => -1 };
             } else {
                 if ($gender === 'masculine') {
-                    if (!$animacy) {
+                    if (!in_array($animacy, $this->nd['field_enums']['verbAnimacy'], true)) {
                         return ['ok' => false, 'expected' => null, 'message' => 'Chybí životnost l-příčestí pro mužský rod množného čísla.'];
                     }
                     $idx = $animacy === 'animate' ? 3 : 4;
@@ -635,7 +581,7 @@ class KvaziValidator {
     private function validateForm(array $w): array {
         $pos  = $w['pos'] ?? '';
         $role = $w['role'] ?? '';
-        if (in_array($pos, ['preposition', 'conjunction'], true)) {
+        if (in_array($pos, $this->nd['functional_pos'], true)) {
             return ['ok' => true, 'expected' => null, 'message' => null];
         }
         if ($role === 'auxiliary') return $this->validateAuxiliary($w);
@@ -658,6 +604,11 @@ class KvaziValidator {
         $singleConjs = $this->nd['single_conjunctions'];
         $foldedS = $this->folded($w['surface'] ?? '');
 
+        foreach (($w['form'] ?? []) as $key => $value) {
+            $enumKey = $key === 'verbPerson' && ($w['form']['verbFormType'] ?? '') === 'imperative' ? 'imperativePerson' : $key;
+            $allowed = $this->nd['field_enums'][$enumKey] ?? null;
+            if ($value !== '' && $allowed !== null && !in_array($value, $allowed, true)) $missing[] = "Neplatná hodnota {$key}.";
+        }
         $validPos = $this->nd['valid_pos'];
         if (!in_array($pos, $validPos, true)) $missing[] = 'Slovní druh.';
 
@@ -675,7 +626,7 @@ class KvaziValidator {
         if ($pos === 'preposition' && $role !== 'preposition') $missing[] = 'Předložka má technickou roli bez hlavní větné funkce.';
         if ($pos === 'conjunction' && $role !== 'coordination') $missing[] = 'Spojka má roli koordinace.';
 
-        $isFunctional = in_array($pos, ['preposition', 'conjunction'], true);
+        $isFunctional = in_array($pos, $this->nd['functional_pos'], true);
         if ($isFunctional) {
             if (($w['lexicalStatus'] ?? '') !== 'real' || $this->folded($w['lemma'] ?? '') !== $foldedS) {
                 $missing[] = 'Identita funkčního slova musí odpovídat jednopísmenné výjimce.';
@@ -687,7 +638,7 @@ class KvaziValidator {
             } else {
                 $lemma = trim($w['lemma'] ?? '');
                 if (!$lemma) $missing[] = 'Základní tvar / neurčitek.';
-                if (!in_array($w['lexicalStatus'] ?? '', ['real', 'quasi'], true)) $missing[] = 'Skutečné slovo nebo kvazislovo podle celé identity.';
+                if (!in_array($w['lexicalStatus'] ?? '', $this->nd['field_enums']['lexicalStatus'], true)) $missing[] = 'Skutečné slovo nebo kvazislovo podle celé identity.';
                 if ($pos === 'pronoun' && ($w['lexicalStatus'] ?? '') !== 'real') $missing[] = 'Nová zájmena nelze vytvářet.';
 
                 // Model check
@@ -709,7 +660,7 @@ class KvaziValidator {
                     if (isset($m['gender']) && $m['gender'] !== '' && ($identity['gender'] ?? '') !== $m['gender']) {
                         $missing[] = 'Rod nebo životnost neodpovídá zvolenému modelu.';
                     }
-                    if (isset($m['animacy']) && $m['animacy'] !== '' && ($identity['animacy'] ?? '') !== $m['animacy']) {
+                    if (($identity['animacy'] ?? '') !== ($m['animacy'] ?? '')) {
                         $missing[] = 'Rod nebo životnost neodpovídá zvolenému modelu.';
                     }
                 }
@@ -719,12 +670,26 @@ class KvaziValidator {
                     if (!($w['form']['case'] ?? '')) $missing[] = 'Pád použitého tvaru.';
                     if (!($w['form']['number'] ?? '')) $missing[] = 'Číslo použitého tvaru.';
                 } elseif ($pos === 'adjective') {
+                    if (isset($adjModels[$w['model'] ?? '']['source_gender'])) {
+                        if (!trim($w['identity']['sourceNounLemma'] ?? '')) $missing[] = 'Lemma zdrojového substantiva.';
+                        if (!isset($nounModels[$w['identity']['sourceNounModel'] ?? ''])) $missing[] = 'Vzor zdrojového substantiva.';
+                    }
+                    if (count($adjModels[$w['model'] ?? '']['degrees'] ?? []) > 1 && !($w['form']['degree'] ?? '')) $missing[] = 'Stupeň.';
                     if (!($w['form']['gender'] ?? '')) $missing[] = 'Rod použitého tvaru.';
                     if (!($w['form']['case'] ?? '')) $missing[] = 'Pád použitého tvaru.';
                     if (!($w['form']['number'] ?? '')) $missing[] = 'Číslo použitého tvaru.';
                 } elseif ($pos === 'verb') {
+                    $form = $w['form'] ?? [];
+                    $required = match ($form['verbFormType'] ?? '') {
+                        'present' => ['verbPerson', 'number'],
+                        'imperative' => ['verbPerson'],
+                        'lParticiple' => ['verbGender', 'number'],
+                        default => [],
+                    };
+                    if (($form['verbFormType'] ?? '') === 'lParticiple' && ($form['verbGender'] ?? '') === 'masculine' && ($form['number'] ?? '') === 'plural') $required[] = 'verbAnimacy';
+                    foreach ($required as $key) if (!($form[$key] ?? '')) $missing[] = "Chybí {$key}.";
                     if (!($w['form']['verbFormType'] ?? '')) $missing[] = 'Druh slovesného tvaru.';
-                    if (!($w['form']['aspect'] ?? '')) $missing[] = 'Vid.';
+                    if (!in_array($w['form']['aspect'] ?? '', $this->nd['field_enums']['aspect'], true)) $missing[] = 'Vid.';
                     $valDecl = trim($w['valency']['declaration'] ?? '');
                     if (!$valDecl) $missing[] = 'Valenční obhajoba — jaká doplnění použití vyžaduje, která slova je realizují a o jaké české sloveso se opírá.';
                 }
@@ -747,13 +712,13 @@ class KvaziValidator {
     // charScore computation (mirrors validation.mjs charScore)
     // ─────────────────────────────────────────────────────────
 
-    private function computeCharScore(array $tokens, array $sequenceIssueIds): int {
+    private function computeCharScore(array $tokens, array $sequenceIssueIds, bool $sequenceOk): int {
         $score = 0;
         foreach ($tokens as $w) {
             $s = $this->nfc($w['surface'] ?? '');
             $len = $this->mbLen($s);
             // Derive prefix from surface, not from client payload.
-            if ($this->inferKvaziPrefix($w['surface'] ?? '') && !in_array($w['id'], $sequenceIssueIds, true)) {
+            if ($sequenceOk && ($w['pos'] ?? '') === 'noun' && $this->inferKvaziPrefix($w['surface'] ?? '') && !in_array($w['id'], $sequenceIssueIds, true)) {
                 $score += $len - $this->nd['kvazi_prefix_len'];
             } else {
                 $score += $len;
@@ -782,6 +747,7 @@ class KvaziValidator {
         $auxiliaries    = array_filter($tokens, fn($w) => ($w['role'] ?? '') === 'auxiliary');
         $fullContentVerbs = array_filter($verbs, fn($w) => ($w['role'] ?? '') !== 'auxiliary');
 
+        if (isset($draft['closingPunct']) && $draft['closingPunct'] !== ($punctMap[$sentType] ?? null)) $sentenceIssues[] = 'Závěrečná interpunkce neodpovídá typu věty.';
         if (!array_key_exists($sentType, $punctMap)) $sentenceIssues[] = 'Vyberte typ věty.';
 
         $fullVerbOk = count($fullContentVerbs) === 1;
@@ -849,6 +815,9 @@ class KvaziValidator {
                 // Present/future: verb person must be 3rd for noun subject.
                 if ($vft === 'present') {
                     $vPerson = $predicateWord['form']['verbPerson'] ?? '';
+                    $sn = $subjectWord['form']['number'] ?? '';
+                    $vn = $predicateWord['form']['number'] ?? '';
+                    if ($sn && $vn && $sn !== $vn) $sentenceIssues[] = 'Číslo slovesa neodpovídá číslu podmětu.';
                     if ($vPerson && $vPerson !== '3') {
                         $sentenceIssues[] = 'Podmět je podstatné jméno; přítomný/budoucí slovesný tvar musí být ve 3. osobě.';
                     }
@@ -910,7 +879,7 @@ class KvaziValidator {
 
         // charScore
         $sequenceIssueIds = array_map(fn($i) => $i['id'], array_filter($sequence['issues'], fn($i) => $i['id'] !== null));
-        $charScore = $this->computeCharScore($tokens, $sequenceIssueIds);
+        $charScore = $this->computeCharScore($tokens, $sequenceIssueIds, $sequence['ok']);
 
         // Text preview
         $previewParts = [];

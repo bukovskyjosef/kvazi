@@ -54,7 +54,15 @@ Deterministické regresní testy (Node.js 22 nebo novější, bez aplikačních 
 node --test app/tests/*.test.mjs
 ```
 
-Volitelný integrační test používá Playwright dostupný mimo aplikační runtime a cílí na běžící PHP stack:
+Povinný DoD běh (Docker, dostupná DB, HTTP server a Playwright včetně prohlížeče):
+
+```sh
+bash app/tests/run-integration.sh
+```
+
+Příkaz selže při chybějící závislosti nebo přeskočeném povinném scénáři. Běžný `node --test` může při nedostupném stacku HTTP/DB testy přeskočit; takový běh nenahrazuje DoD.
+
+Samostatný browser test používá Playwright dostupný mimo aplikační runtime a cílí na běžící PHP stack:
 
 ```sh
 PLAYWRIGHT_MODULE=/absolutni/cesta/playwright/index.mjs node app/tests/konfigurator.browser.mjs

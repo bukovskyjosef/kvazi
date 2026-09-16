@@ -87,3 +87,26 @@ export const auxBytForms        = () => nd().aux_byt_forms;
 
 /** Preposition case government: { 'k': ['3'], 'v': ['4','6'], 'z': ['2'] } */
 export const prepositionGovt    = () => nd().preposition_case_government;
+
+export const fieldEnums = () => nd().field_enums;
+export const motifTransitions = () => nd().motif_transitions;
+export const functionalPos = () => nd().functional_pos;
+export const nominalPos = () => nd().nominal_pos;
+export const syntaxRoleSets = () => nd().syntax_role_sets;
+export const vowels = () => nd().vowels;
+
+// Lazy option maps preserve UI labels while deriving allowed keys from release data.
+export function enumOptions(name, labels = {}) {
+  return optionMap(() => fieldEnums()[name], labels);
+}
+
+export function optionMap(values, labels = {}) {
+  return new Proxy({}, {
+    ownKeys: () => values(),
+    getOwnPropertyDescriptor: (_, key) => values().includes(key)
+      ? { enumerable: true, configurable: true, value: labels[key] ?? key } : undefined,
+    get: (_, key) => values().includes(key) ? (labels[key] ?? key) : undefined,
+  });
+}
+
+export const adjectiveDegrees = () => nd().adjective_degrees;

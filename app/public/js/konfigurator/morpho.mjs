@@ -4,10 +4,10 @@
 import {
   nounModels, adjModels, adjTables,
   verbModels, verbPresent, verbImperative, verbLParticiple,
-  auxBytForms,
+  adjectiveDegrees, auxBytForms, prefixString, prefixLen, fieldEnums, functionalPos, vowels,
 } from './rules-data.mjs';
 
-const isVowel = c => /[aeiouyáéíóúůýě]/i.test(c);
+const isVowel = c => vowels().includes(c.toLowerCase());
 const endsConsonant = l => l.length > 0 && !isVowel(l.slice(-1));
 
 // Převod textových podmínek z normative.json na funkce.
@@ -50,14 +50,14 @@ function validateNoun(w) {
   const m = nounModels()[modelName];
   if (!m) return { ok: true, expected: null, message: null };
 
-  let lemma = String(w.lemma || '').toLowerCase();
-  const surface = String(w.surface || '').toLowerCase();
+  let lemma = String(w.lemma || '').normalize('NFC').toLowerCase();
+  const surface = String(w.surface || '').normalize('NFC').toLowerCase();
   // Derive prefix from surface, never from client-provided w.kvaziPrefix (mirrors PHP inferKvaziPrefix).
-  const hasPrefix = surface.startsWith('kvazi') && [...surface].length > 5;
+  const hasPrefix = surface.startsWith(prefixString()) && [...surface].length > prefixLen();
 
   if (hasPrefix) {
-    if (!lemma.startsWith('kvazi')) return { ok: false, expected: null, message: 'Lemma s prefixem kvazi- musí začínat na kvazi.' };
-    lemma = lemma.slice(5);
+    if (!lemma.startsWith(prefixString())) return { ok: false, expected: null, message: 'Lemma s prefixem kvazi- musí začínat na kvazi.' };
+    lemma = lemma.slice(prefixLen());
   }
 
   if (!lemma) return { ok: false, expected: null, message: 'Chybí základní tvar.' };
@@ -72,7 +72,7 @@ function validateNoun(w) {
 
   const stem = doNounStem(m.stem, lemma);
   const expectedBase = stem + ending;
-  const expected = hasPrefix ? 'kvazi' + expectedBase : expectedBase;
+  const expected = hasPrefix ? prefixString() + expectedBase : expectedBase;
 
   return expected === surface
     ? { ok: true, expected, message: null }
@@ -90,9 +90,10 @@ function validateAdjective(w) {
 
   const form = w.form || {};
   const identity = w.identity || {};
-  const surface = String(w.surface || '').toLowerCase();
-  const lemma = String(w.lemma || '').toLowerCase();
+  const surface = String(w.surface || '').normalize('NFC').toLowerCase();
+  const lemma = String(w.lemma || '').normalize('NFC').toLowerCase();
   const degree = form.degree || '1';
+  if (!adjDef.degrees.includes(degree)) return {ok:false,expected:null,message:'Neplatný stupeň modelu.'};
 
   const { case: caseNum, number, gender } = form;
   if (!caseNum || !number || !gender) return { ok: false, expected: null, message: 'Chybí rod, číslo nebo pád použitého tvaru.' };
@@ -101,7 +102,7 @@ function validateAdjective(w) {
   const tables = adjTables();
 
   // Přivlastňovací adjektiva
-  if (adjDef.type === 'possessive_m' || adjDef.type === 'possessive_f') {
+  if (adjDef.source_gender) {
     const srcLemma = String(identity.sourceNounLemma || '').toLowerCase();
     const srcModelName = identity.sourceNounModel;
     if (!srcLemma || !srcModelName) return { ok: false, expected: null, message: 'Chybí lemma nebo vzor zdrojového substantiva.' };
@@ -112,50 +113,21 @@ function validateAdjective(w) {
 
     const srcStem = doNounStem(srcM.stem, srcLemma);
 
-    if (adjDef.type === 'possessive_m') {
-      if (srcM.gender !== 'masculine') return { ok: false, expected: null, message: 'Model otcův se odvozuje pouze z mužského substantiva.' };
-      const expectedLemma = srcStem + 'ův';
-      if (lemma !== expectedLemma) return { ok: false, expected: null, message: `Lemma adjektiva musí být „${expectedLemma}" (zdrojový kmen + ův).` };
-      const ending = tables[adjDef.table][tableKey];
-      if (ending === undefined) return { ok: false, expected: null, message: `Kombinace rod/číslo/pád „${tableKey}" není v tabulce modelu otcův.` };
-      const expected = srcStem + ending;
-      return expected === surface ? { ok: true, expected, message: null }
-        : { ok: false, expected, message: `Použitý tvar „${surface}" neodpovídá modelu otcův (očekáváno „${expected}").` };
-    } else {
-      if (srcM.gender !== 'feminine') return { ok: false, expected: null, message: 'Model matčin se odvozuje pouze z ženského substantiva.' };
-      const expectedLemma = srcStem + 'in';
-      if (lemma !== expectedLemma) return { ok: false, expected: null, message: `Lemma adjektiva musí být „${expectedLemma}" (zdrojový kmen + in).` };
-      const ending = tables[adjDef.table][tableKey];
-      if (ending === undefined) return { ok: false, expected: null, message: `Kombinace rod/číslo/pád „${tableKey}" není v tabulce modelu matčin.` };
-      const expected = srcStem + ending;
-      return expected === surface ? { ok: true, expected, message: null }
-        : { ok: false, expected, message: `Použitý tvar „${surface}" neodpovídá modelu matčin (očekáváno „${expected}").` };
-    }
+    if (srcM.gender !== adjDef.source_gender) return { ok: false, expected: null, message: 'Rod zdrojového substantiva neodpovídá přivlastňovacímu modelu.' };
+    const expectedLemma = srcStem + adjDef.lemma_suffix;
+    if (lemma !== expectedLemma) return { ok: false, expected: null, message: `Lemma adjektiva musí být „${expectedLemma}".` };
+    const ending = tables[adjDef.table][tableKey];
+    if (ending === undefined) return { ok: false, expected: null, message: 'Neplatná kombinace rodu, čísla a pádu.' };
+    const expected = srcStem + ending;
+    return expected === surface ? { ok: true, expected, message: null }
+      : { ok: false, expected, message: `Použitý tvar neodpovídá modelu ${modelName}.` };
   }
 
   // Produktivní modely (mladý, jarní) + stupňování
-  let adjStem, tableName;
-
-  if (degree === '1') {
-    if (adjDef.cond_lemma === 'ends_ý') {
-      if (!/ý$/i.test(lemma)) return { ok: false, expected: null, message: `Lemma modelu ${modelName} (1. stupeň) musí zakončit na -ý.` };
-      adjStem = lemma.slice(0, -1);
-    } else {
-      if (!/í$/i.test(lemma)) return { ok: false, expected: null, message: `Lemma modelu ${modelName} (1. stupeň) musí zakončit na -í.` };
-      adjStem = lemma.slice(0, -1);
-    }
-    tableName = adjDef.table;
-  } else if (degree === '2') {
-    if (!/ější$/i.test(lemma)) return { ok: false, expected: null, message: '2. stupeň: lemma musí zakončit na -ější.' };
-    adjStem = lemma.slice(0, -4);
-    tableName = 'ADJ_JARNI';
-  } else if (degree === '3') {
-    if (!lemma.startsWith('nej') || !/ější$/i.test(lemma)) return { ok: false, expected: null, message: '3. stupeň: lemma musí začínat na nej- a zakončit na -ější.' };
-    adjStem = 'nej' + lemma.slice(3, -4);
-    tableName = 'ADJ_JARNI';
-  } else {
-    return { ok: false, expected: null, message: `Neznámý stupeň „${degree}".` };
-  }
+  if (!lemma.endsWith(adjDef.lemma_suffix)) return {ok:false,expected:null,message:'Lemma neodpovídá základnímu modelu.'};
+  const d = adjectiveDegrees()[degree];
+  const adjStem = d.prefix + lemma.slice(0, -adjDef.lemma_suffix.length) + d.stem_suffix;
+  const tableName = d.table ?? adjDef.table;
 
   const ending = tables[tableName]?.[tableKey];
   if (ending === undefined) return { ok: false, expected: null, message: `Kombinace rod/číslo/pád „${tableKey}" není v tabulce modelu ${modelName}.` };
@@ -173,8 +145,8 @@ function validateVerb(w) {
   const verbDef = verbModels()[modelName];
   if (!verbDef) return { ok: true, expected: null, message: null };
 
-  const lemma = String(w.lemma || '').toLowerCase();
-  const surface = String(w.surface || '').toLowerCase();
+  const lemma = String(w.lemma || '').normalize('NFC').toLowerCase();
+  const surface = String(w.surface || '').normalize('NFC').toLowerCase();
   const form = w.form || {};
   const suffix = verbDef.suffix;
 
@@ -186,7 +158,7 @@ function validateVerb(w) {
 
   if (vft === 'present') {
     const person = form.verbPerson, number = form.number;
-    if (!person || !number) return { ok: false, expected: null, message: 'Chybí osoba nebo číslo přítomného/budoucího tvaru.' };
+    if (!fieldEnums().verbPerson.includes(person) || !fieldEnums().number.includes(number)) return { ok: false, expected: null, message: 'Chybí osoba nebo číslo přítomného/budoucího tvaru.' };
     const p = parseInt(person) - 1;
     const n = number === 'plural' ? 3 : 0;
     const idx = p + n;
@@ -201,9 +173,8 @@ function validateVerb(w) {
   if (vft === 'imperative') {
     const vp = form.verbPerson;
     if (!vp) return { ok: false, expected: null, message: 'Chybí osoba/číslo rozkazovacího způsobu.' };
-    const impIdx = { '2sg': 0, '1pl': 1, '2pl': 2 };
-    const idx = impIdx[vp];
-    if (idx === undefined) return { ok: false, expected: null, message: 'Rozkazovací způsob dovoluje jen 2.sg, 1.pl, 2.pl.' };
+    const idx = fieldEnums().imperativePerson.indexOf(vp);
+    if (idx < 0) return { ok: false, expected: null, message: 'Rozkazovací způsob dovoluje jen 2.sg, 1.pl, 2.pl.' };
     const ending = verbImperative()[modelName]?.[idx];
     if (ending === undefined) return { ok: false, expected: null, message: `Imperativní tvary modelu ${modelName} nejsou v normativních datech.` };
     const expected = stem + ending;
@@ -213,7 +184,7 @@ function validateVerb(w) {
 
   if (vft === 'lParticiple') {
     const gender = form.verbGender, number = form.number, animacy = form.verbAnimacy;
-    if (!gender || !number) return { ok: false, expected: null, message: 'Chybí rod nebo číslo l-příčestí.' };
+    if (!fieldEnums().verbGender.includes(gender) || !fieldEnums().number.includes(number)) return { ok: false, expected: null, message: 'Chybí rod nebo číslo l-příčestí.' };
     let idx;
     if (number === 'singular') {
       if (gender === 'masculine') idx = 0;
@@ -222,7 +193,7 @@ function validateVerb(w) {
       else return { ok: false, expected: null, message: 'Neznámý rod.' };
     } else {
       if (gender === 'masculine') {
-        if (!animacy) return { ok: false, expected: null, message: 'Chybí životnost l-příčestí pro mužský rod množného čísla.' };
+        if (!fieldEnums().verbAnimacy.includes(animacy)) return { ok: false, expected: null, message: 'Chybí životnost l-příčestí pro mužský rod množného čísla.' };
         idx = animacy === 'animate' ? 3 : 4;
       } else if (gender === 'feminine') {
         idx = 4;
@@ -245,7 +216,7 @@ function validateVerb(w) {
 // ─────────────────────────────────────────────────────────────
 
 function validateAuxiliary(w) {
-  const surface = String(w.surface || '').toLowerCase();
+  const surface = String(w.surface || '').normalize('NFC').toLowerCase();
   const allowed = auxBytForms();
   if (!allowed.includes(surface)) {
     return { ok: false, expected: null, message: `„${surface}" není v normativní uzavřené sadě pomocných tvarů být.` };
@@ -263,7 +234,7 @@ function validateAuxiliary(w) {
  * Pro funkční slova (předložka, spojka) vrátí ok:true.
  */
 export function validateForm(w) {
-  if (!w || ['preposition', 'conjunction'].includes(w.pos)) return { ok: true, expected: null, message: null };
+  if (!w || functionalPos().includes(w.pos)) return { ok: true, expected: null, message: null };
   if (w.role === 'auxiliary') return validateAuxiliary(w);
   if (w.pos === 'noun') return validateNoun(w);
   if (w.pos === 'adjective') return validateAdjective(w);

@@ -1,13 +1,8 @@
 /**
  * Parity test: same deterministic fixture corpus run through both JS (Node) and PHP engines.
- * Verifies that submitReady, charScore, wordCount, morphologyOk, sentenceOk, sequence.ok and
- * syntax.ok agree across engines for all fixture types:
- *   - noun models (pán, hrad, žena, město, stavení, předseda)
- *   - adjective models (mladý, jarní)
- *   - verb models (V-AT, V-IT) × form types (present, lParticiple)
- *   - auxiliary být
- *   - subject/predicate agreement: person, l-participle gender/number, animacy (new)
- *   - prefix/sequence/government rules
+ * Compares verdicts, score and per-token morphology against independent expected
+ * surfaces for all 14 noun models, 4 adjective models, 5 verb models and branches.
+ * Unreachable surfaces remain positive morphology cases, with separate surface verdicts.
  *
  * Requires:
  *   - global.__normative set before morpho calls (done below)
@@ -476,4 +471,172 @@ test('parity: prefix-base-too-long both engines sequence.ok=false', () => {
   const php = phpValidate(draft);
   assert.equal(js.sequence.ok,  false, 'JS: too-long prefix base should fail sequence');
   assert.equal(php.sequence.ok, false, 'PHP: too-long prefix base should fail sequence');
+});
+
+// Independent expected surfaces from the normative tables (including unreachable
+// surfaces): morphology must pass even when the separate character layer fails.
+const nounExamples = [
+  ['pán','kvaz','kvazi','plural','1'], ['muž','kvaz','kvaze','singular','2'],
+  ['předseda','kvaza','kvazové','plural','1'], ['soudce','kvaze','kvazi','singular','3'],
+  ['hrad','kvaz','kvazu','singular','2'], ['stroj','kvaz','kvazem','singular','7'],
+  ['žena','kvaza','kvazy','singular','2'], ['růže','kvaze','kvazí','plural','2'],
+  ['píseň','kvaz','kvaze','plural','1'], ['kost','kvaz','kvazmi','plural','7'],
+  ['město','kvazo','kvaza','plural','1'], ['moře','kvaze','kvazím','plural','3'],
+  ['kuře','kvaze','kvazete','singular','2'], ['stavení','kvazí','kvazími','plural','7'],
+];
+function both(draft) {
+  const js = deriveValidationState(draft), php = phpValidate(draft);
+  for (const key of ['submitReady','charScore','wordCount','structureOk','morphologyOk','sentenceOk'])
+    assert.equal(js[key], php[key], key);
+  for (const key of ['syntax','sequence']) assert.equal(js[key].ok, php[key].ok, key);
+  for (const w of draft.tokens) {
+    assert.equal(js.tokens[w.id].formCheck.ok, php.tokens[w.id].formCheck.ok, `${w.id}: formCheck`);
+    assert.equal(js.tokens[w.id].formCheck.expected, php.tokens[w.id].formCheck.expected, `${w.id}: expected surface`);
+  }
+  return js;
+}
+function isolated(w) { return {sentenceType:'declarative', implicitSubject:false, tokens:[w]}; }
+for (const [model,lemma,surface,number,caseNum] of nounExamples) {
+  test(`model parity noun ${model}`, () => {
+    const {gender,animacy=''} = global.__normative.noun_models[model];
+    const w = nounTok('t1',surface,{lemma,model,gender,animacy,number,caseNum});
+    assert.equal(both(isolated(w)).morphologyOk,true);
+    w.surface += 'x';
+    assert.equal(both(isolated(w)).morphologyOk,false);
+  });
+}
+test('model parity kuře extended plural stem', () => {
+  const w = nounTok('t1','kvazatům',{lemma:'kvaze',model:'kuře',gender:'neuter',animacy:'',number:'plural',caseNum:'3'});
+  assert.equal(both(isolated(w)).morphologyOk,true);
+  w.surface='kvazetům'; assert.equal(both(isolated(w)).morphologyOk,false);
+});
+const verbExamples = [
+  ['V-AT','kvazat','kvazá','kvazej','kvazal'],
+  ['V-IT','kvazit','kvazí','kvaz','kvazil'],
+  ['V-NOUT','kvaznout','kvazne','kvazni','kvaznul'],
+  ['V-ÝT','kvazýt','kvazyje','kvazyj','kvazyl'],
+  ['V-OVAT','kvazovat','kvazuje','kvazuj','kvazoval'],
+];
+for (const [model,lemma,present,imperative,lParticiple] of verbExamples) {
+  for (const [verbFormType,surface] of Object.entries({present,imperative,lParticiple})) {
+    test(`model parity verb ${model} ${verbFormType}`, () => {
+      const form = verbFormType === 'present' ? {verbPerson:'3',number:'singular'}
+        : verbFormType === 'imperative' ? {verbPerson:'2sg'} : {verbGender:'masculine',number:'singular'};
+      const w = verbTok('t1',surface,{lemma,model,verbFormType,...form});
+      assert.equal(both(isolated(w)).morphologyOk,true);
+      w.surface+='x'; assert.equal(both(isolated(w)).morphologyOk,false);
+    });
+  }
+}
+for (const sn of ['singular','plural']) for (const vn of ['singular','plural']) {
+  test(`agreement noun ${sn} verb 3.${vn}`, () => {
+    const d=subjectPredicateDraft(
+      {lemma:'kvazí',model:'stavení',gender:'neuter',animacy:'',caseNum:'1',number:sn},
+      {lemma:'kvazit',model:'V-IT',verbFormType:'present',verbPerson:'3',number:vn});
+    d.tokens[0].surface='kvazí';d.tokens[1].surface='kvazí';
+    const result=both(d);
+    assert.equal(result.sentenceOk,sn===vn);
+    assert.equal(result.submitReady,sn===vn);
+  });
+}
+for (const aspect of ['imperfective','perfective','biaspectual','banana']) {
+  test(`closed aspect ${aspect}`,()=> {
+    const w=verbTok('t1','kvazí',{lemma:'kvazit',model:'V-IT',verbFormType:'present',verbPerson:'3',number:'singular',aspect});
+    assert.equal(both(isolated(w)).structureOk,aspect!=='banana');
+  });
+}
+for (const [field,value] of Object.entries({number:'banana',verbPerson:'4',verbGender:'banana',verbAnimacy:'banana',verbFormType:'banana',case:'8',degree:'4',gender:'banana'})) {
+  test(`closed field ${field} rejects ${value}`,()=> {
+    const w=verbTok('t1','kvazí',{lemma:'kvazit',model:'V-IT',verbFormType:'present',verbPerson:'3',number:'singular'});
+    w.form[field]=value;
+    assert.equal(both(isolated(w)).structureOk,false);
+  });
+}
+for (const [model,lemma,surface,identity] of [
+  ['mladý','kvazý','kvazý',{}], ['jarní','kvazí','kvazí',{}],
+  ['otcův','kvazův','kvazův',{sourceNounLemma:'kvaz',sourceNounModel:'pán'}],
+  ['matčin','kvazin','kvazin',{sourceNounLemma:'kvaza',sourceNounModel:'žena'}],
+]) test(`model parity adjective ${model}`,()=> {
+  const w=tok('t1',surface,{pos:'adjective',lemma,model,identity,lexicalStatus:'quasi',role:'agreeingAttribute',
+    form:{gender:'masculineAnimate',number:'singular',case:'1',degree:'1'},evidence:{morphology:'test',needsAnalogy:false}});
+  assert.equal(both(isolated(w)).morphologyOk,true);
+  w.surface+='x'; assert.equal(both(isolated(w)).morphologyOk,false);
+  if (identity.sourceNounModel) {
+    w.surface=surface;w.identity.sourceNounModel='kuře';
+    assert.equal(both(isolated(w)).morphologyOk,false);
+  }
+});
+for (const model of ['mladý','jarní']) for (const degree of ['2','3']) {
+  test(`adjective degree ${model} ${degree}`,()=> {
+    const prefix=degree==='3'?'nej':'';
+    const w=tok('t1',prefix+'kvazější',{pos:'adjective',lemma:model==='mladý'?'kvazý':'kvazí',model,lexicalStatus:'quasi',role:'agreeingAttribute',
+      form:{gender:'neuter',case:'1',number:'singular',degree},evidence:{morphology:'test',needsAnalogy:false}});
+    assert.equal(both(isolated(w)).morphologyOk,true);
+  });
+}
+test('NFC form parity',()=> {
+  const w=nounTok('t1','kvazi\u0301',{lemma:'kvazi\u0301',model:'stavení',gender:'neuter',animacy:'',number:'singular',caseNum:'1'});
+  assert.equal(both(isolated(w)).morphologyOk,true);
+});
+test('pronoun declaration parity',()=> {
+  const w=tok('t1','já',{pos:'pronoun',lemma:'já',lexicalStatus:'real',role:'subject',evidence:{morphology:'test',needsAnalogy:false}});
+  assert.equal(both(isolated(w)).structureOk,true);
+});
+for (const [prep,caseNum,ok] of [['k','3',true],['k','2',false],['v','4',true],['v','6',true],['v','3',false],['z','2',true],['z','1',false]]) {
+  test(`government ${prep}/${caseNum}`,()=> {
+    const d=structuredClone(FIXTURES['prep-govt-violation']);
+    d.tokens[0].surface=prep;d.tokens[0].lemma=prep;d.tokens[1].form.case=caseNum;
+    const result=both(d);
+    assert.equal(result.syntax.issues.some(i=>i.message.includes('vyžaduje') && i.message.includes('pád')), !ok);
+  });
+}
+for (const [surface,score] of [['kvaziqazi',4],['qaziqazi',8],['kváziqazi',9],['kvaziaz',7],['kvazikvazikvaz',14],['kvazi😀azi',9]]) {
+  test(`prefix score ${surface}`,()=> {assert.equal(both(isolated(tok('t1',surface,{pos:'noun'}))).charScore,score);});
+}
+test('duplicate noun identities rejected',()=> {
+  const d=structuredClone(FIXTURES['noun-pán-pl1-correct']);
+  d.tokens.push({...structuredClone(d.tokens[0]),id:'t2'});
+  assert.equal(both(d).structureOk,false);
+});
+test('cycle rejected',()=> {assert.equal(both(FIXTURES['kvazi-prefix-scoring']).syntax.ok,false);});
+for (const surfaces of [['k','v','azi'],['kvaz','i'],['kvazi','kvazi'],['kvazik'],['xazi'],['k','k']]) {
+  test(`token boundary ${surfaces.join(' ')}`,()=> {
+    const result=both({sentenceType:'declarative',tokens:surfaces.map((s,i)=>tok(`t${i}`,s))});
+    assert.equal(result.sequence.ok, ['k v azi','kvaz i','kvazi kvazi'].includes(surfaces.join(' ')));
+  });
+}
+
+for (const field of ['sentenceType','pos','role','lexicalStatus','model']) {
+  test(`closed ${field}: direct client cannot bypass UI`,()=> {
+    const d=structuredClone(FIXTURES['verb-V-IT-present-3sg-correct']);
+    if(field==='sentenceType') d[field]='banana';else d.tokens[0][field]='banana';
+    const result=both(d);
+    assert.equal(result.submitReady,false);
+    if(field==='sentenceType') assert.equal(result.sentenceOk,false);
+    else if(field==='role') assert.equal(result.syntax.ok,false);
+    else assert.equal(result.structureOk,false);
+  });
+}
+for (const field of ['gender','animacy']) test(`noun identity ${field} rejects invalid enum`,()=> {
+  const d=structuredClone(FIXTURES['noun-pán-pl1-correct']);d.tokens[0].identity[field]='banana';
+  assert.equal(both(d).structureOk,false);
+});
+for (const [field,value] of [['verbGender','feminine'],['number','singular']]) test(`lParticiple agreement ${field} mismatch`,()=> {
+  const d=structuredClone(FIXTURES['agreement-lpart-animacy-match']);d.tokens[1].form[field]=value;
+  assert.equal(both(d).sentenceOk,false);
+});
+test('model coverage is complete against active release',()=> {
+  assert.deepEqual(nounExamples.map(x=>x[0]).sort(),Object.keys(global.__normative.noun_models).sort());
+  assert.deepEqual(verbExamples.map(x=>x[0]).sort(),Object.keys(global.__normative.verb_models).sort());
+  assert.deepEqual(['jarní','matčin','mladý','otcův'].sort(),Object.keys(global.__normative.adj_models).sort());
+});
+test('invalid prefix motif receives no score exemption',()=> {
+  assert.equal(both(isolated(tok('t1','kvazivázy',{pos:'noun'}))).charScore,9);
+});
+test('closing punctuation must match declared type',()=> {
+  const d=structuredClone(FIXTURES['agreement-present-3sg-ok']);d.closingPunct='!';
+  assert.equal(both(d).sentenceOk,false);
+});
+for (const surface of ['k','v','z','a','i']) test(`single exception ${surface}`,()=> {
+  assert.equal(both(isolated(tok('t1',surface))).sequence.ok,true);
 });

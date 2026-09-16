@@ -1,5 +1,5 @@
 import { getModel, getPath, setPath, isFunctional, publicSchema } from './schema.mjs';
-import { singleTokens, singlePrepositions, prefixString, prefixLen } from './rules-data.mjs';
+import { singleTokens, singlePrepositions, prefixString, prefixLen, punctuation } from './rules-data.mjs';
 
 export const nfc = value => String(value).normalize('NFC');
 export const folded = value => nfc(value).toLowerCase();
@@ -28,7 +28,7 @@ export function createToken(id, surface) {
     w.lexicalStatus = 'real';
   } else if (inferKvaziPrefix(surface)) {
     w.pos = 'noun';
-    w.kvaziPrefix = 'kvazi';
+    w.kvaziPrefix = prefixString();
   }
   return w;
 }
@@ -48,7 +48,7 @@ export function mutateDraft(current, action, schema = publicSchema) {
     if (action.path === 'sentenceType' && action.value !== 'imperative') draft.implicitSubject = false;
   } else if (action.type === 'close') {
     draft.closingPunct = action.punct;
-    const typeMap = { '.': 'declarative', '?': 'interrogative', '!': 'imperative' };
+    const typeMap = Object.fromEntries(Object.entries(punctuation()).map(([type, mark]) => [mark, type]));
     if (typeMap[action.punct]) draft.sentenceType = typeMap[action.punct];
     if (draft.sentenceType !== 'imperative') draft.implicitSubject = false;
   } else if (action.type === 'open') {
@@ -64,7 +64,7 @@ export function mutateDraft(current, action, schema = publicSchema) {
     // Text-dependent declarations are reset; unrelated syntactic links survive.
     const replacement = createToken(w.id, action.value);
     if (!isFunctional(w) && !isFunctional(replacement)) {
-      replacement.pos = w.pos;
+      replacement.pos = inferKvaziPrefix(replacement.surface) ? replacement.pos : w.pos;
       replacement.role = w.role;
       replacement.relations = w.relations;
     } else if (w.pos === replacement.pos) replacement.relations = w.relations;

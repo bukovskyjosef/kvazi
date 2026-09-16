@@ -16,7 +16,7 @@ global.__normative = JSON.parse(readFileSync(join(_appRoot, `data/rules/${_ndVer
 // Synthetic schema for tests that require a verb model and controlled valency.
 // structuredClone cannot clone functions, so we clone only the plain-data parts.
 const schema = {
-  ...structuredClone({ id: publicSchema.id, fields: publicSchema.fields, models: publicSchema.models, valency: null }),
+  ...JSON.parse(JSON.stringify({ id: publicSchema.id, fields: publicSchema.fields, models: publicSchema.models, valency: null })),
   id: 'TEST-ONLY',
   valency: { validate: w => w.valency.declaration === 'test' ? [] : ['Test frame missing'], objectSlotValid: w => w.testSlot === 'test' },
   allowsImplicitSubject: w => w?.form.testImperative === true,
@@ -280,4 +280,13 @@ test('duplicate identities ignore case, declared real/quasi status, case and num
   const d = fixture(), duplicate = structuredClone(d.tokens[0]);
   duplicate.id = 't3'; duplicate.lemma = 'TESTNOUN'; duplicate.form.case = '2'; duplicate.lexicalStatus = 'real'; d.tokens.push(duplicate);
   assert.ok(deriveValidationState(d, schema).tokens.t3.missing.some(x => x.includes('identita')));
+});
+
+test('editing verb surface to prefix re-infers noun POS',()=> {
+  let d=createDraft();
+  d=mutateDraft(d,{type:'insert',surface:'kvazí'});
+  d=mutateDraft(d,{type:'field',id:'t1',path:'pos',value:'verb'});
+  d=mutateDraft(d,{type:'surface',id:'t1',value:'kvaziqazi'});
+  assert.equal(d.tokens[0].pos,'noun');
+  assert.equal(d.tokens[0].kvaziPrefix,global.__normative.kvazi_prefix);
 });

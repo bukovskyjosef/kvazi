@@ -1,3 +1,5 @@
+import { inferKvaziPrefix } from './state.mjs';
+import { enumOptions, functionalPos } from './rules-data.mjs';
 import { sentenceTypes, relationShapes, getModel, wordFields, getPath, isFunctional, publicSchema } from './schema.mjs';
 import { partsOfSpeechLabels, functionsLabels, translateOptions, buttonLabel } from './terms.mjs';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -65,9 +67,11 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
     return '';
   })() : '';
   container.innerHTML = `<h2 class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Deklarace slova ${esc(w.surface)}</span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><small style="font-size:10px;font-weight:400;opacity:.55;letter-spacing:.02em">Odborné termíny se přeloží do hovorových</small><button id="termToggle" type="button" style="font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:inherit;font-family:inherit">${esc(buttonLabel())}</button></span></h2><div class="card-body">
+    ${field('surface', 'Text slova', w.surface)}
+    <div class="token-actions"><button type="button" data-action="before">Vložit před slovo</button><button type="button" data-action="after">Vložit za slovo</button></div>
     <fieldset><legend>Identita a použitý tvar</legend><div class="config-grid">
-      ${field('pos', 'Slovní druh', w.pos, functional ? posLabels : Object.fromEntries(Object.entries(posLabels).filter(([k]) => !['preposition', 'conjunction'].includes(k))), 'word', functional)}
-      ${!functional ? field('lemma', w.pos === 'verb' ? 'Neurčitek / základní tvar' : 'Základní tvar', w.lemma) + field('lexicalStatus', 'Deklarovaná identita', w.lexicalStatus, w.pos === 'pronoun' ? { real: 'Skutečné slovo' } : { real: 'Skutečné slovo', quasi: 'Kvazislovo' }) + field('model', w.pos === 'verb' ? 'Soutěžní časovací typ' : 'Soutěžní vzor', w.model, models, 'word', !Object.keys(models).length) : '<p>Slovní druh a role jsou určeny pravidlem jednopísmenné výjimky.</p>'}
+      ${field('pos', 'Slovní druh', w.pos, functional ? posLabels : Object.fromEntries(Object.entries(posLabels).filter(([k]) => !functionalPos().includes(k))), 'word', functional || inferKvaziPrefix(w.surface))}
+      ${!functional ? field('lemma', w.pos === 'verb' ? 'Neurčitek / základní tvar' : 'Základní tvar', w.lemma) + field('lexicalStatus', 'Deklarovaná identita', w.lexicalStatus, w.pos === 'pronoun' ? { real: 'Skutečné slovo' } : enumOptions('lexicalStatus', { real: 'Skutečné slovo', quasi: 'Kvazislovo' })) + field('model', w.pos === 'verb' ? 'Soutěžní časovací typ' : 'Soutěžní vzor', w.model, models, 'word', !Object.keys(models).length) : '<p>Slovní druh a role jsou určeny pravidlem jednopísmenné výjimky.</p>'}
       ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? translateOptions(f.options) : null, 'word', false, f.multiline)).join('')}
     </div>${w.pos === 'noun' && model ? `<p>Rod: ${esc({ masculine: 'mužský', feminine: 'ženský', neuter: 'střední' }[w.identity.gender])}${w.identity.animacy ? `, ${w.identity.animacy === 'animate' ? 'životný' : 'neživotný'}` : ''} (určeno zvoleným vzorem).</p>` : ''}
     ${formCheckHtml}
@@ -75,7 +79,7 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
     <fieldset><legend>Větná funkce a vazby</legend>
       ${field('role', functional ? 'Technická role' : 'Větná funkce', w.role, functional ? { [w.role]: w.role === 'preposition' ? 'Předložka – bez hlavní větné funkce' : 'Spojení souřadných částí' } : Object.fromEntries(Object.entries(funcLabels).filter(([key]) => key !== 'coordination')), 'word', functional)}
       ${w.role === 'predicate' ? '<p>Kořen věty – bez řídícího slova.</p>' : ''}
-      ${(relationShapes[w.role] || []).map(key => field(`relations.${key}`, relationLabels[key], w.relations[key], others)).join('')}
+      ${(relationShapes()[w.role] || []).map(key => field(`relations.${key}`, relationLabels[key], w.relations[key], others)).join('')}
       ${check('evidence.needsAnalogy', 'Vztah je významově nejasný nebo závisí na fiktivním významu', w.evidence.needsAnalogy)}
       ${w.evidence.needsAnalogy ? field('evidence.explanation', 'Krátká obhajoba vztahu', w.evidence.explanation) + field('evidence.analogy', 'Běžná česká analogie stejné konstrukce', w.evidence.analogy) : ''}
     </fieldset>

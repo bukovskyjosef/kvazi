@@ -102,8 +102,9 @@ try {
   await page.getByLabel('Větná funkce', { exact: true }).selectOption('predicate');
 
   // ── Scene 3: Insert a third word at a specific position ──────────────────
-  // Use #insertPlace select to position insertion before t1, then type 'k'.
-  await page.locator('#insertPlace').selectOption('before:t1');
+  // Use the visible insertion action, then type 'k'.
+  await page.locator('#token-t1').click();
+  await page.getByRole('button', {name:'Vložit před slovo',exact:true}).click();
   await page.locator('#newSurface').fill('k');
   await page.keyboard.press('Enter');
   assert.equal(await page.locator('#tokens .token-chip').count(), 3);
@@ -150,7 +151,7 @@ try {
 
   // ── Scene 8: Mobile viewport does not overflow horizontally ──────────────
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, JSON.stringify(await page.locator('body *').evaluateAll(nodes => nodes.filter(n => n.getBoundingClientRect().right > innerWidth).map(n => ({tag:n.tagName,id:n.id,cls:n.className,width:n.getBoundingClientRect().width})))));
   await page.screenshot({ path: '/private/tmp/kvazi-configurator-mobile.png', fullPage: true });
 
   // ── Scene 9: Backspace in surface input deletes last token ────────────────
@@ -221,7 +222,7 @@ try {
   await page.getByLabel('Řídící slovo', { exact: true }).selectOption('t2');
   await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Nominativ plurálu vzoru pán.');
 
-  // Declare t2 (kvazí) as verb V-IT present 3sg imperfective predicate
+  // Declare t2 (kvazí) as verb V-IT present 3pl imperfective predicate
   await page.locator('#token-t2').click();
   await page.getByLabel('Slovní druh', { exact: true }).selectOption('verb');
   await page.getByLabel('Neurčitek / základní tvar', { exact: true }).fill('kvazit');
@@ -229,11 +230,11 @@ try {
   await page.getByLabel('Soutěžní časovací typ').selectOption('V-IT');
   await page.getByLabel('Druh slovesného tvaru').selectOption('present');
   await page.getByLabel('Osoba').selectOption('3');
-  await page.getByLabel('Číslo', { exact: true }).selectOption('singular');
+  await page.getByLabel('Číslo', { exact: true }).selectOption('plural');
   await page.getByLabel('Vid').selectOption('imperfective');
   await page.getByLabel('Větná funkce', { exact: true }).selectOption('predicate');
   await page.getByLabel('Valenční obhajoba').fill('Vzor V-IT (prosit). Nevyžaduje doplnění.');
-  await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Přítomný čas 3. os. sg. vzoru V-IT.');
+  await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Přítomný čas 3. os. pl. vzoru V-IT.');
 
   // Submit button must be enabled when draft is ready
   assert.equal(await page.locator('#submitButton').isDisabled(), false, 'Submit button enabled when submitReady=true');
@@ -274,11 +275,11 @@ try {
     await page.getByLabel('Soutěžní časovací typ').selectOption('V-IT');
     await page.getByLabel('Druh slovesného tvaru').selectOption('present');
     await page.getByLabel('Osoba').selectOption('3');
-    await page.getByLabel('Číslo', { exact: true }).selectOption('singular');
+    await page.getByLabel('Číslo', { exact: true }).selectOption('plural');
     await page.getByLabel('Vid').selectOption('imperfective');
     await page.getByLabel('Větná funkce', { exact: true }).selectOption('predicate');
     await page.getByLabel('Valenční obhajoba').fill('Vzor V-IT (prosit). Nevyžaduje doplnění.');
-    await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Přítomný čas 3. os. sg. vzoru V-IT.');
+    await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Přítomný čas 3. os. pl. vzoru V-IT.');
 
     await page.locator('#submitButton').click();
     await page.locator('#submitResult .alert-ok').waitFor({ timeout: 10000 });
@@ -289,6 +290,7 @@ try {
     const sentCount = dbCount('kvazi.sentence', 'user_id = (SELECT id FROM kvazi.user_account WHERE username = :u)', { u: BRW_USR });
     assert.equal(sentCount, 1, 'One sentence row created in DB after submit');
   } else {
+    if (process.env.KVAZI_INTEGRATION_REQUIRED === '1') throw new Error('Mandatory Scene 14: DB unavailable');
     console.log('Scene 14 (authenticated submit) skipped: Docker DB not reachable.');
   }
 
