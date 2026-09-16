@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {randomBytes, createHash} from 'node:crypto';
 import {readFileSync, readdirSync} from 'node:fs';
+import {HEALTHCHECK_COMMAND} from '../tools/deploy-production.mjs';
 
 const tag = 'kvazi_m45_' + randomBytes(8).toString('hex');
 const image = 'kvazi-m45-test:' + tag;
@@ -41,6 +42,9 @@ async function health(expected) {
   assert.equal(response.headers.get('set-cookie'),null);
   assert.equal(response.headers.get('cache-control'),'no-store');
   assert.deepEqual(await response.json(),{status:expected===200 ? 'ok' : 'unavailable'});
+  // Execute the exact Coolify CMD probe inside the production image, including DB outage.
+  if (expected === 200) docker(['exec',application,'sh','-c',HEALTHCHECK_COMMAND]);
+  else assert.throws(() => docker(['exec',application,'sh','-c',HEALTHCHECK_COMMAND]), error => error.status === 1);
 }
 const snapshot = () => sql("SELECT md5(row_to_json(u)::text) FROM kvazi.user_account u WHERE username='m45_marker'")
   + '|' + sql("SELECT md5(string_agg(row_to_json(r)::text,'|' ORDER BY version)) FROM kvazi.rules_release r");
@@ -72,9 +76,9 @@ test('production root build: PHP8.3/extensions/layout/port, no DB/secrets/source
   assert.ok(app.Config.ExposedPorts['80/tcp']);
   assert.equal(app.Config.Image,image);
   const layout=JSON.parse(docker(['exec',application,'php','-r',
-    'echo json_encode([PHP_MAJOR_VERSION,PHP_MINOR_VERSION,array_map("extension_loaded",["pdo","pdo_pgsql","intl","mbstring"]),is_file("/var/www/html/index.php"),is_file("/var/www/data/active-release.json"),hash_file("sha256","/var/www/html/index.php"),hash_file("sha256","/var/www/data/active-release.json")]);']));
+    'echo json_encode([PHP_MAJOR_VERSION,PHP_MINOR_VERSION,array_map("extension_loaded",["pdo","pdo_pgsql","intl","mbstring"]),is_file("/var/www/html/index.php"),is_file("/var/www/data/active-release.json"),hash_file("sha256","/var/www/html/index.php"),hash_file("sha256","/var/www/data/active-release.json"),hash_file("sha256","/usr/local/bin/kvazi-healthcheck.php")]);']));
   assert.deepEqual(layout.slice(0,5),[8,3,[true,true,true,true],true,true]);
-  for (const [index,path] of [[5,'app/public/index.php'],[6,'app/data/active-release.json']]) {
+  for (const [index,path] of [[5,'app/public/index.php'],[6,'app/data/active-release.json'],[7,'docker/php/healthcheck.php']]) {
     assert.equal(layout[index],createHash('sha256').update(readFileSync(path)).digest('hex'));
   }
   const imageConfig=JSON.parse(docker(['image','inspect',image]))[0].Config;

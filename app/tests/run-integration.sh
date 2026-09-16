@@ -23,7 +23,7 @@ log=$(mktemp)
 trap 'test_gate_exit=$?; rm -f "$log"; if [ "$test_gate_exit" -ne 0 ]; then echo "RELEASE GATE: FAIL" >&2; fi' EXIT
 bash app/tests/check-bootstrap.sh
 node app/tools/check-releases.mjs
-find app -name '*.php' -print0 | xargs -0 -n1 php -l
+find app docker/php -name '*.php' -print0 | xargs -0 -n1 php -l
 for suite in app/tests/*.test.mjs; do
   printf 'Test suite: %s\n' "$suite"
   node --test --test-reporter=tap "$suite" | tee "$log"

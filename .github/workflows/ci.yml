@@ -1,0 +1,19 @@
+name: Release checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [codex/m5-production-cicd]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Full release gate
+    uses: ./.github/workflows/release-gate.yml

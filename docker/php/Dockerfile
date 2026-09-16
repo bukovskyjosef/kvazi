@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev libic
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY docker/php/healthz.conf /etc/apache2/conf-available/kvazi-healthz.conf
+COPY docker/php/healthcheck.php /usr/local/bin/kvazi-healthcheck.php
 RUN a2enconf kvazi-healthz
 
 COPY app/public/ /var/www/html/
