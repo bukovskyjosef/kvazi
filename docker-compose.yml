@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: kvazi_db
     restart: unless-stopped
     environment:
@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${DB_USER:-kvazi}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-kvazi}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql
       - ./docker/db/init:/docker-entrypoint-initdb.d:ro
     ports:
       - "5435:5432"
@@ -20,7 +20,9 @@ services:
       retries: 10
 
   php:
-    build: ./docker/php
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
     container_name: kvazi_php
     restart: unless-stopped
     depends_on:

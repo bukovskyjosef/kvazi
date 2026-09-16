@@ -12,6 +12,12 @@ command -v node >/dev/null
 docker info >/dev/null
 docker exec "$KVAZI_DB_CONTAINER" pg_isready -U kvazi -d kvazi
 docker exec "$KVAZI_DB_CONTAINER" psql -U kvazi -d kvazi -v ON_ERROR_STOP=1 -c 'SELECT 1' >/dev/null
+pg_major=$(docker exec "$KVAZI_DB_CONTAINER" psql -U kvazi -d kvazi -t -A -c "SELECT current_setting('server_version_num')::int / 10000")
+if [ "$pg_major" != '18' ]; then
+  echo 'Mandatory DB runtime must be PostgreSQL 18' >&2
+  exit 1
+fi
+echo 'PostgreSQL version: 18 PASS'
 node --input-type=module -e 'const r = await fetch(process.env.KVAZI_TEST_BASE_URL + "/api/normative.php", {signal: AbortSignal.timeout(3000)}); if (!r.ok) throw new Error(`HTTP ${r.status}`); const nd = await r.json(); if (typeof nd.version !== "string") throw new Error("PHP runtime/normative response invalid"); const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || "playwright"); const b = await chromium.launch({headless:true, ...(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH} : {})}); await b.close();'
 log=$(mktemp)
 trap 'test_gate_exit=$?; rm -f "$log"; if [ "$test_gate_exit" -ne 0 ]; then echo "RELEASE GATE: FAIL" >&2; fi' EXIT
@@ -41,6 +47,12 @@ if grep -qi 'skipped' "$log"; then
   echo 'Mandatory M3 browser scenarios were skipped' >&2
   exit 1
 fi
+node --test --test-reporter=tap app/tests/deployment.acceptance.mjs | tee "$log"
+if ! grep -q '^# skipped 0$' "$log"; then
+  echo 'Mandatory deployment acceptance must report zero skipped tests' >&2
+  exit 1
+fi
+echo 'M4.5 DEPLOYMENT PACKAGING: PASS'
 echo 'M4 SECURITY BASELINE: PASS'
 echo 'M4 LIFECYCLE ACCEPTANCE: PASS'
 echo 'RELEASE GATE: PASS'
