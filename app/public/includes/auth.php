@@ -1,14 +1,39 @@
 <?php
 declare(strict_types=1);
 
+// Public responses never contain PHP warnings, paths or stack traces.
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
 /**
  * Auth helpers for Nejdelší kvazivěta.
  * Include at the top of every page that needs auth state.
  * Call auth_session_start() before any output.
  */
 
+function auth_response_headers(): void {
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: same-origin');
+    header('X-Frame-Options: DENY');
+}
+
+/** Preserve a local URL, rejecting browser authority changes and encoded controls. */
+function auth_safe_internal_return_path(mixed $value): string {
+    if (!is_string($value)) return '/moje.php';
+    $decoded = $value;
+    for ($i = 0; $i < 8; $i++) {
+        if (!preg_match('~\A/[A-Za-z0-9_-]~', $decoded)
+            || preg_match('~[\x00-\x20\x7f\\\\]~', $decoded)) return '/moje.php';
+        $next = rawurldecode($decoded);
+        if ($next === $decoded) return $value;
+        $decoded = $next;
+    }
+    return '/moje.php';
+}
+
 function auth_session_start(): void {
     if (session_status() !== PHP_SESSION_NONE) return;
+    auth_response_headers();
     $secure = getenv('AUTH_COOKIE_SECURE') === '1' || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     ini_set('session.cookie_httponly', '1');
     ini_set('session.cookie_samesite', 'Lax');
@@ -67,7 +92,7 @@ function auth_require_admin(): void {
 /** Redirect to login if not authenticated. */
 function auth_require(string $returnTo = ''): void {
     if (auth_user() === null) {
-        $qs = $returnTo ? '?return=' . urlencode($returnTo) : '';
+        $qs = $returnTo ? '?return=' . urlencode(auth_safe_internal_return_path($returnTo)) : '';
         header('Location: /login.php' . $qs);
         exit;
     }

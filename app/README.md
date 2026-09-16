@@ -96,3 +96,29 @@ Nad hotovou M1/M2 DB se M3 nasazuje pouze aplikací `docker/db/init/07-m3-releas
 Povinný runner ověří browser launch před testy, PHP syntax, celý Node/parity/HTTP/DB stack, čistý bootstrap a upgrade v samostatné disposable databázi a všechny browser scénáře. Cleanup test fixtures používá privilegovaný bypass immutable triggerů pouze pro vlastní testová data.
 
 Za TLS proxy nastavte `AUTH_COOKIE_SECURE=1`; přímé HTTPS jej nastaví automaticky. Session má absolutní životnost dvě hodiny. Logout vyžaduje POST a stejný CSRF token jako ostatní browserové změny. Admin stránky i endpointy používají serverový `auth_require_admin()`; HTTP/DB a browser regrese ověřují jejich autorizaci a mutation CSRF.
+
+## Veřejné non-mail MVP
+
+Produkční web server musí spouštět PHP 8.3+ s `pdo_pgsql`, `intl` a `mbstring`, mít document root pouze `app/public` a ponechat `app/data` mimo něj ve stejné adresářové struktuře. Připojení do PostgreSQL nastavte přes runtime `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`; hodnoty `kvazi/kvazi` a porty v root Compose jsou pouze lokální development konfigurace. Čistá DB používá všechny bootstrap SQL, existující instalace postupuje podle upgrade výše. Produkční secrets nepatří do repozitáře.
+
+HTTPS je provozní podmínka veřejného nasazení. Za TLS terminující proxy nastavte `AUTH_COOKIE_SECURE=1`. PHP warnings a výjimky se logují serverově, nezobrazují se klientovi. Dynamické odpovědi používají `nosniff`, `Referrer-Policy: same-origin` a `X-Frame-Options: DENY`; aplikace nepovoluje rich HTML ani framing.
+
+Login throttle vyhodnocuje pouze `REMOTE_ADDR` a ignoruje klientský `X-Forwarded-For`. Veřejný web server musí dostávat odlišnou skutečnou IP jednotlivých klientů. Repo obsahuje lokální Docker stack, nikoli konfiguraci konkrétního veřejného reverse proxy. Před otevřením veřejnosti ověřte `REMOTE_ADDR` ze dvou různých klientských sítí. Pokud před PHP stojí společná proxy, smí web server přepisovat klientskou adresu pouze od explicitně nakonfigurované trusted proxy; veřejně dodané forwarded hlavičky nesmějí tuto hranici obejít. Sdílená IP proxy bez této konfigurace není podporovaný veřejný deployment, protože by sdílela limit 10 pokusů / 15 minut. Aplikace automaticky žádné proxy nedůvěřuje.
+
+Bootstrap nevytváří účty ani default credentials. První ADMIN se zaregistruje běžným formulářem a operátor jednorázově povýší správný účet přímo v DB:
+
+```sql
+UPDATE kvazi.user_account SET role = 'ADMIN'
+ WHERE username = '<skutecne_registrovane_jmeno>' AND role = 'USER';
+```
+
+Poté je nutný logout a nový login. Veřejné UI roli nepřiděluje. Ověření e-mailu, automatická obnova hesla a transakční mail nejsou součástí tohoto non-mail MVP.
+
+Release gate spusťte nad test deploymentem s disposable bootstrapem a vlastními test fixtures, nikoli nad produkční DB:
+
+```sh
+bash app/tests/run-integration.sh
+git diff --check
+```
+
+Runner fail-fast ověřuje Docker/DB/HTTP/PHP/Playwright/browser, všechna suites bez skipů a na konci vypisuje `M4 SECURITY BASELINE: PASS`, `M4 LIFECYCLE ACCEPTANCE: PASS`, `RELEASE GATE: PASS`. Security HTTP testy zahrnují produkční Secure cookie, session expiry/rotaci, všechny mutation CSRF/method/admin gates včetně revokace, paralelní registraci/throttle a safe errors. `workflow.browser.mjs` je explicitní acceptance A–E #103: registrace a login přes UI, lifecycle a katalog přes produkční akce, ownership/publication a DB immutability/stabilní review binding. Starší SQL return fixture v submit suite je pouze lower-level DB regresí, není důkazem acceptance.
