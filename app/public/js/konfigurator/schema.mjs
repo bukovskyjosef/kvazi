@@ -8,7 +8,7 @@
 // UI labels (partsOfSpeech, functions, genders, cases, numbers, sentenceTypes) are
 // not verdict-relevant and may stay as static strings.
 import {
-  enumOptions, optionMap, punctuation, validPos, functionalPos,
+  enumOptions, optionMap, punctuation, validPos, functionalPos, implicitSubjectRule,
   nounModels as ndNounModels,
   adjModels  as ndAdjModels,
   verbModels as ndVerbModels,
@@ -100,7 +100,7 @@ export const publicSchema = {
   },
   valency: null,
   allowsImplicitSubject: (verb, draft) =>
-    draft.sentenceType === 'imperative' && Object.hasOwn(buildModels().verb, verb?.model ?? ''),
+    draft.sentenceType === implicitSubjectRule().sentence_type && verb?.form?.verbFormType === implicitSubjectRule().verb_form_type && Object.hasOwn(buildModels().verb, verb?.model ?? ''),
 };
 
 export const getModel = (w, schema = publicSchema) =>

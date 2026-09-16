@@ -12,7 +12,7 @@ Kvazi je hra založená na důvěře. Soutěžní řešení má vzniknout lidsko
 
 Pravidla práce s nástroji nejsou policejní režim. Projekt nebude sledovat, jak hráč pracuje, nebude vyžadovat logy, screenshoty, historii promptů ani jiné důkazy a nebude zpětně vyšetřovat, zda někdo použil zakázaný nástroj.
 
-Odesláním řešení hráč jednoduše říká: **hrál jsem fér a řešení jsem vytvořil v duchu těchto pravidel**.
+Dodržování pravidel stojí na důvěře. Submit nevyžaduje čestné prohlášení ani potvrzení fair play; aplikace používání AI a nástrojů nezjišťuje, neukládá ani administrativně neposuzuje.
 
 Bez vzájemné důvěry tahle soutěž nedává smysl.
 

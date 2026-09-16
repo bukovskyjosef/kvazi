@@ -26,7 +26,7 @@ Preferovaný princip: **Keep It Simple**.
 4. **Mechanický validátor** – živá deterministická kontrola veřejných znakových, strukturálních a odvoditelných morfologických pravidel nad konkrétním hráčovým návrhem.
 5. **Katalog skutečných slov** – samostatná lexikální autorita pro status skutečné slovo / kvazislovo; hráči poskytuje pouze exact-match kontrolu kompletního vlastního návrhu.
 6. **Interní morfologická review cache** – neveřejná `rules_version`-scoped paměť `APPROVED / REJECTED / UNKNOWN` pro opakované rozhodcovské posouzení.
-7. **Administrace** – review podání, správa katalogu skutečných slov, rozhodování `UNKNOWN` položek review cache, revalidace a auditní stopa.
+7. **Administrace** – review podání, správa katalogu skutečných slov, rozhodování `UNKNOWN` položek review cache, doménová historie rozhodnutí.
 
 Katalog skutečných slov a interní review cache jsou dvě oddělené autority s odlišným lifecyclem a nesmějí být slity do jednoho katalogového stavu.
 
@@ -75,7 +75,7 @@ MVP používá klasickou lehkou registraci:
 
 Registrovaný účet je jedinou systémově evidovanou autorskou identitou podání. Účet může reprezentovat jednotlivce i libovolný kolektiv lidí a registrační e-mail může patřit jednotlivci nebo skupině. Aplikace nemá zjišťovat, evidovat ani zveřejňovat identity jednotlivých osob stojících za účtem a nemá modelovat samostatné spoluautory.
 
-Aplikace podporuje přihlášení a reset zapomenutého hesla jednorázovým časově omezeným tokenem zaslaným na registrovaný e-mail. Resetovací token není magic-link login.
+Aplikace podporuje klasické přihlášení. Ověření e-mailu a obnova hesla jsou odloženy do mailových funkcí #104–#106; současná registrace zůstává použitelná bez verification tokenů.
 
 Administrátor používá stejný účet a autentizační mechanismus jako běžný uživatel. Oprávnění je serverově vynuceno rolí `ADMIN`; pro MVP stačí role `USER` a `ADMIN`. Admin roli nelze získat veřejnou registrací ani měnit z klientského UI.
 
@@ -154,7 +154,7 @@ Každé konečné odeslání vytvoří **immutable `sentence_revision`** – př
 
 Admin ani validační systém nikdy nerozhodují nad proměnlivým draftem. Všechny verdicty odkazují na konkrétní revizi. Pokud je podání vráceno k doplnění, stará revize zůstává nedotčena a další odeslání vytvoří revizi novou.
 
-Nová verze pravidel nevytváří novou revizi věty; nad stejnou immutable revizí vznikne nový validační výsledek.
+Vydání release nemění staré revize ani výsledky a nespouští automatickou revalidaci. Případné budoucí explicitní posouzení podle jiné verze vytvoří nový výsledek nad stejnou immutable revizí.
 
 ## MVP schvalovací workflow
 
@@ -193,9 +193,9 @@ Rozhodnutí review cache uchovává minimálně konkrétní identitu/tvar, `rule
 
 Historické schválení podle starší verze pravidel je neměnný fakt. Po vydání nové `rules_version` může stejná immutable revize dostat nový obsahový validační výsledek; do aktuálního žebříčku vstupují jen řešení platná podle aktuální verze.
 
-Historická procesní compliance původního podání (např. tehdy platná AI/tool policy) se při obsahové revalidaci retroaktivně nepřepisuje.
+Dodržování AI/fair-play pravidel se neeviduje ani neposuzuje; submit nevyžaduje prohlášení hráče.
 
-Každý rozhodující validační záznam musí být reprodukovatelný a uvádět příslušnou rules/review-cache/validator provenance. Pokud rozhodnutí záviselo na tehdejším stavu katalogu skutečných slov, musí být dohledatelná i tato lexikální provenance, aniž by se katalog skutečných slov tímto stal součástí `rules_version`.
+Výsledek uchovává konkrétní revizi, rules/validator version, serverový verdict a skóre a případné stabilní reference na použitá interní review rozhodnutí. Obecný provenance graf ani automatický revalidation lifecycle nejsou součástí MVP.
 
 Změna povrchových pravidel mezi rules verzemi může změnit, které deep větve jsou aktivně dosažitelné. Taková změna vyžaduje nový audit validační orchestrace; dříve dormant implementace se nemá přepisovat od nuly, pokud lze bezpečně znovu zapojit zachovaný kód.
 

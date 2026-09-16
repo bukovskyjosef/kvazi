@@ -716,3 +716,31 @@ test('closing punctuation must match declared type',()=> {
 for (const surface of ['k','v','z','a','i']) test(`single exception ${surface}`,()=> {
   assert.equal(both(isolated(tok('t1',surface))).sequence.ok,true);
 });
+
+// Normative expectations are explicit for each engine, rather than parity alone.
+for (const [sentenceType, verbFormType, implicitSubject, expected] of [
+  ['imperative', 'imperative', true, true],
+  ['imperative', 'present', true, false],
+  ['declarative', 'imperative', true, false],
+  ['interrogative', 'imperative', true, false],
+  ['declarative', 'present', false, true],
+]) {
+  test(`normative implicit subject: ${sentenceType}/${verbFormType}/${implicitSubject}`, () => {
+    const verb = verbTok('t2', verbFormType === 'imperative' ? 'kvazi' : 'kvazí', {
+      lemma: verbFormType === 'imperative' ? 'kvaziit' : 'kvazit', model: 'V-IT',
+      verbFormType, aspect: 'imperfective', verbPerson: verbFormType === 'imperative' ? '2sg' : '3', number: 'plural',
+    });
+    const draft = {sentenceType, implicitSubject, tokens: [verb]};
+    if (!implicitSubject) draft.tokens.unshift(nounTok('t1', 'kvazi', {
+      lemma: 'kvaz', model: 'pán', gender: 'masculine', animacy: 'animate',
+      caseNum: '1', number: 'plural', relations: {head: 't2'},
+    }));
+    for (const validate of [deriveValidationState, phpValidate]) {
+      const result = validate(draft);
+      assert.equal(result.sequence.ok, true);
+      assert.equal(result.tokens.t2.formCheck.ok, true, 'verb itself is morphologically valid');
+      assert.equal(result.sentenceOk, expected);
+      assert.equal(result.submitReady, expected, JSON.stringify(result));
+    }
+  });
+}

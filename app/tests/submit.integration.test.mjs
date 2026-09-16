@@ -33,7 +33,7 @@ async function serverReachable() {
 
 function dbReachable() {
   try {
-    execSync('docker exec kvazi_db psql -U kvazi -d kvazi -c "SELECT 1"', { timeout: 5000 });
+    execFileSync('docker', ['exec', process.env.KVAZI_DB_CONTAINER || 'kvazi_db', 'psql', '-U', 'kvazi', '-d', 'kvazi', '-c', 'SELECT 1'], {timeout:5000});
     return true;
   } catch { return false; }
 }
@@ -53,6 +53,8 @@ function integrationTest(name, fn) {
 
 // ── DB helpers ────────────────────────────────────────────────────────────────
 
+const DB_CONTAINER = process.env.KVAZI_DB_CONTAINER || 'kvazi_db';
+
 function pgStr(v) {
   // Escape a value as a SQL single-quoted literal ('' for embedded single quotes)
   return "'" + String(v).replace(/'/g, "''") + "'";
@@ -65,7 +67,7 @@ function dbExec(sql, params = {}) {
     if (v === undefined) throw new Error(`Missing DB param :${k}`);
     return /^\d+$/.test(String(v)) ? String(v) : pgStr(v);
   });
-  return execFileSync('docker', ['exec', 'kvazi_db', 'psql', '-U', 'kvazi', '-d', 'kvazi', '-t', '-A', '-c', resolved], { timeout: 10000 }).toString().trim();
+  return execFileSync('docker', ['exec', DB_CONTAINER, 'psql', '-U', 'kvazi', '-d', 'kvazi', '-v', 'ON_ERROR_STOP=1', '-q', '-t', '-A', '-c', resolved], { timeout: 10000 }).toString().trim();
 }
 
 function dbQuery(sql, params = {}) {
@@ -100,9 +102,18 @@ function createTestUser(username, email, password, role = 'USER') {
 }
 
 function deleteTestUser(username) {
-  // Delete sentences first — sentence_revision.submitted_by FK has no CASCADE.
-  dbExec('DELETE FROM kvazi.sentence WHERE user_id = (SELECT id FROM kvazi.user_account WHERE username = :u)', { u: username });
-  dbExec('DELETE FROM kvazi.user_account WHERE username = :u', { u: username });
+  // Disposable fixture cleanup only. Production never bypasses history triggers.
+  dbExec(`BEGIN; SET LOCAL session_replication_role = replica;
+    DELETE FROM kvazi.validation_result_review WHERE validation_result_id IN (
+      SELECT v.id FROM kvazi.validation_result v JOIN kvazi.sentence s ON s.id=v.sentence_id
+      WHERE s.user_id=(SELECT id FROM kvazi.user_account WHERE username=:u));
+    DELETE FROM kvazi.administrative_decision WHERE sentence_id IN (SELECT id FROM kvazi.sentence WHERE user_id=(SELECT id FROM kvazi.user_account WHERE username=:u));
+    DELETE FROM kvazi.validation_result WHERE sentence_id IN (SELECT id FROM kvazi.sentence WHERE user_id=(SELECT id FROM kvazi.user_account WHERE username=:u));
+    DELETE FROM kvazi.sentence_revision WHERE submitted_by=(SELECT id FROM kvazi.user_account WHERE username=:u);
+    DELETE FROM kvazi.sentence WHERE user_id=(SELECT id FROM kvazi.user_account WHERE username=:u);
+    DELETE FROM kvazi.real_word_catalog WHERE admin_id=(SELECT id FROM kvazi.user_account WHERE username=:u);
+    DELETE FROM kvazi.morphology_review_decision WHERE admin_id=(SELECT id FROM kvazi.user_account WHERE username=:u);
+    DELETE FROM kvazi.user_account WHERE username=:u; COMMIT;`, {u:username});
 }
 
 if (allUp) {
@@ -241,8 +252,8 @@ integrationTest('valid submit: HTTP 200 and DB rows created', async () => {
   const vrCount = dbCount('kvazi.validation_result', 'sentence_id = :sid AND revision_id = :rid', { sid: String(body.id), rid: String(body.revisionId) });
   assert.equal(vrCount, 1, 'validation_result row should be created');
 
-  const pcCount = dbCount('kvazi.process_compliance', 'sentence_id = :sid AND revision_id = :rid', { sid: String(body.id), rid: String(body.revisionId) });
-  assert.equal(pcCount, 1, 'process_compliance row should be created');
+  assert.equal(dbQuery("SELECT to_regclass('kvazi.process_compliance') IS NULL, to_regclass('kvazi.audit_log') IS NULL"), 't|t');
+  assert.equal(dbQuery('SELECT rules_version, validator_version FROM kvazi.validation_result WHERE revision_id = :rid', {rid: body.revisionId}), `${ACTIVE_VERSION}|1.2.0`);
 
   // Authoritative charScore and wordScore in DB must match API response
   const storedScores = dbQuery(
@@ -442,7 +453,190 @@ if (allUp) {
       deleteTestUser(USR);
       deleteTestUser(ADM);
     } catch (e) {
-      // Non-fatal: test data cleanup failure doesn't affect test results.
+      console.error('Test fixture cleanup failed:', e.message);
+      process.exitCode = 1;
     }
   });
 }
+
+integrationTest('implicit subject HTTP matrix: expected verdict and no persistence on rejection', async () => {
+  const {cookie,apiCsrf}=await loginSession(USR,USR_PASS);
+  for (const [type,form,expected] of [
+    ['imperative','imperative',200], ['imperative','present',422],
+    ['declarative','imperative',422], ['interrogative','imperative',422],
+  ]) {
+    const draft=structuredClone(VALID_DRAFT);
+    draft.sentenceType=type; draft.implicitSubject=true; draft.tokens.shift();
+    if(form==='imperative') Object.assign(draft.tokens[0],{surface:'kvazi',lemma:'kvaziit',form:{verbFormType:'imperative',verbPerson:'2sg',aspect:'imperfective'}});
+    const before=dbCount('kvazi.sentence_revision');
+    const r=await fetch(`${BASE}/api/submit.php`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify({csrf:apiCsrf,draft})});
+    assert.equal(r.status,expected,`${type}/${form}: ${await r.text()}`);
+    assert.equal(dbCount('kvazi.sentence_revision'),before+(expected===200?1:0));
+  }
+});
+
+integrationTest('DB ownership, immutable history, release binding and final admin decision', async () => {
+  const {cookie,apiCsrf}=await loginSession(USR,USR_PASS);
+  const submit=async()=>{
+    const r=await fetch(`${BASE}/api/submit.php`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify({csrf:apiCsrf,draft:VALID_DRAFT})});
+    assert.equal(r.status,200);return r.json();
+  };
+  const one=await submit(),two=await submit();
+  const uid=dbQuery('SELECT id FROM kvazi.user_account WHERE username=:u',{u:USR});
+  const aid=dbQuery('SELECT id FROM kvazi.user_account WHERE username=:u',{u:ADM});
+  const rejects=(sql,params={})=>assert.throws(()=>dbExec(sql,params),undefined,sql);
+  for(const table of ['sentence_revision','validation_result']) {
+    const where=table==='sentence_revision'?`id=${one.revisionId}`:`revision_id=${one.revisionId}`;
+    rejects(`UPDATE kvazi.${table} SET created_at=now() WHERE ${where}`);
+    rejects(`DELETE FROM kvazi.${table} WHERE ${where}`);
+  }
+  rejects('UPDATE kvazi.sentence SET user_id=:aid WHERE id=:sid',{aid,sid:one.id});
+  rejects('INSERT INTO kvazi.sentence_revision (sentence_id,revision_no,rules_version,submitted_by,draft_json) VALUES (:sid,2,:v,:aid,\'{}\')',{sid:one.id,v:ACTIVE_VERSION,aid});
+  rejects('INSERT INTO kvazi.sentence_revision (sentence_id,revision_no,rules_version,submitted_by,draft_json) VALUES (:sid,3,:v,:uid,\'{}\')',{sid:one.id,v:ACTIVE_VERSION,uid});
+  rejects('INSERT INTO kvazi.validation_result (sentence_id,revision_id,rules_version,validator_version) VALUES (:sid,:rid,\'public-1\',\'1.0.0\')',{sid:two.id,rid:one.revisionId});
+  rejects('INSERT INTO kvazi.validation_result (sentence_id,revision_id,rules_version,validator_version) VALUES (:sid,:rid,\'public-1\',\'fake\')',{sid:one.id,rid:one.revisionId});
+  rejects('UPDATE kvazi.rules_release SET normative_hash=repeat(\'a\',64) WHERE version=:v',{v:ACTIVE_VERSION});
+  rejects('DELETE FROM kvazi.rules_release WHERE version=\'public-1\'');
+  rejects('INSERT INTO kvazi.administrative_decision (sentence_id,revision_id,admin_id,action) VALUES (:sid,:rid,:uid,\'approve\')',{sid:one.id,rid:one.revisionId,uid});
+  rejects('INSERT INTO kvazi.administrative_decision (sentence_id,revision_id,admin_id,action) VALUES (:sid,:rid,:aid,\'return\')',{sid:two.id,rid:one.revisionId,aid});
+  dbExec('INSERT INTO kvazi.administrative_decision (sentence_id,revision_id,admin_id,action,reason) VALUES (:sid,:rid,:aid,\'return\',\'Needs explanation\')',{sid:one.id,rid:one.revisionId,aid});
+  rejects('INSERT INTO kvazi.administrative_decision (sentence_id,revision_id,admin_id,action) VALUES (:sid,:rid,:aid,\'approve\')',{sid:one.id,rid:one.revisionId,aid});
+  rejects('UPDATE kvazi.administrative_decision SET action=\'approve\' WHERE revision_id=:rid',{rid:one.revisionId});
+});
+
+integrationTest('review persistence: exact keys, version isolation, immutable corrections and stable used references', async () => {
+  const aid=dbQuery('SELECT id FROM kvazi.user_account WHERE username=:u',{u:ADM});
+  const {cookie,apiCsrf}=await loginSession(USR,USR_PASS);
+  const response=await fetch(`${BASE}/api/submit.php`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify({csrf:apiCsrf,draft:VALID_DRAFT})});
+  assert.equal(response.status,200);const revision=await response.json();
+  const identity=JSON.stringify({pos:'noun',lemma:'kvaz',model:'pán',gender:'masculine',animacy:'animate'});
+  const form=JSON.stringify({case:'1',number:'plural'});
+  const params={v:ACTIVE_VERSION,i:identity,f:form,s:'kvazi'};
+  const caseId=dbQuery('INSERT INTO kvazi.morphology_review_case (rules_version,identity_json,form_json,surface_form) VALUES (:v,:i,:f,:s) RETURNING id',params);
+  const testCases=[caseId];
+  process.on('exit',()=>{for(const cid of testCases) dbExec('BEGIN; SET LOCAL session_replication_role=replica; DELETE FROM kvazi.morphology_review_case WHERE id=:cid; COMMIT',{cid});});
+  const decisions=()=>dbCount('kvazi.morphology_review_decision','case_id=:cid',{cid:caseId});
+  assert.equal(decisions(),0,'UNKNOWN is absence');
+  assert.throws(()=>dbExec('INSERT INTO kvazi.morphology_review_case (rules_version,identity_json,form_json,surface_form) VALUES (:v,:i,:f,:s)',params));
+  const first=dbQuery("INSERT INTO kvazi.morphology_review_decision (case_id,rules_version,decision_no,verdict,admin_id) VALUES (:cid,:v,1,'APPROVED',:aid) RETURNING id",{cid:caseId,v:ACTIVE_VERSION,aid});
+  const resultId=dbQuery('SELECT id FROM kvazi.validation_result WHERE revision_id=:rid',{rid:revision.revisionId});
+  dbExec('INSERT INTO kvazi.validation_result_review (validation_result_id,token_id,review_decision_id,rules_version) VALUES (:vid,\'t1\',:did,:v)',{vid:resultId,did:first,v:ACTIVE_VERSION});
+  assert.throws(()=>dbExec("INSERT INTO kvazi.morphology_review_decision (case_id,rules_version,decision_no,verdict,admin_id) VALUES (:cid,:v,2,'REJECTED',:aid)",{cid:caseId,v:ACTIVE_VERSION,aid}));
+  const second=dbQuery("INSERT INTO kvazi.morphology_review_decision (case_id,rules_version,decision_no,verdict,reason,admin_id) VALUES (:cid,:v,2,'REJECTED','Correction',:aid) RETURNING id",{cid:caseId,v:ACTIVE_VERSION,aid});
+  assert.equal(dbQuery('SELECT verdict FROM kvazi.morphology_review_decision WHERE case_id=:cid ORDER BY decision_no DESC LIMIT 1',{cid:caseId}),'REJECTED');
+  assert.equal(dbQuery('SELECT review_decision_id FROM kvazi.validation_result_review WHERE validation_result_id=:vid',{vid:resultId}),first);
+  assert.throws(()=>dbExec("UPDATE kvazi.validation_result_review SET review_decision_id=:did WHERE validation_result_id=:vid",{did:second,vid:resultId}));
+  assert.throws(()=>dbExec("UPDATE kvazi.morphology_review_decision SET verdict='REJECTED' WHERE id=:did",{did:first}));
+  for(const change of [{v:'public-1'}, {i:JSON.stringify({pos:'noun',lemma:'kvaz',model:'muž'})}, {f:JSON.stringify({case:'5',number:'plural'})}, {s:'kvazí'}]) {
+    assert.equal(dbCount('kvazi.morphology_review_case','rules_version=:v AND identity_json=:i AND form_json=:f AND surface_form=:s',{...params,...change}),0);
+  }
+  const oldCase=dbQuery('INSERT INTO kvazi.morphology_review_case (rules_version,identity_json,form_json,surface_form) VALUES (\'public-1\',:i,:f,:s) RETURNING id',params);
+  testCases.push(oldCase);
+  assert.equal(dbCount('kvazi.morphology_review_decision','case_id=:cid',{cid:oldCase}),0);
+  const oldDecision=dbQuery("INSERT INTO kvazi.morphology_review_decision (case_id,rules_version,decision_no,verdict,admin_id) VALUES (:cid,'public-1',1,'APPROVED',:aid) RETURNING id",{cid:oldCase,aid});
+  assert.throws(()=>dbExec('INSERT INTO kvazi.validation_result_review (validation_result_id,token_id,review_decision_id,rules_version) VALUES (:vid,\'t2\',:did,:v)',{vid:resultId,did:oldDecision,v:ACTIVE_VERSION}));
+  dbExec('INSERT INTO kvazi.real_word_catalog (identity_json,form_json,surface_form,is_approved,admin_id) VALUES (:i,:f,:s,TRUE,:aid)',{...params,aid});
+  assert.equal(dbCount('kvazi.real_word_catalog','identity_json=:i AND form_json=:f AND surface_form=:s',params),1);
+  assert.equal(dbQuery('SELECT verdict FROM kvazi.morphology_review_decision WHERE id=:id',{id:second}),'REJECTED','lexical approval does not change morphology verdict');
+
+});
+
+function phpRuntime(code) {
+  return execFileSync('docker',['exec','kvazi_php','php','-r',`require '/var/www/html/includes/auth.php'; ${code}`],{encoding:'utf8',timeout:15000}).trim();
+}
+integrationTest('ADMIN gate denies anonymous/USER and rechecks persisted ADMIN role', () => {
+  const aid=Number(dbQuery('SELECT id FROM kvazi.user_account WHERE username=:u',{u:ADM}));
+  const uid=Number(dbQuery('SELECT id FROM kvazi.user_account WHERE username=:u',{u:USR}));
+  for(const [user,allowed] of [[null,false],[{id:uid,role:'USER'},false],[{id:aid,role:'ADMIN'},true],[{id:uid,role:'ADMIN'},false]]) {
+    const encoded=Buffer.from(JSON.stringify(user)).toString('base64');
+    const output=phpRuntime(`auth_session_start(); $_SESSION['auth_user']=json_decode(base64_decode('${encoded}'),true);
+      $reached=false; register_shutdown_function(function()use(&$reached){echo json_encode([$reached,http_response_code()]);});
+      auth_require_admin(); $reached=true;`);
+    const [reached,status]=JSON.parse(output); assert.equal(reached,allowed); if(!allowed) assert.equal(status,403);
+  }
+});
+
+integrationTest('session policy: HTTPS/proxy Secure, strict IDs, expiry and logout', () => {
+  for(const secureMode of ["$_SERVER['HTTPS']='on';", "putenv('AUTH_COOKIE_SECURE=1');"]) {
+    const value=JSON.parse(phpRuntime(`${secureMode} session_id('untrusted-fixed-session-id'); auth_session_start();
+      $id=session_id(); $params=session_get_cookie_params();
+      $_SESSION['auth_user']=['id'=>1,'role'=>'USER']; $_SESSION['started_at']=time()-7201;
+      session_write_close(); auth_session_start(); $expired=auth_user()===null; $rotated=session_id()!==$id;
+      auth_logout(); echo json_encode([$params,ini_get('session.use_strict_mode'),$id!=='untrusted-fixed-session-id',$expired,$rotated,session_status()]);`));
+    assert.equal(value[0].secure,true);assert.equal(value[0].httponly,true);assert.equal(value[0].samesite,'Lax');
+    assert.deepEqual(value.slice(1),['1',true,true,true,1]);
+  }
+});
+
+integrationTest('HTTP login/session CSRF and POST logout invalidate old authenticated cookie', async () => {
+  const login=await fetch(`${BASE}/login.php`);const cookie=extractCookies(login);const html=await login.text();
+  const flags=login.headers.get('set-cookie'); assert.match(flags,/HttpOnly/i);assert.match(flags,/SameSite=Lax/i);
+  const csrf=extractCsrfFromForm(html);
+  for(const token of ['', 'invalid']) {
+    const r=await fetch(`${BASE}/login.php`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Cookie:cookie},body:new URLSearchParams({csrf:token,identifier:USR,password:USR_PASS}),redirect:'manual'});
+    assert.equal(r.status,200);assert.match(await r.text(),/bezpečnostní token/);
+  }
+  const logged=await fetch(`${BASE}/login.php`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Cookie:cookie},body:new URLSearchParams({csrf,identifier:USR,password:USR_PASS}),redirect:'manual'});
+  assert.equal(logged.status,302);const newCookie=extractCookies(logged);assert.notEqual(newCookie,cookie);
+  const page=await fetch(`${BASE}/konfigurator.php`,{headers:{Cookie:newCookie}});const apiCsrf=extractCsrfFromMeta(await page.text());assert.notEqual(apiCsrf,csrf);
+  const get=await fetch(`${BASE}/logout.php?token=${apiCsrf}`,{headers:{Cookie:newCookie},redirect:'manual'});assert.equal(get.status,405);
+  const bad=await fetch(`${BASE}/logout.php`,{method:'POST',headers:{Cookie:newCookie},redirect:'manual'});assert.equal(bad.status,403);
+  const out=await fetch(`${BASE}/logout.php`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Cookie:newCookie},body:new URLSearchParams({csrf:apiCsrf}),redirect:'manual'});
+  assert.equal(out.status,302);assert.match(out.headers.get('set-cookie'),/expires=/i);
+  const submit=await fetch(`${BASE}/api/submit.php`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:newCookie},body:JSON.stringify({csrf:apiCsrf,draft:VALID_DRAFT})});assert.equal(submit.status,401);
+});
+
+integrationTest('registration email normalization, DB case-insensitive uniqueness and safe HTML output', async () => {
+  const regUser=`${USR}_reg`;const regEmail=`${regUser}@kvazi.int`;
+  try {
+    const page=await fetch(`${BASE}/register.php`);const html=await page.text();const cookie=extractCookies(page);
+    const r=await fetch(`${BASE}/register.php`,{method:'POST',redirect:'manual',headers:{'Content-Type':'application/x-www-form-urlencoded',Cookie:cookie},body:new URLSearchParams({csrf:extractCsrfFromForm(html),username:regUser,email:`  ${regEmail.toUpperCase()}  `,password:USR_PASS,password2:USR_PASS})});
+    assert.equal(r.status,302,await r.text());
+    assert.equal(dbQuery('SELECT email FROM kvazi.user_account WHERE username=:u',{u:regUser}),regEmail);
+    assert.throws(()=>createTestUser(`${USR}_dup`,regEmail.toUpperCase(),USR_PASS));
+    const attack='<img src=x onerror="window.pwned=1">';
+    const bad=await fetch(`${BASE}/login.php`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Cookie:cookie},body:new URLSearchParams({csrf:'invalid',identifier:attack,password:'bad'})});
+    const output=await bad.text();assert.ok(output.includes('&lt;img'));assert.ok(!output.includes(attack));
+  } finally {deleteTestUser(regUser);}
+});
+
+integrationTest('login throttling: shared atomic counter, expiry and success reset', () => {
+  const remote=`m1-test-${RUN_ID}`;
+  const encoded=Buffer.from(USR).toString('base64'),password=Buffer.from(USR_PASS).toString('base64');
+  const output=phpRuntime(`$_SERVER['REMOTE_ADDR']='${remote}'; auth_session_start(); $user=base64_decode('${encoded}'); $password=base64_decode('${password}');
+    $failures=[]; for($i=0;$i<10;$i++) $failures[]=auth_login($i%2?$user:'nonexistent-${RUN_ID}','wrong-password');
+    $blocked=auth_login($user,$password); $pdo=kvazi_db();
+    $pdo->prepare("UPDATE kvazi.login_throttle SET window_started_at=now()-interval '16 minutes' WHERE remote_address=:remote")->execute([':remote'=>'${remote}']);
+    $success=auth_login($user,$password);
+    $stmt=$pdo->prepare('SELECT count(*) FROM kvazi.login_throttle WHERE remote_address=:remote');$stmt->execute([':remote'=>'${remote}']);
+    auth_logout(); echo json_encode([$failures,$blocked,is_array($success),(int)$stmt->fetchColumn()]);`);
+  const [failures,blocked,success,count]=JSON.parse(output);
+  assert.ok(failures.every(v=>v==='Nesprávný e-mail/uživatelské jméno nebo heslo.'));
+  assert.match(blocked,/Příliš mnoho/);assert.equal(success,true);assert.equal(count,0);
+});
+
+integrationTest('active release new verdict leaves an original historical version/result untouched', async () => {
+  const uid=dbQuery('SELECT id FROM kvazi.user_account WHERE username=:u',{u:USR});
+  const sid=dbQuery('INSERT INTO kvazi.sentence (user_id) VALUES (:uid) RETURNING id',{uid});
+  const rid=dbQuery('INSERT INTO kvazi.sentence_revision (sentence_id,revision_no,rules_version,submitted_by,draft_json) VALUES (:sid,1,\'public-1\',:uid,:draft) RETURNING id',{sid,uid,draft:JSON.stringify(VALID_DRAFT)});
+  dbExec('INSERT INTO kvazi.validation_result (sentence_id,revision_id,rules_version,validator_version,is_valid,word_score,char_score) VALUES (:sid,:rid,\'public-1\',\'1.0.0\',TRUE,2,10)',{sid,rid});
+  const snapshot=()=>dbQuery('SELECT row_to_json(v) FROM kvazi.validation_result v WHERE revision_id=:rid',{rid});
+  const before=snapshot();
+  const {cookie,apiCsrf}=await loginSession(USR,USR_PASS);
+  const r=await fetch(`${BASE}/api/submit.php`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify({csrf:apiCsrf,draft:VALID_DRAFT,rulesVersion:'public-1'})});
+  assert.equal(r.status,200);const body=await r.json();
+  assert.equal(dbQuery('SELECT rules_version,validator_version FROM kvazi.validation_result WHERE revision_id=:rid',{rid:body.revisionId}),`${ACTIVE_VERSION}|1.2.0`);
+  assert.equal(snapshot(),before);
+  assert.equal(dbCount('kvazi.validation_result','revision_id=:rid',{rid}),1,'publishing/using new release does not revalidate historical facts');
+});
+
+integrationTest('concurrent resubmit from separate sessions creates exactly one next revision', async () => {
+  const sessions=await Promise.all([loginSession(USR,USR_PASS),loginSession(USR,USR_PASS)]);
+  const post=({cookie,apiCsrf},sentenceId)=>fetch(`${BASE}/api/submit.php`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify({csrf:apiCsrf,draft:VALID_DRAFT,...(sentenceId?{sentenceId}:{})})});
+  const r=await post(sessions[0]);assert.equal(r.status,200);const initial=await r.json();
+  const aid=dbQuery('SELECT id FROM kvazi.user_account WHERE username=:u',{u:ADM});
+  dbExec("INSERT INTO kvazi.administrative_decision (sentence_id,revision_id,admin_id,action) VALUES (:sid,:rid,:aid,'return')",{sid:initial.id,rid:initial.revisionId,aid});
+  const responses=await Promise.all(sessions.map(session=>post(session,initial.id)));
+  assert.deepEqual(responses.map(r=>r.status).sort(),[200,409]);
+  assert.equal(dbQuery("SELECT string_agg(CAST(revision_no AS text),',' ORDER BY revision_no) FROM kvazi.sentence_revision WHERE sentence_id=:sid",{sid:initial.id}),'1,2');
+});

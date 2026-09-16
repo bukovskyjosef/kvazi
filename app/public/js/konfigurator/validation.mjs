@@ -2,7 +2,7 @@ import { getPath, getModel, wordFields, isFunctional, publicSchema } from './sch
 import { nfc, folded, inferKvaziPrefix } from './state.mjs';
 import { validateForm } from './morpho.mjs';
 import {
-  fieldEnums, validPos, motifTransitions, nominalPos, syntaxRoleSets,
+  fieldEnums, validPos, motifTransitions, nominalPos, syntaxRoleSets, implicitSubjectRule,
   singleTokens, singlePrepositions, singleConjunctions,
   punctuation as ndPunctuation,
   relationShapes as ndRelationShapes,
@@ -193,8 +193,9 @@ export function deriveValidationState(draft, schema = publicSchema) {
   if (!fullVerbOk) sentenceIssues.push('Věta musí obsahovat právě jeden plnovýznamový slovesný token.');
   if (predicates.length !== 1) sentenceIssues.push('Věta musí mít právě jeden přísudek.');
   if (draft.implicitSubject) {
-    if (draft.sentenceType !== 'imperative' || subjects.length !== 0) sentenceIssues.push('Nevyjádřený podmět je možný jen u rozkazovací věty bez explicitního podmětu.');
-    if (!schema.allowsImplicitSubject?.(verbs[0], draft)) sentenceIssues.push('Dovolený imperativ pro nevyjádřený podmět musí určit dokončený slovesný model (#2/#4).');
+    if (predicates[0]?.form?.verbFormType !== implicitSubjectRule().verb_form_type) sentenceIssues.push('Nevyjádřený podmět vyžaduje skutečný imperativní tvar přísudku.');
+    if (draft.sentenceType !== implicitSubjectRule().sentence_type || subjects.length !== 0) sentenceIssues.push('Nevyjádřený podmět je možný jen u rozkazovací věty bez explicitního podmětu.');
+    if (!schema.allowsImplicitSubject?.(predicates[0], draft)) sentenceIssues.push('Dovolený imperativ pro nevyjádřený podmět musí určit dokončený slovesný model (#2/#4).');
   } else if (subjects.length !== 1) sentenceIssues.push('Věta musí mít právě jeden výslovný podmět.');
 
   // ── Phase 3: agreement + deep morphology (surface-valid only) ──

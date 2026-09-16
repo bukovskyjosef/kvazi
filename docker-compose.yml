@@ -31,6 +31,7 @@ services:
       DB_NAME: kvazi
       DB_USER: kvazi
       DB_PASS: kvazi
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-0}
     volumes:
       - ./app/public:/var/www/html:ro
       - ./app/data:/var/www/data:ro

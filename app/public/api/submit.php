@@ -29,7 +29,7 @@ if (!is_array($payload)) {
 }
 
 // CSRF token is passed in the JSON payload
-if (!auth_csrf_check_value((string)($payload['csrf'] ?? ''))) {
+if (!is_string($payload['csrf'] ?? null) || !auth_csrf_check_value($payload['csrf'])) {
     http_response_code(403);
     echo json_encode(['ok' => false, 'error' => 'Neplatný bezpečnostní token. Obnovte stránku.']);
     exit;
@@ -90,13 +90,21 @@ $incomingSentenceId = isset($payload['sentenceId']) ? (int)$payload['sentenceId'
 try {
     $db = kvazi_db();
     $db->beginTransaction();
+    // Refuse deployment drift between immutable runtime data and registered DB release.
+    $release = $db->prepare('SELECT normative_hash, validator_version FROM kvazi.rules_release WHERE version = :v');
+    $release->execute([':v' => $rulesVersion]);
+    $registered = $release->fetch();
+    if (!$registered || $registered['normative_hash'] !== $validator->getNormativeHash()
+        || $registered['validator_version'] !== $validatorVersion) {
+        throw new RuntimeException('Runtime/DB release mismatch');
+    }
 
     if ($incomingSentenceId !== null) {
         // ── Resubmit: create revision N+1 for an existing returned sentence ──
 
         // Verify the sentence belongs to this user
         $chk = $db->prepare(
-            'SELECT id FROM kvazi.sentence WHERE id = :sid AND user_id = :uid'
+            'SELECT id FROM kvazi.sentence WHERE id = :sid AND user_id = :uid FOR UPDATE'
         );
         $chk->execute([':sid' => $incomingSentenceId, ':uid' => $user['id']]);
         if (!$chk->fetchColumn()) {
@@ -173,18 +181,6 @@ try {
         ':ws'  => $valResult['wordCount'],
         ':cs'  => $valResult['charScore'],
         ':rj'  => json_encode($valResult, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
-    ]);
-
-    // Create process compliance record (ai_policy_compliant = NULL until admin review)
-    $stmt = $db->prepare(
-        'INSERT INTO kvazi.process_compliance
-             (sentence_id, revision_id, rules_version_at_submit)
-         VALUES (:sid, :rid, :rv)'
-    );
-    $stmt->execute([
-        ':sid' => $sentenceId,
-        ':rid' => $revisionId,
-        ':rv'  => $rulesVersion,
     ]);
 
     $db->commit();

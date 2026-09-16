@@ -25,7 +25,10 @@ $_ftCsrf = function_exists('auth_csrf_token') ? auth_csrf_token() : '';
         <span class="footer-sep">&middot;</span>
         <a href="/moje.php">Administrace</a>
         <span class="footer-sep">&middot;</span>
-        <a href="/logout.php?token=<?= urlencode($_ftCsrf) ?>">Odhlásit se</a>
+        <form method="post" action="/logout.php" style="display:inline">
+          <input type="hidden" name="csrf" value="<?= htmlspecialchars($_ftCsrf) ?>">
+          <button type="submit" style="font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer">Odhlásit se</button>
+        </form>
       </div>
     <?php else: ?>
       <div class="footer-user">
