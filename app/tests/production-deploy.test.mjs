@@ -15,6 +15,10 @@ const application = {
   health_check_type: 'cmd', health_check_command: HEALTHCHECK_COMMAND, status: 'running:healthy',
 };
 const deployment = {deployment_uuid: deploymentUuid, application_id: '17', pull_request_id: 0, commit: sha, status: 'finished'};
+test('Readiness CMD fits the actual Coolify safe-command grammar', () => {
+  assert.match(HEALTHCHECK_COMMAND, /^[a-zA-Z0-9 \-_.\/:=@,+]+$/);
+  assert.ok(HEALTHCHECK_COMMAND.length <= 1000);
+});
 function response(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {status, headers: {'content-type': 'application/json', ...headers}});
 }

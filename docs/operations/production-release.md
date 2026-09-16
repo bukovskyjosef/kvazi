@@ -61,10 +61,10 @@ Operátor ověří skutečnou verzi a její API/healthcheck podporu; tento dokum
 - Readiness zapnutá: **CMD healthcheck** s přesným příkazem níže, interval 10 s, timeout 5 s, start period 10 s, retries 12. Interní GET `/healthz` na portu 80 vyžaduje HTTP200 a přesný JSON `status:ok`, používá dostupné PHP.
 
 ```sh
-php -r '$body = @file_get_contents("http://127.0.0.1:80/healthz", false, stream_context_create(["http" => ["timeout" => 3, "follow_location" => 0, "ignore_errors" => true]])); exit(preg_match("~^HTTP/1\.[01] 200(?: |$)~", $http_response_header[0] ?? "") && $body !== false && json_decode($body, true) === ["status" => "ok"] ? 0 : 1);'
+php /usr/local/bin/kvazi-healthcheck.php
 ```
 
-Skript vyžaduje tento CMD a `running:healthy`; skutečný exit0/exit1 při DB outage ověřuje mandatory external-image acceptance. Oficiální [deployment job](https://github.com/coollabsio/coolify/blob/054c560cbdc578836ddfa95d8085761d6733e7c7/app/Jobs/ApplicationDeploymentJob.php) podporuje CMD; HTTP režim používá curl/wget. Pokud nainstalovaná verze CMD/API polí nepodporuje, reportujte blocker a ověřte podporované řešení. Nevypínejte readiness a nepřidávejte zbytečný klient do image.
+Skript vyžaduje tento CMD a `running:healthy`; skutečný exit0/exit1 při DB outage ověřuje mandatory external-image acceptance. Oficiální [deployment job](https://github.com/coollabsio/coolify/blob/054c560cbdc578836ddfa95d8085761d6733e7c7/app/Jobs/ApplicationDeploymentJob.php) podporuje CMD, ale jeho safe-command grammar nepovoluje uvozovky/operátory inline `php -r`. Proto image obsahuje malý `docker/php/healthcheck.php` v `/usr/local/bin` mimo document root, allowlist contextu povoluje jen tento další packaging soubor. Příkaz vyhovuje skutečné grammar a nepřidává curl/wget ani jiný HTTP klient. To je konkrétní deployment blocker opravující packaging doplněk M4.5, ne změna business/runtime env/DB kontraktu. HTTP režim Coolify používá curl/wget. Pokud nainstalovaná verze CMD/API polí nepodporuje, reportujte blocker a ověřte podporované řešení; nevypínejte readiness.
 
 Runtime env pouze v Coolify, ne build args:
 

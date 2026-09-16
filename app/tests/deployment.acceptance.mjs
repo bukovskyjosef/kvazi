@@ -76,9 +76,9 @@ test('production root build: PHP8.3/extensions/layout/port, no DB/secrets/source
   assert.ok(app.Config.ExposedPorts['80/tcp']);
   assert.equal(app.Config.Image,image);
   const layout=JSON.parse(docker(['exec',application,'php','-r',
-    'echo json_encode([PHP_MAJOR_VERSION,PHP_MINOR_VERSION,array_map("extension_loaded",["pdo","pdo_pgsql","intl","mbstring"]),is_file("/var/www/html/index.php"),is_file("/var/www/data/active-release.json"),hash_file("sha256","/var/www/html/index.php"),hash_file("sha256","/var/www/data/active-release.json")]);']));
+    'echo json_encode([PHP_MAJOR_VERSION,PHP_MINOR_VERSION,array_map("extension_loaded",["pdo","pdo_pgsql","intl","mbstring"]),is_file("/var/www/html/index.php"),is_file("/var/www/data/active-release.json"),hash_file("sha256","/var/www/html/index.php"),hash_file("sha256","/var/www/data/active-release.json"),hash_file("sha256","/usr/local/bin/kvazi-healthcheck.php")]);']));
   assert.deepEqual(layout.slice(0,5),[8,3,[true,true,true,true],true,true]);
-  for (const [index,path] of [[5,'app/public/index.php'],[6,'app/data/active-release.json']]) {
+  for (const [index,path] of [[5,'app/public/index.php'],[6,'app/data/active-release.json'],[7,'docker/php/healthcheck.php']]) {
     assert.equal(layout[index],createHash('sha256').update(readFileSync(path)).digest('hex'));
   }
   const imageConfig=JSON.parse(docker(['image','inspect',image]))[0].Config;

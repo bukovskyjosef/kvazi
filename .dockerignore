@@ -4,6 +4,7 @@
 !docker/php/
 !docker/php/Dockerfile
 !docker/php/healthz.conf
+!docker/php/healthcheck.php
 !app/
 !app/public/
 !app/public/**

@@ -7,6 +7,8 @@
 // No paradigm-copy or morfoConfirmed workflow exists in the current UI.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const baseUrl = (process.env.KVAZI_BASE_URL || 'http://127.0.0.1:8080').replace(/\/$/, '');
 
@@ -168,7 +170,7 @@ try {
   // ── Scene 8: Mobile viewport does not overflow horizontally ──────────────
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, JSON.stringify(await page.locator('body *').evaluateAll(nodes => nodes.filter(n => n.getBoundingClientRect().right > innerWidth).map(n => ({tag:n.tagName,id:n.id,cls:n.className,width:n.getBoundingClientRect().width})))));
-  await page.screenshot({ path: '/private/tmp/kvazi-configurator-mobile.png', fullPage: true });
+  await page.screenshot({ path: join(tmpdir(), 'kvazi-configurator-mobile.png'), fullPage: true });
 
   // ── Scene 9: Backspace in surface input deletes last token ────────────────
   await page.goto(`${baseUrl}/konfigurator.php`);

@@ -2,7 +2,7 @@ import {pathToFileURL} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
 
 // A CMD readiness probe uses PHP already present in the M4.5 image.
-export const HEALTHCHECK_COMMAND = `php -r '$body = @file_get_contents("http://127.0.0.1:80/healthz", false, stream_context_create(["http" => ["timeout" => 3, "follow_location" => 0, "ignore_errors" => true]])); exit(preg_match("~^HTTP/1\\.[01] 200(?: |$)~", $http_response_header[0] ?? "") && $body !== false && json_decode($body, true) === ["status" => "ok"] ? 0 : 1);'`;
+export const HEALTHCHECK_COMMAND = 'php /usr/local/bin/kvazi-healthcheck.php';
 
 function requireValue(condition, message) {
   if (!condition) throw new Error(message);
