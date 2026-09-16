@@ -135,6 +135,19 @@ Při nalezení rozporu:
 3. pokud rozhodnutý není, založ nebo aktualizuj issue,
 4. nevytvářej vlastní produktové pravidlo jen kvůli konzistenci implementace.
 
+## Zachování funkční dormant implementace
+
+Pokud přijaté rozhodnutí pouze mění, **zda se určitá hotová technická větev aktivně volá**, ale její funkční implementace může být užitečná pro budoucí variantu pravidel nebo konfigurace, výchozí postup je:
+
+- nemaž ji pouze proto, že je nyní nedosažitelná,
+- nearchivuj ji jako velký zakomentovaný blok,
+- ponech ji normálně udržovatelnou a syntakticky kontrolovatelnou,
+- odpoj pouze aktivní wiring/call site, který už není potřeba,
+- zachovej levné regresní testy, pokud dávají smysl proti zahnívání,
+- drahé integrační testy vyžaduj podle aktivního runtime rizika, ne podle pouhé existence dormant kódu.
+
+Toto je obecný implementační princip. Nesmí být použit k obcházení pravidel, k tichému ponechání bezpečnostní chyby ani k odporu proti issue, které odstranění kódu výslovně požaduje z jiného důvodu.
+
 ## Definice hotového issue
 
 Issue je hotové, když podle svého typu:
