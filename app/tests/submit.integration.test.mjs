@@ -600,18 +600,23 @@ integrationTest('registration email normalization, DB case-insensitive uniquenes
 });
 
 integrationTest('login throttling: shared atomic counter, expiry and success reset', () => {
-  const remote=`m1-test-${RUN_ID}`;
+  // REMOTE_ADDR is a real IP in HTTP; use a unique reserved IPv6 fixture too.
+  const stamp=Date.now().toString(16).padStart(12,'0');
+  const candidate=`2001:db8:${stamp.match(/.{4}/g).map(v=>Number.parseInt(v,16).toString(16)).join(':')}::18`;
+  const remote=phpRuntime(`echo inet_ntop(inet_pton('${candidate}'));`);
   const encoded=Buffer.from(USR).toString('base64'),password=Buffer.from(USR_PASS).toString('base64');
-  const output=phpRuntime(`$_SERVER['REMOTE_ADDR']='${remote}'; auth_session_start(); $user=base64_decode('${encoded}'); $password=base64_decode('${password}');
+  try {
+    const output=phpRuntime(`putenv('TRUSTED_PROXY_CIDRS='); $_SERVER['REMOTE_ADDR']='${remote}'; auth_session_start(); $user=base64_decode('${encoded}'); $password=base64_decode('${password}');
     $failures=[]; for($i=0;$i<10;$i++) $failures[]=auth_login($i%2?$user:'nonexistent-${RUN_ID}','wrong-password');
     $blocked=auth_login($user,$password); $pdo=kvazi_db();
     $pdo->prepare("UPDATE kvazi.login_throttle SET window_started_at=now()-interval '16 minutes' WHERE remote_address=:remote")->execute([':remote'=>'${remote}']);
     $success=auth_login($user,$password);
     $stmt=$pdo->prepare('SELECT count(*) FROM kvazi.login_throttle WHERE remote_address=:remote');$stmt->execute([':remote'=>'${remote}']);
     auth_logout(); echo json_encode([$failures,$blocked,is_array($success),(int)$stmt->fetchColumn()]);`);
-  const [failures,blocked,success,count]=JSON.parse(output);
-  assert.ok(failures.every(v=>v==='Nesprávný e-mail/uživatelské jméno nebo heslo.'));
-  assert.match(blocked,/Příliš mnoho/);assert.equal(success,true);assert.equal(count,0);
+    const [failures,blocked,success,count]=JSON.parse(output);
+    assert.ok(failures.every(v=>v==='Nesprávný e-mail/uživatelské jméno nebo heslo.'));
+    assert.match(blocked,/Příliš mnoho/);assert.equal(success,true);assert.equal(count,0);
+  } finally {dbExec('DELETE FROM kvazi.login_throttle WHERE remote_address=:remote',{remote});}
 });
 
 integrationTest('active release new verdict leaves an original historical version/result untouched', async () => {

@@ -21,8 +21,10 @@ Autoritativní kontext:
 Z kořene repozitáře:
 
 ```sh
-php -S 127.0.0.1:8080 -t app/public
+docker compose up -d
 ```
+
+Compose načítá lokální `.env` nebo runtime env (např. z Coolify). Bez `.env` použije pouze development fallback `kvazi/kvazi`. Volitelně zkopírujte `.env.example` do ignorovaného `.env` a nastavte vlastní hodnoty před prvním bootstrapem DB. `DB_PASSWORD` je jediný název hesla; změna env na existujícím PostgreSQL volume sama heslo DB nezmění. `.env.example` je dokumentace kontraktu, nemá skutečné secrets. PHP dotenv soubory nenačítá; mimo Compose musí web server dostat stejné proměnné ze svého runtime environmentu (lokální server lze spustit pomocí `php -S 127.0.0.1:8080 -t app/public`).
 
 Konfigurátor je dostupný na:
 
@@ -99,11 +101,13 @@ Za TLS proxy nastavte `AUTH_COOKIE_SECURE=1`; přímé HTTPS jej nastaví automa
 
 ## Veřejné non-mail MVP
 
-Produkční web server musí spouštět PHP 8.3+ s `pdo_pgsql`, `intl` a `mbstring`, mít document root pouze `app/public` a ponechat `app/data` mimo něj ve stejné adresářové struktuře. Připojení do PostgreSQL nastavte přes runtime `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`; hodnoty `kvazi/kvazi` a porty v root Compose jsou pouze lokální development konfigurace. Čistá DB používá všechny bootstrap SQL, existující instalace postupuje podle upgrade výše. Produkční secrets nepatří do repozitáře.
+Produkční web server musí spouštět PHP 8.3+ s `pdo_pgsql`, `intl` a `mbstring`, mít document root pouze `app/public` a ponechat `app/data` mimo něj ve stejné adresářové struktuře. Připojení do PostgreSQL nastavte přes runtime `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`; hodnoty `kvazi/kvazi` a porty v root Compose jsou pouze lokální development konfigurace. `APP_ENV=production` označuje produkční prostředí, ale samo nenastavuje secrets, HTTPS ani trust; tyto hodnoty musí provoz explicitně přepsat. Čistá DB používá všechny bootstrap SQL, existující instalace postupuje podle upgrade výše. Produkční secrets nepatří do repozitáře ani do `.env.example`, nastavují se přes Coolify/runtime env.
 
 HTTPS je provozní podmínka veřejného nasazení. Za TLS terminující proxy nastavte `AUTH_COOKIE_SECURE=1`. PHP warnings a výjimky se logují serverově, nezobrazují se klientovi. Dynamické odpovědi používají `nosniff`, `Referrer-Policy: same-origin` a `X-Frame-Options: DENY`; aplikace nepovoluje rich HTML ani framing.
 
-Login throttle vyhodnocuje pouze `REMOTE_ADDR` a ignoruje klientský `X-Forwarded-For`. Veřejný web server musí dostávat odlišnou skutečnou IP jednotlivých klientů. Repo obsahuje lokální Docker stack, nikoli konfiguraci konkrétního veřejného reverse proxy. Před otevřením veřejnosti ověřte `REMOTE_ADDR` ze dvou různých klientských sítí. Pokud před PHP stojí společná proxy, smí web server přepisovat klientskou adresu pouze od explicitně nakonfigurované trusted proxy; veřejně dodané forwarded hlavičky nesmějí tuto hranici obejít. Sdílená IP proxy bez této konfigurace není podporovaný veřejný deployment, protože by sdílela limit 10 pokusů / 15 minut. Aplikace automaticky žádné proxy nedůvěřuje.
+Login throttle používá `auth_client_ip()`. Při přímém nasazení ponechte `TRUSTED_PROXY_CIDRS=` prázdné: použije jen validní `REMOTE_ADDR`, forwarded hlavičky ignoruje. Za proxy nastavte comma-separated IPv4/IPv6 CIDRs **bezprostřední proxy před PHP**, ideálně konkrétní `/32` či `/128`; žádná privátní síť ani Cloudflare rozsah není automatický default. Jen pokud `REMOTE_ADDR` odpovídá takovému CIDR, helper použije jednu validní IP z `CF-Connecting-IP`. Chybějící/neplatný header vrací REMOTE_ADDR, malformed CIDR se ignoruje. `X-Forwarded-For` se nikdy nepoužívá. IP je normalizovaná, limit 10 pokusů / 15 minut a DB schema zůstávají stejné.
+
+Podporovaný produkční kontrakt je Cloudflare → Coolify reverse proxy → PHP: v Coolify env nastavte skutečný úzký CIDR bezprostřední proxy a `AUTH_COOKIE_SECURE=1`. Coolify musí předat původní `CF-Connecting-IP` pouze z ověřené Cloudflare ingress cesty; origin musí blokovat přímé obejití Cloudflare a nepředávat klientem podstrčenou hlavičku z jiné cesty jako důvěryhodnou. PHP má být dostupné jen přes tuto proxy, nikoli přímým veřejným portem. Samotný CIDR proxy neověřuje upstream Cloudflare: tento krok musí vynutit deployment. Viz [Cloudflare headers](https://developers.cloudflare.com/fundamentals/reference/http-headers/) a [origin IP restriction](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/). Konkrétní produkční adresy nejsou v repo; před veřejným otevřením ověřte ze dvou sítí rozdílné klientské identity a nemožnost spoofingu mimo trust boundary. Deployment infrastruktura se zde nevytváří.
 
 Bootstrap nevytváří účty ani default credentials. První ADMIN se zaregistruje běžným formulářem a operátor jednorázově povýší správný účet přímo v DB:
 
@@ -114,7 +118,9 @@ UPDATE kvazi.user_account SET role = 'ADMIN'
 
 Poté je nutný logout a nový login. Veřejné UI roli nepřiděluje. Ověření e-mailu, automatická obnova hesla a transakční mail nejsou součástí tohoto non-mail MVP.
 
-Release gate spusťte nad test deploymentem s disposable bootstrapem a vlastními test fixtures, nikoli nad produkční DB:
+Security suite také ověřuje `.env*` ignore / verzovatelnost `.env.example`, Compose render bez lokálních secrets i s explicitním override a trust nobody / trusted / untrusted / invalid header či CIDR. Skutečný HTTP login dvou různých klientů za jednou trusted proxy dokazuje oddělené throttle identity a bezpečný fallback. Compose smoke check lze samostatně spustit pomocí `docker compose config --quiet`; běžný config výstup může obsahovat runtime secrets, nepublikujte jej.
+
+Release gate spusťte nad lokálním test deploymentem s development DB `kvazi` / user `kvazi` (stávající disposable test contract), disposable bootstrapem a vlastními test fixtures, nikoli nad produkční DB. Container/HTTP/Playwright overrides runneru zůstávají podporované; testy nejsou nástrojem k přípravě produkčních credentials:
 
 ```sh
 bash app/tests/run-integration.sh
