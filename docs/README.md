@@ -32,7 +32,7 @@ Každý hráčský nebo normativní dokument má u svého začátku krátkou sek
 | `kvazitahak/01-07` – označené NORMATIVNÍ části | hráč, rozhodčí, vývojář | ano | přesné uzavřené modely, tabulky/paradigmata, syntaktické testy, valence, hranice a prefix `kvazi-` | společně s rules verzí / explicitním rozhodnutím Josefa |
 | `kvazitahak/` – příklady/vysvětlivky | hráč | ne | srozumitelnost | nesmí rozšířit pravidla |
 | spravovaný katalog skutečných slov | rozhodčí, aplikace | zvláštní autorita | potvrzuje soutěžní status skutečných slov/tvarů; není veřejným tahákem kandidátů | průběžná správa dle pravidel, bez nutné změny `rules_version` |
-| `architecture/` | vývojář, auditor | ne | technický návrh systému | podřízeno pravidlům; popisuje cílovou/platnou technickou architekturu podle stavu příslušných issues |
+| `architecture/` | vývojář, auditor | ne | technický návrh systému | podřízeno pravidlům; `03-validation.md` je kanonický technický kontrakt validačních fází a rozlišení úplné modelové nabídky, surface gate a dormant deep-validace; `05-konfigurator-ux.md` je funkční/UX projekce tohoto kontraktu |
 | `db/schema-draft.sql` | vývojář, auditor | ne | návrhový/pracovní DB model | **není executable runtime migrace ani jediný zdroj skutečného runtime schématu** |
 | root `docker-compose.yml` | vývojář, provoz, auditor | ne | lokální/runtime orchestrace PostgreSQL a PHP vrstvy | provozní artefakt; určuje mimo jiné, které runtime soubory jsou skutečně připojeny do kontejnerů |
 | `docker/` | vývojář, provoz, auditor | ne | kontejnerová/runtime infrastruktura | implementační/provozní vrstva; nesmí vytvářet produktová ani soutěžní pravidla |
@@ -82,7 +82,7 @@ Pokud vznikne konflikt:
 4. pro používání AI/nástrojů čti `rules/03-ai-policy.md`,
 5. pro verzování a správu čti `rules/04-verzovani-a-sprava.md`,
 6. pro otevřenou otázku nebo práci hledej odpovídající GitHub issue,
-7. pro technickou architekturu čti relevantní `architecture/`, ale ověř její aktuální issue kontext,
+7. pro technickou architekturu čti relevantní `architecture/`; při práci na konfigurátoru/validátoru vždy `architecture/03-validation.md` a podle rozsahu `architecture/05-konfigurator-ux.md`,
 8. pro skutečný lokální/runtime persistence bootstrap čti `docker-compose.yml` a `docker/db/init/` vedle `db/schema-draft.sql`,
 9. technický artefakt odporující pravidlům je technická chyba,
 10. konflikt normativních dokumentů je governance defect; konečný výklad dává Josef a dokumentace se opraví.
@@ -97,4 +97,5 @@ Pokud vznikne konflikt:
 - sporný případ / rozhodčí: `rules/02-rozhodcovska-specifikace.md` → relevantní NORMATIVNÍ modul kvazitaháku
 - auditor: `/AGENTS.md` → `00-project-context.md` → tento `README.md` → `audit/README.md` → relevantní normativní a architektonické dokumenty → `db/schema-draft.sql` **i** `docker-compose.yml` + `docker/db/init/` → skutečný `app/` stav → otevřená GitHub Issues
 - vývojář: `/AGENTS.md` → `00-project-context.md` → tento `README.md` → `architecture/00-boundaries.md` → relevantní pravidla → GitHub Issues → dotčená implementační/runtime vrstva
+- vývojář konfigurátoru/validátoru: před změnou navíc vždy `architecture/03-validation.md` → `architecture/05-konfigurator-ux.md`; reachability nesmí filtrovat modelovou nabídku a dormant deep-validace se nemaže pouze kvůli současnému motivu
 - vývojář persistence/runtime: před změnou porovnej `architecture/` + `db/schema-draft.sql` (návrh) + `docker-compose.yml`/`docker/db/init/` (executable bootstrap) + relevantní `app/` kód + GitHub Issues
