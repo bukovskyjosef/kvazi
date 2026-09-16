@@ -25,6 +25,12 @@ Repozitář projektu **Nejdelší kvazivěta**.
 - `app/README.md`
 - GitHub Issues
 
+Při práci na konfigurátoru, validátoru nebo jejich testech navíc vždy čti:
+- `docs/architecture/03-validation.md` – canonical technický kontrakt validačních fází, surface gate a dormant deep-validace,
+- `docs/architecture/05-konfigurator-ux.md` – funkční/UX projekce konfigurátoru.
+
+Důležitý implementační invariant: všechny normativně povolené modely zůstávají hráči nabízené; reachability nesmí filtrovat UI. Po definitivním konkrétním surface/motiv failure však aktivní flow nemusí spouštět deep branch-specific validaci, která už nemůže změnit INVALID verdikt. Funkční hotový deep-validator se kvůli současné nedosažitelnosti nemaže; zůstává jako udržovatelná dormant/reusable implementace.
+
 ## Normativní balík
 
 **Neexistuje jeden soubor „úplných pravidel“.** Soutěžní pravidla tvoří kanonický normativní balík artefaktů s rozdělenými oblastmi odpovědnosti:
