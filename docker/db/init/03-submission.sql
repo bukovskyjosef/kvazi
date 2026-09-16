@@ -1,13 +1,11 @@
--- Migration 03: cílový model pro podání, validaci, process compliance a admin decisions.
+-- Migration 03: cílový model pro podání, validaci a admin decisions.
 -- Odpovídá rozhodnutím kvaziautority v #8 a závislostem #7/#9.
 --
 -- Osy jsou datově odděleny:
 --   sentence + sentence_revision  — kontejner a immutable snapshot submitu
---   rules_release                 — immutable manifest normativního releasu
+--   rules_release                 — immutable runtime release identity
 --   validation_result             — obsahový deterministický verdict (per revision + rules_version)
---   process_compliance            — historický fakt o souladu procesu podání
---   administrative_decision       — admin approve/reject/return/archive
---   audit_log                     — auditní stopa admin akcí (#36)
+--   administrative_decision       — admin approve/reject/return
 --
 -- Disposable dev data: při docker compose down -v se vše smaže; bootstrap
 -- vytvoří čisté schéma bez seed dat ani legacy stavu.
@@ -115,7 +113,7 @@ CREATE TABLE IF NOT EXISTS kvazi.validation_result (
     -- Full structured result JSON (issues, per-token detail, etc.)
     result_json       JSONB        NOT NULL DEFAULT '{}',
     created_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    -- One result per (sentence_revision, rules_version) — revalidation creates a new row
+    -- One result per (sentence_revision, rules_version); no automatic revalidation
     UNIQUE (revision_id, rules_version),
     -- Cross-sentence integrity: revision_id must belong to sentence_id
     FOREIGN KEY (sentence_id, revision_id)
@@ -127,30 +125,7 @@ CREATE INDEX IF NOT EXISTS idx_vr_sentence    ON kvazi.validation_result(sentenc
 CREATE INDEX IF NOT EXISTS idx_vr_valid       ON kvazi.validation_result(is_valid);
 
 -- ─────────────────────────────────────────────────────────
--- PROCESS COMPLIANCE — historický fakt o souladu procesu
--- ─────────────────────────────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS kvazi.process_compliance (
-    id                     BIGSERIAL    PRIMARY KEY,
-    sentence_id            BIGINT       NOT NULL
-                             REFERENCES kvazi.sentence(id) ON DELETE CASCADE,
-    revision_id            BIGINT       NOT NULL,
-    rules_version_at_submit VARCHAR(80) NOT NULL
-                             REFERENCES kvazi.rules_release(version),
-    -- Immutable after creation; records whether the submission process met AI policy
-    ai_policy_compliant    BOOLEAN,
-    notes                  TEXT         NOT NULL DEFAULT '',
-    created_at             TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    -- One compliance record per revision
-    UNIQUE (revision_id),
-    FOREIGN KEY (sentence_id, revision_id)
-        REFERENCES kvazi.sentence_revision(sentence_id, id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_pc_revision ON kvazi.process_compliance(revision_id);
-
--- ─────────────────────────────────────────────────────────
--- ADMINISTRATIVE DECISION — admin approve/reject/return/archive
+-- ADMINISTRATIVE DECISION — admin approve/reject/return
 -- ─────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS kvazi.administrative_decision (
@@ -163,7 +138,7 @@ CREATE TABLE IF NOT EXISTS kvazi.administrative_decision (
     action       VARCHAR(20)  NOT NULL,
     reason       TEXT         NOT NULL DEFAULT '',
     decided_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    CONSTRAINT chk_ad_action CHECK (action IN ('approve', 'reject', 'return', 'archive')),
+    CONSTRAINT chk_ad_action CHECK (action IN ('approve', 'reject', 'return')),
     FOREIGN KEY (sentence_id, revision_id)
         REFERENCES kvazi.sentence_revision(sentence_id, id)
 );
@@ -171,22 +146,3 @@ CREATE TABLE IF NOT EXISTS kvazi.administrative_decision (
 CREATE INDEX IF NOT EXISTS idx_ad_revision   ON kvazi.administrative_decision(revision_id);
 CREATE INDEX IF NOT EXISTS idx_ad_sentence   ON kvazi.administrative_decision(sentence_id);
 CREATE INDEX IF NOT EXISTS idx_ad_decided_at ON kvazi.administrative_decision(decided_at DESC);
-
--- ─────────────────────────────────────────────────────────
--- AUDIT LOG — auditní stopa citlivých admin operací (#36)
--- ─────────────────────────────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS kvazi.audit_log (
-    id          BIGSERIAL    PRIMARY KEY,
-    actor_id    BIGINT       REFERENCES kvazi.user_account(id) ON DELETE SET NULL,
-    action      VARCHAR(80)  NOT NULL,
-    entity_type VARCHAR(40)  NOT NULL,
-    entity_id   BIGINT,
-    before_json JSONB,
-    after_json  JSONB,
-    created_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_al_actor  ON kvazi.audit_log(actor_id);
-CREATE INDEX IF NOT EXISTS idx_al_action ON kvazi.audit_log(action);
-CREATE INDEX IF NOT EXISTS idx_al_ts     ON kvazi.audit_log(created_at DESC);

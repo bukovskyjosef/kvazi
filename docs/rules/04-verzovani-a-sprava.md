@@ -9,7 +9,7 @@ Tento dokument je autoritativní **pro verzování, revalidaci a správu normati
 ## Verze pravidel
 Každé zveřejněné znění pravidel má jednoznačnou `rules_version`. Společně se verzují rozhodcovská specifikace, AI/tool policy, výslovně normativní části kvazitaháku a další pravidlové artefakty.
 
-Každá vydaná `rules_version` má neměnný manifest normativního balíku. Manifest uvádí minimálně identifikátor/cestu každé normativní součásti a její kryptografický hash; může mít také vlastní souhrnný hash. Git commit nebo tag se může ukládat jako doplňková reference, ale sám neurčuje normativní rozsah verze.
+Každá vydaná `rules_version` má neměnný machine-readable runtime dataset a jednoduchý manifest s verzí pravidel, identifikací validátoru a kryptografickým hashem runtime dat. Frontend a backend používají stejný dataset; backend je autorita. Vydané runtime releases se nepřepisují. Pro MVP se nepožaduje hashování každého Markdown dokumentu, registry enginů ani obecný provenance systém. Úplný normativní balík nadále určuje rozsah soutěžních pravidel podle `../README.md`.
 
 Normativní číselníky, paradigmata a jiné strojově čitelné definice pravidel musí být součástí stejného verzovaného normativního balíku. Nesmějí se pod stejnou `rules_version` tiše změnit pouze v DB nebo kódu.
 
@@ -32,7 +32,7 @@ Je-li podání vráceno k doplnění, původní revize se nepřepisuje. Další 
 Řešení se historicky váže k verzi pravidel platné při jeho podání. Již schválené řešení je historický fakt; běžná průběžná správa katalogu skutečných slov není důvodem k jeho bezdůvodnému zpětnému rušení.
 
 ## Revalidace
-Stejná immutable revize může být bez nového podání znovu posouzena podle novější verze pravidel. Nové posouzení vytváří nový validační výsledek; nepřepisuje starý verdikt.
+Automatická revalidace starých podání není součástí MVP ani povinným krokem vydání release. Případné budoucí explicitní posouzení stejné immutable revize podle novější verze pravidel se řeší samostatně. Nové posouzení vytváří nový validační výsledek; nepřepisuje starý verdikt.
 
 Aktuální žebříček používá pouze řešení platná a uznaná podle aktuální `rules_version`. Historické výsledky podle starších verzí zůstávají zachované.
 
@@ -133,7 +133,7 @@ Tyto neveřejné podklady mohou být zachovány pro posouzení, audit a případ
 
 Pravidla práce s nástroji a AI jsou čestná dohoda mezi hráči. Soutěž nebude vyžadovat pracovní logy, historii promptů ani jiné důkazy a nebude vést řízení o tom, zda hráč při hledání řešení použil zakázaný nástroj.
 
-Odesláním řešení hráč jednoduše potvrzuje, že hrál fér a řešení vzniklo v duchu pravidel. Toto potvrzení není podkladem pro následné vyšetřování; je vyjádřením vzájemné důvěry, bez níž recesní charakter soutěže nedává smysl.
+Submit neobsahuje potvrzení fair play ani čestné prohlášení. Dodržování pravidel pro AI a nástroje se technicky ani procesně neeviduje; zůstává věcí důvěry mezi hráči.
 
 ## Technická specifikace a omezení aplikace
 Technická specifikace, databázový model ani UI nesmějí změnit jazykovou platnost řešení.

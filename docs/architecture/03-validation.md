@@ -126,7 +126,7 @@ Pro kandidáta, který není už definitivně neplatný na dřívější vrstvě
 
 - právě jeden plnovýznamový slovesný token,
 - právě jeden přísudek,
-- právě jeden podmět, není-li normativně povolen nevyjádřený podmět imperativu,
+- právě jeden podmět, není-li normativně povolen nevyjádřený podmět při současném `sentenceType=imperative` a skutečném `verbFormType=imperative`,
 - u běžného závislého členu požadované řídící slovo,
 - u přísudku žádné řídící slovo,
 - u doplňku vazbu k přísudku a k podmětu/předmětu,
@@ -180,7 +180,7 @@ Backend nesmí přijmout klientský score, rules version, prefix flag ani jinou 
 
 Jedna immutable revize může mít samostatný validační výsledek pro více `rules_version`. Starý verdikt zůstává zachován; revalidace nevytváří novou `sentence_revision`.
 
-Každý rozhodující validační výsledek musí mít potřebnou provenance: revizi věty, rules verzi, validator version, relevantní katalog/review provenance, automatický nebo ruční původ, čas a případného rozhodujícího admina.
+Každý validační výsledek uchovává konkrétní revizi, rules version, validator version, verdict, serverové skóre, čas a případné stabilní reference na použitá interní review rozhodnutí. Vydání nové verze nespouští automatickou revalidaci; další explicitní posouzení je budoucí samostatný use case. Obecný provenance graf se nevyžaduje.
 
 Změna rules verze může změnit surface reachability. V takovém případě se nesmí automaticky předpokládat, že dříve dormant validační větev zůstává dormant; vývojář musí znovu provést reachability audit a případně zachovanou deep implementaci vrátit do aktivního flow.
 

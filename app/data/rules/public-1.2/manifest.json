@@ -1,0 +1,8 @@
+{
+  "version": "public-1.2",
+  "normative_hash": "6350d50b4348294b29c66999cfd16c7f9246b7a696e65f7aabb74e2cd680af5f",
+  "normative_file": "normative.json",
+  "validator_version": "1.2.0",
+  "activated_at": "2026-09-16T00:00:00Z",
+  "description": "M1: enforce actual imperative predicate for implicit subject; existing normative morphology preserved."
+}

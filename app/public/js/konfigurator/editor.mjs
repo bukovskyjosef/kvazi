@@ -1,6 +1,6 @@
 import { createDraft, mutateDraft, nfc } from './state.mjs';
 import { deriveValidationState, previewDraft, validateTokenSequence } from './validation.mjs';
-import { renderSentence, renderTokens, renderEditor, renderValidation } from './view.mjs';
+import { esc, renderSentence, renderTokens, renderEditor, renderValidation } from './view.mjs';
 import { toggleMode, buttonLabel } from './terms.mjs';
 
 let draft = window.__resubmit?.draft ?? createDraft(), selectedId = null;
@@ -156,10 +156,10 @@ element('submitButton').addEventListener('click', async () => {
       const msg = resubmitSentenceId
         ? `Přihláška #${data.id} aktualizována (revize ${data.revisionNo}).`
         : `Přihláška #${data.id} byla odeslána.`;
-      resultEl.innerHTML = `<div class="alert alert-ok" style="margin-top:0">${msg} <a href="/moje-vety.php">Zobrazit moje věty →</a></div>`;
+      resultEl.innerHTML = `<div class="alert alert-ok" style="margin-top:0">${esc(msg)} <a href="/moje-vety.php">Zobrazit moje věty →</a></div>`;
       element('liveStatus').textContent = msg;
     } else {
-      resultEl.innerHTML = `<div class="alert alert-warning" style="margin-top:0">Chyba: ${data.error}</div>`;
+      resultEl.innerHTML = `<div class="alert alert-warning" style="margin-top:0">Chyba: ${esc(data.error)}</div>`;
     }
   } catch {
     resultEl.innerHTML = '<div class="alert alert-warning" style="margin-top:0">Síťová chyba, zkuste znovu.</div>';

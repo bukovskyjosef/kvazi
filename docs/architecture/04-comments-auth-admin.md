@@ -17,17 +17,13 @@ Magic-link přihlašování se pro MVP nepoužívá.
 
 Uživatel se přihlašuje klasicky svými přihlašovacími údaji.
 
-Aplikace musí podporovat zapomenuté heslo:
+Ověření registračního e-mailu a obnova hesla jsou odložené do #104/#105 po mailovém backendu #106. Aktuální registrace provádí auto-login a nevytváří verification ani recovery tokeny.
 
-1. uživatel zadá registrovaný e-mail,
-2. systém vytvoří kryptograficky náhodný, časově omezený a jednorázový resetovací token,
-3. na e-mail odešle odkaz pro změnu hesla,
-4. databáze neukládá reset token v otevřené podobě,
-5. po úspěšné změně hesla se token zneplatní.
+Security základ používá bcrypt (cost 12), session ID rotation při loginu, `HttpOnly`, `SameSite=Lax`, `session.use_strict_mode` a absolutní životnost session dvě hodiny. V přímém HTTPS režimu se nastavuje `Secure`; za TLS proxy musí provoz nastavit `AUTH_COOKIE_SECURE=1` (aplikace nevěří klientským forwarded hlavičkám). Login i registrace používají společné CSRF helpery; JSON submit ověřuje stejný token explicitní hodnotou. Logout je CSRF chráněný POST a ruší session i cookie. Budoucí admin operace používají `auth_require_admin()` serverově.
 
-Resetovací odkaz není magic-link login; slouží pouze ke změně hesla.
+E-mail se ukládá jako `strtolower(trim(email))`; DB vynucuje unikátnost `lower(btrim(email))`. Login má atomický limit deseti pokusů za patnáct minut podle přímé IP adresy. Neúspěchy zůstávají započítané, úspěch čítač ruší; staré čítače se mažou. Za proxy musí provoz zvážit sdílení IP adres. Nejde o account lockout.
 
-Konkrétní algoritmus password hashování, parametry session/cookies, délka a expirace reset tokenu, rate limiting a další bezpečnostní ochrany patří do implementační security baseline a musí být uzavřeny před produkčním nasazením.
+Uživatelský obsah je plain text; PHP používá `htmlspecialchars` a JS escapuje interpolovaný text nebo používá `textContent`.
 
 ## Komentáře
 
@@ -53,9 +49,8 @@ KISS rozhraní:
 ### Věty
 - detail,
 - schválit,
-- odmítnout,
-- vrátit k doplnění (autor poté odesílá novou revizi sám),
-- archivovat.
+- zamítnout,
+- vrátit k doplnění/přepracování (autor poté odesílá novou revizi sám).
 
 ### Katalog
 - navrhnout lexém/tvar,
@@ -66,14 +61,6 @@ KISS rozhraní:
 
 Stejný uživatelský účet může být současně hráčem i administrátorem. Rozdíl je pouze v autorizaci.
 
-## Audit administrace
+## Historie administrace
 
-Důležité administrátorské zásahy se auditují minimálně údaji:
-- admin `user_id`,
-- akce,
-- typ entity,
-- ID entity,
-- stav před/po změně,
-- čas.
-
-Konkrétní bezpečnostní baseline administrace – session management, CSRF ochrana, throttling/lockout, bezpečné cookie atributy a recovery proces – zůstává implementačním security požadavkem před produkčním nasazením.
+Citlivé doménové zásahy uchovávají admina, akci, důvod a čas ve své doménové tabulce. `administrative_decision` cílí na konkrétní immutable revizi; review cache opravuje rozhodnutí novým následným záznamem. Generická tabulka `audit_log`, AI/fair-play evidence ani audit používání nástrojů nejsou součástí MVP. Autorizaci skutečných budoucích admin endpointů je nutné integračně ověřit při jejich implementaci.

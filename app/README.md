@@ -84,3 +84,13 @@ PLAYWRIGHT_MODULE=/absolutni/cesta/playwright/index.mjs node app/tests/konfigura
 ## Zásada údržby
 
 Do `app/README.md` nepatří duplikace soutěžních pravidel, morfologických tabulek, validačních rozhodnutí ani stavů jednotlivých issues. Takové informace mají zůstat pouze v jejich autoritativních zdrojích, aby aplikační README nedriftovalo od aktuálního produktu.
+
+## Runtime release a DB upgrade
+
+Nový verdict používá explicitní `data/active-release.json`, společný dataset a manifest. PHP ověřuje SHA-256, identitu release a verzi běžícího validátoru; submit kontroluje také registraci v DB. Historické release soubory se nepřepisují. `node app/tools/check-releases.mjs` ověřuje integritu vůči `origin/main` (jiný Git base lze zadat přes `KVAZI_RELEASE_BASE`); stejná kontrola běží při PR.
+
+Čistý Docker bootstrap používá všechny soubory `docker/db/init/`. Existující DB potřebuje jednorázově nové `05-m1-release.sql` a atomické `06-m1-core.sql` přes `psql -v ON_ERROR_STOP=1`; init adresář se nad existujícím volume automaticky znovu nespouští. Historické revize/výsledky zůstávají zachované. Konfliktní legacy data migraci zastaví; reset volume není upgrade.
+
+Povinný runner ověří browser launch před testy, PHP syntax, celý Node/parity/HTTP/DB stack, čistý bootstrap a upgrade v samostatné disposable databázi a všechny browser scénáře. Cleanup test fixtures používá privilegovaný bypass immutable triggerů pouze pro vlastní testová data.
+
+Za TLS proxy nastavte `AUTH_COOKIE_SECURE=1`; přímé HTTPS jej nastaví automaticky. Session má absolutní životnost dvě hodiny. Logout vyžaduje POST a stejný CSRF token jako ostatní browserové změny. Budoucí admin endpointy používají serverový `auth_require_admin()`; skutečné endpointové testy se doplní při jejich implementaci.

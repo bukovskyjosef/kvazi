@@ -14,9 +14,11 @@
 declare(strict_types=1);
 
 class KvaziValidator {
+    public const VERSION = '1.2.0';
     private array $nd; // normative data
     private string $version;
     private string $validatorVersion;
+    private string $normativeHash;
 
     public function __construct(string $normativeJsonPath, array $manifest) {
         $raw = file_get_contents($normativeJsonPath);
@@ -30,11 +32,26 @@ class KvaziValidator {
             throw new RuntimeException("Integrita normativních dat selhala. Očekáváno {$expectedHash}, nalezeno {$actualHash}.");
         }
         $this->nd = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        $implicitRule = $this->nd['implicit_subject'] ?? null;
+        if (!is_array($implicitRule)
+            || !is_string($implicitRule['sentence_type'] ?? null)
+            || !array_key_exists($implicitRule['sentence_type'], $this->nd['punctuation'])
+            || !is_string($implicitRule['verb_form_type'] ?? null)
+            || !in_array($implicitRule['verb_form_type'], $this->nd['field_enums']['verbFormType'], true)) {
+            throw new RuntimeException('Invalid release implicit_subject rule');
+        }
         $this->version = $this->nd['version'];
-        $this->validatorVersion = $manifest['validator_version'] ?? '1.0.0';
+        if (($manifest['version'] ?? '') !== $this->version || ($manifest['validator_version'] ?? '') !== self::VERSION
+            || ($manifest['normative_file'] ?? '') !== 'normative.json') {
+            throw new RuntimeException('Invalid release manifest identity');
+        }
+        $this->validatorVersion = $manifest['validator_version'];
+        $this->normativeHash = $actualHash;
     }
 
     public function getRulesVersion(): string { return $this->version; }
+    public function getNormativeHash(): string { return $this->normativeHash; }
+    public function getNormativeData(): array { return $this->nd; }
     public function getValidatorVersion(): string { return $this->validatorVersion; }
 
     // ─────────────────────────────────────────────────────────
@@ -809,10 +826,15 @@ class KvaziValidator {
         if (count($predicates) !== 1) $sentenceIssues[] = 'Věta musí mít právě jeden přísudek.';
 
         if ($implicit) {
-            if ($sentType !== 'imperative' || count($subjects) !== 0) {
+            $implicitRule = $this->nd['implicit_subject'];
+            $predicate = array_values($predicates)[0] ?? [];
+            if (($predicate['form']['verbFormType'] ?? '') !== $implicitRule['verb_form_type']) {
+                $sentenceIssues[] = 'Nevyjádřený podmět vyžaduje skutečný imperativní tvar přísudku.';
+            }
+            if ($sentType !== $implicitRule['sentence_type'] || count($subjects) !== 0) {
                 $sentenceIssues[] = 'Nevyjádřený podmět je možný jen u rozkazovací věty bez explicitního podmětu.';
             }
-            $verbArr = array_values($verbs);
+            $verbArr = array_values($fullContentVerbs);
             $verbModels = $this->nd['verb_models'];
             $verbModel = $verbArr[0]['model'] ?? '';
             if (!isset($verbModels[$verbModel])) {
@@ -956,7 +978,7 @@ function kvazi_load_validator(string $appRoot): KvaziValidator {
     }
     $activeRelease = json_decode(file_get_contents($activeReleaseFile), true, 512, JSON_THROW_ON_ERROR);
     $version = $activeRelease['version'] ?? '';
-    if (!$version) throw new RuntimeException("active-release.json neobsahuje pole version.");
+    if (!is_string($version) || !preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*$/D', $version)) throw new RuntimeException('Invalid active release version');
 
     $manifestPath = $appRoot . "/data/rules/{$version}/manifest.json";
     if (!file_exists($manifestPath)) {
@@ -968,5 +990,6 @@ function kvazi_load_validator(string $appRoot): KvaziValidator {
     if (!file_exists($normativePath)) {
         throw new RuntimeException("Normativní data rules verze „{$version}\" nenalezena: $normativePath");
     }
+    if (($manifest['version'] ?? '') !== $version) throw new RuntimeException('Active release/manifest mismatch');
     return new KvaziValidator($normativePath, $manifest);
 }

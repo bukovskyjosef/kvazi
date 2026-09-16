@@ -12,6 +12,8 @@ const baseUrl = (process.env.KVAZI_BASE_URL || 'http://127.0.0.1:8080').replace(
 
 // ── DB helpers (needed for Scene 14: authenticated submit) ────────────────────
 
+const DB_CONTAINER = process.env.KVAZI_DB_CONTAINER || 'kvazi_db';
+
 function pgStr(v) {
   return "'" + String(v).replace(/'/g, "''") + "'";
 }
@@ -22,7 +24,7 @@ function dbExec(sql, params = {}) {
     if (v === undefined) throw new Error(`Missing DB param :${k}`);
     return /^\d+$/.test(String(v)) ? String(v) : pgStr(v);
   });
-  return execFileSync('docker', ['exec', 'kvazi_db', 'psql', '-U', 'kvazi', '-d', 'kvazi', '-t', '-A', '-c', resolved], { timeout: 10000 }).toString().trim();
+  return execFileSync('docker', ['exec', DB_CONTAINER, 'psql', '-U', 'kvazi', '-d', 'kvazi', '-v', 'ON_ERROR_STOP=1', '-q', '-t', '-A', '-c', resolved], { timeout: 10000 }).toString().trim();
 }
 
 function dbCount(table, where = '', params = {}) {
@@ -42,13 +44,23 @@ function createTestUser(username, email, password) {
 }
 
 function deleteTestUser(username) {
-  dbExec('DELETE FROM kvazi.sentence WHERE user_id = (SELECT id FROM kvazi.user_account WHERE username = :u)', { u: username });
-  dbExec('DELETE FROM kvazi.user_account WHERE username = :u', { u: username });
+  // Disposable fixture cleanup only. Production never bypasses history triggers.
+  dbExec(`BEGIN; SET LOCAL session_replication_role = replica;
+    DELETE FROM kvazi.validation_result_review WHERE validation_result_id IN (
+      SELECT v.id FROM kvazi.validation_result v JOIN kvazi.sentence s ON s.id=v.sentence_id
+      WHERE s.user_id=(SELECT id FROM kvazi.user_account WHERE username=:u));
+    DELETE FROM kvazi.administrative_decision WHERE sentence_id IN (SELECT id FROM kvazi.sentence WHERE user_id=(SELECT id FROM kvazi.user_account WHERE username=:u));
+    DELETE FROM kvazi.validation_result WHERE sentence_id IN (SELECT id FROM kvazi.sentence WHERE user_id=(SELECT id FROM kvazi.user_account WHERE username=:u));
+    DELETE FROM kvazi.sentence_revision WHERE submitted_by=(SELECT id FROM kvazi.user_account WHERE username=:u);
+    DELETE FROM kvazi.sentence WHERE user_id=(SELECT id FROM kvazi.user_account WHERE username=:u);
+    DELETE FROM kvazi.real_word_catalog WHERE admin_id=(SELECT id FROM kvazi.user_account WHERE username=:u);
+    DELETE FROM kvazi.morphology_review_decision WHERE admin_id=(SELECT id FROM kvazi.user_account WHERE username=:u);
+    DELETE FROM kvazi.user_account WHERE username=:u; COMMIT;`, {u:username});
 }
 
 function dbReachable() {
   try {
-    execFileSync('docker', ['exec', 'kvazi_db', 'psql', '-U', 'kvazi', '-d', 'kvazi', '-c', 'SELECT 1'], { timeout: 5000 });
+    execFileSync('docker', ['exec', DB_CONTAINER, 'psql', '-U', 'kvazi', '-d', 'kvazi', '-c', 'SELECT 1'], { timeout: 5000 });
     return true;
   } catch { return false; }
 }
@@ -356,11 +368,58 @@ try {
   const liveStatus = await page.locator('#liveStatus').textContent();
   assert.ok(liveStatus.includes('nesplněna'), 'live status should report surface check not met');
 
+  // ── Scene 17: Actual imperative, rejected indicative and escaped API errors ──
+  await page.goto(`${baseUrl}/konfigurator.php`);
+  await page.getByLabel('Rozkazovací', {exact:true}).check();
+  await page.getByLabel('Podmět není vyjádřen', {exact:true}).check();
+  await page.locator('#newSurface').fill('kvazi'); await page.locator('#newSurface').press('Enter');
+  await page.locator('#token-t1').click();
+  await page.getByLabel('Slovní druh', {exact:true}).selectOption('verb');
+  await page.getByLabel('Neurčitek / základní tvar', {exact:true}).fill('kvaziit');
+  await page.getByLabel('Deklarovaná identita').selectOption('quasi');
+  await page.getByLabel('Soutěžní časovací typ').selectOption('V-IT');
+  await page.getByLabel('Druh slovesného tvaru').selectOption('imperative');
+  await page.locator('#word-form-verbPerson').selectOption('2sg');
+  await page.getByLabel('Vid').selectOption('imperfective');
+  await page.getByLabel('Větná funkce', {exact:true}).selectOption('predicate');
+  await page.getByLabel('Valenční obhajoba').fill('Imperativ podle V-IT; bez obligatorního doplnění.');
+  await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('2. sg soutěžního imperativu.');
+  assert.equal(await page.locator('#submitButton').isEnabled(),true);
+  const attack='<img src=x onerror="window.apiXss=1">';
+  await page.route('**/api/submit.php',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({ok:false,error:attack})}));
+  await page.locator('#submitButton').click();
+  await page.locator('#submitResult .alert-warning').waitFor();
+  assert.ok((await page.locator('#submitResult').textContent()).includes(attack));
+  assert.equal(await page.locator('#submitResult img').count(),0);
+  assert.equal(await page.evaluate(()=>window.apiXss),undefined);
+  await page.unroute('**/api/submit.php');
+  if(dbUp) {
+    await page.locator('#submitButton').click();
+    await page.locator('#submitResult .alert-ok').waitFor({timeout:10000});
+    assert.equal(dbCount('kvazi.sentence','user_id = (SELECT id FROM kvazi.user_account WHERE username=:u)',{u:BRW_USR}),2);
+  }
+  // Keep a correctly formed indicative predicate; only subject exception is invalid.
+  await page.getByLabel('Neurčitek / základní tvar', {exact:true}).fill('kvazit');
+  await page.getByLabel('Druh slovesného tvaru').selectOption('present');
+  await page.locator('#word-form-verbPerson').selectOption('3');
+  await page.getByLabel('Číslo', {exact:true}).selectOption('plural');
+  await page.locator('#word-surface').fill('kvazí');
+  assert.equal(await page.locator('#submitButton').isDisabled(),true);
+  assert.ok((await page.locator('#validation').textContent()).includes('skutečný imperativní'));
+
+  // ── Scene 18: Browser logout uses CSRF-protected POST ─────────────────────
+  if(dbUp) {
+    await page.getByRole('button',{name:'Odhlásit se',exact:true}).click();
+    await page.waitForURL(baseUrl+'/');
+    assert.equal(await page.getByRole('link',{name:'Přihlásit se',exact:true}).count(),1);
+    assert.equal(await page.getByRole('button',{name:'Odhlásit se',exact:true}).count(),0);
+  }
+
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
+  console.log('Browser checks passed: 18 scenarios; actual-imperative, indicative-rejection, API-error-XSS, POST-logout, insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
 } finally {
   if (dbUp) {
-    try { deleteTestUser(BRW_USR); } catch { /* non-fatal */ }
+    deleteTestUser(BRW_USR);
   }
   await browser?.close();
 }

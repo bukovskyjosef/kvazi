@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/validator.php';
 auth_session_start();
 $activePage = 'konfigurator';
 $csrf = auth_csrf_token();
@@ -52,19 +53,18 @@ if ($incomingSentenceId && ($user = auth_user()) !== null) {
     }
 }
 // Normative data inlined for browser JS — loaded from active rules release.
-$normativeJson = '{}';
 $appRoot = dirname(__DIR__);
 try {
-    $ar = json_decode((string)@file_get_contents($appRoot . '/data/active-release.json'), true) ?? [];
-    $ver = $ar['version'] ?? '';
-    if ($ver) {
-        $nd = @file_get_contents($appRoot . "/data/rules/{$ver}/normative.json");
-        if ($nd !== false) {
-            $normativeJson = json_encode(json_decode($nd, true),
-                JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
-        }
-    }
-} catch (Throwable) {}
+    $validator = kvazi_load_validator($appRoot);
+    $normativeJson = json_encode($validator->getNormativeData(),
+        JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+} catch (Throwable) {
+    http_response_code(503);
+    header('Content-Type: text/html; charset=UTF-8');
+    echo '<!DOCTYPE html><html lang="cs"><meta charset="UTF-8"><title>Pravidla nejsou dostupná</title>';
+    echo '<p>Pravidla soutěže se nyní nepodařilo načíst.</p></html>';
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="cs">

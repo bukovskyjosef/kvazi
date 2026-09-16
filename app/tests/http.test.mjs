@@ -2,7 +2,7 @@
  * HTTP integration tests for POST /api/submit.php and GET /api/normative.php.
  *
  * These tests target a running Docker stack (KVAZI_TEST_BASE_URL env var).
- * When the server is not reachable they skip gracefully so CI passes.
+ * When the server is not reachable they skip gracefully in optional local runs.
  *
  * Covers:
  *  - 405  for non-POST methods on submit
@@ -31,6 +31,8 @@ async function ping() {
 
 let serverUp = false;
 try { serverUp = await ping(); } catch { /* skip */ }
+
+if (!serverUp && process.env.KVAZI_INTEGRATION_REQUIRED === '1') throw new Error('Mandatory HTTP tests require web runtime');
 
 function skipUnless(condition, name, fn) {
   if (!condition) {

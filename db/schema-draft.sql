@@ -1,184 +1,28 @@
--- Nejdelší kvazivěta — target database schema checklist
--- PostgreSQL
+-- Minimální návrhový checklist; není executable runtime DDL ani živý backlog.
+-- Autorita pravidel: docs/README.md. Technický model:
+-- docs/architecture/02-database-model.md. Skutečný bootstrap/upgrade:
+-- docker/db/init/ (připojený docker-compose.yml).
 --
--- IMPORTANT:
--- This file intentionally does NOT contain executable production DDL yet.
--- The previous pre-audit schema was retired after the 19/19 product decisions,
--- because it encoded now-invalid concepts (comment magic links, separate admin_user,
--- mutable sentence-level approval state, mixed user/catalog analysis truth, etc.).
+-- user_account: jediná USER/ADMIN identita, unikátní username a normalizovaný
+-- neveřejný e-mail, bezpečný password hash; žádný samostatný admin/coauthors.
+-- sentence: stabilní kontejner s jedním neměnným ownerem.
+-- sentence_revision: immutable skutečný vstup v draft_json, owner submitter,
+-- unikátní monotónní revision_no; tokeny, syntax, evidence zůstávají v snapshotu.
+-- validation_result: konkrétní revize, rules/validator version, serverový verdict,
+-- skóre, result_json; immutable; klientské odvozeniny nejsou autorita.
+-- rules_release: immutable runtime SHA-256 + validator version; explicitní active
+-- release ve společných app/data; bez automatické revalidace/engine registry.
+-- administrative_decision: jediný standardní approve/return/reject konkrétní
+-- immutable revize; admin, důvod, čas, správná sentence/revision.
+-- morphology_review_case + morphology_review_decision: interní rules-scoped
+-- exact identita/morfologie/povrch, APPROVED/REJECTED (absence=UNKNOWN),
+-- append-only opravy; validation_result_review odkazuje na použité stabilní ID.
+-- real_word_catalog: oddělená lexikální autorita bez rules scope; úplný exact key,
+-- schválení, zdroj/důvod, admin, čas. Hráčské exact API patří #102.
+-- login_throttle: pouze krátkodobé operační čítače, žádná audit platforma.
 --
--- Git history contains the old draft. Do not restore it as an implementation default.
--- Production/migration DDL must be created from the current architecture and
--- implementation issues listed below.
-
--- -----------------------------------------------------------------------------
--- CURRENT AUTHORITATIVE ARCHITECTURE
--- -----------------------------------------------------------------------------
--- docs/architecture/01-system-architecture.md
--- docs/architecture/02-database-model.md
--- docs/architecture/03-validation.md
--- docs/architecture/04-comments-auth-admin.md
--- docs/rules/04-verzovani-a-sprava.md
--- docs/governance/decisions.md
-
--- -----------------------------------------------------------------------------
--- REQUIRED TARGET DOMAINS
--- -----------------------------------------------------------------------------
-
--- 1. Rules releases
---    - rule_version
---    - immutable manifest items + per-artifact hash
---    - optional manifest hash and Git commit/tag metadata
---    - versioned normative enums/models/paradigms
---    - closed normative auxiliary `byt` forms are rules data, not real-word catalog data
---    See #9, #83.
-
--- 2. Registered users and auth
---    - one user account table with unique username + unique private email
---    - secure password hash only
---    - roles USER / ADMIN on the same account identity
---    - password-reset tokens stored only in safe derived form
---    - session/recovery/security model
---    - one account may represent one person or a collective; do not model coauthors
---    There is NO separate admin_user table and NO magic-link login.
---    See #35, #36, #81.
-
--- 3. Sentences, drafts and immutable submissions
---    - sentence = long-lived container bound to exactly one owning user_id
---    - editable draft
---    - each submit creates immutable sentence_revision
---    - review/submission verdicts bind to a revision, never only to sentence
---    - explicit sentence type with punctuation invariant:
---        DECLARATIVE -> '.'
---        INTERROGATIVE -> '?'
---        IMPERATIVE -> '!'
---    See #8, #61, #81.
-
--- 4. Token/word occurrence declarations
---    - stable token ID inside one immutable revision
---    - position + surface form + normalized NFC form
---    - player-declared analysis stored separately from all resolved/catalog truth
---    - complete competition identity + concrete-used-form morphology
---    - NO required full hand-filled paradigm after #86
---    - for prefixed nouns, persist canonical kvaziPrefix = none|kvazi (or equivalent)
---      plus separately represented base noun identity
---    - kvaziPrefix is NOT player-declared: when normalized surfaceForm is longer than
---      5 competition signs and begins with exact `kvazi` ignoring letter case only,
---      FE and BE deterministically derive POS = noun and kvaziPrefix = kvazi
---    - variants with different spelling/diacritics (`kvázi`, `qazi`, `quasi`, etc.)
---      do not trigger this inference
---    - the derived prefix state must then pass the full normative validation from
---      07-prefix-kvazi.md; inference alone does not make the token valid
---    - a written auxiliary `byt` form is a real sentence token: surface-valid and
---      score-bearing, sharing one competition identity `byt`, but syntactically
---      belonging to the same single predicate as the full-content verb
---    - auxiliary `byt` is a normative closed exception and does NOT use the
---      real-word catalog
---    - structured evidence/source links where required
---    See #79, #83, #86, #87, #63.
-
--- 5. Syntax
---    - ordinary dependent member: exactly one head
---    - predicate: no head; exactly one full-content verb token, with normative
---      auxiliary `byt` token(s) allowed only as part of that same predicate
---    - supplement: predicate + subject/object links
---    - coordination: two distinct member links
---    - prepositions k/v/z: technical preposition role + exactly one governed nominal link;
---      no main sentence function on the preposition itself
---    - DB constraints must prevent links across sentence revisions
---    See #63, #83.
-
--- 6. Real-word catalog (LEXICAL AUTHORITY)
---    - separate domain/entity from internal morphology review cache
---    - exact match = complete competition identity + concrete used form
---    - not generally scoped to rules_version
---    - mutable/auditable without requiring a new rules_version
---    - player may only query a complete own exact-match candidate
---    - NO browse, export, prefix search, autocomplete, similar-item suggestions
---    - negative exact match is NOT automatic rejection
---    Decision: #80 (closed). Implementation details: #8.
-
--- 7. Internal morphology review cache (REVIEW MEMORY)
---    - separate domain/entity from real-word catalog
---    - knowledge scoped to one rules_version
---    - effective semantics APPROVED / REJECTED / UNKNOWN
---    - UNKNOWN may be represented by absence of a decision row
---    - new rules_version starts with no automatically inherited approvals
---    - decision provenance: exact identity/form, rules_version, admin user_id,
---      timestamp, reason, evidence and reproducible review-cache state/revision
---    - approved/rejected history is never silently overwritten
---    - never exposed as a player membership oracle
---    Decision: #80 (closed). Implementation: #6/#8/#9.
-
--- 8. Validation and review
---    Keep separate:
---    a) content/rule validity of a sentence_revision for a rules_version,
---    b) historical process compliance of the original submission,
---    c) administrative recognition/publication.
---
---    Each decisive validation result must carry full provenance, including:
---    - sentence_revision
---    - rules_version
---    - validator_version
---    - relevant internal review-cache provenance
---    - automatic/manual origin
---    - timestamp and deciding admin when relevant
---    - real-word catalog item/revision if lexical status materially affected verdict
---
---    Score belongs to the validation for a rules_version if scoring semantics vary.
---    See #7, #8, #9.
-
--- 9. Canonical text and scoring
---    - ordered revision tokens + sentence-type punctuation are source of truth
---    - cached sentence text / normalized text / score, if stored, are server-generated
---      and must be deterministically checkable against canonical data
---    - every written competition sign scores normally (Q=1, KV=2) except exactly
---      the five signs of a system-derived AND normatively validated noun prefix
---      `kvazi-`, which score 0
---    - prefixed noun remains one word in primary score
---    - auxiliary `byt` is a separate word and its written signs score normally
---    - score exemption depends on persisted canonical derived prefix state plus full
---      normative prefix validation, never on an unchecked ad-hoc string test
---    See #7, #8, #83, #87.
-
--- 10. Admin audit
---    - admin is user_account with ADMIN role
---    - sensitive actions logged with actor user_id, action, entity, before/after
---      (or equivalent diff), reason and timestamp
---    - audit distinguishes real-word-catalog management from review-cache decisions
---    See #36.
-
--- -----------------------------------------------------------------------------
--- EXPLICITLY OUT OF MVP / MUST NOT REAPPEAR IN INITIAL MIGRATIONS
--- -----------------------------------------------------------------------------
--- - comments
--- - commenter_identity / email_hmac / public_alias
--- - comment_magic_link
--- - separate admin_user identity
--- - coauthor / coauthor M:N / freeform coauthor identities
--- - public/pre-submit INTERNAL REVIEW CACHE membership endpoint
--- - real-word catalog browse/export/autocomplete/prefix search
--- - automatic inheritance of review-cache approvals across rules versions
--- - required full player-entered morphology paradigm
--- - player-controlled kvaziPrefix selector/flag
--- - treating any unchecked `kvazi` surface prefix as score-neutral without deriving
---   and normatively validating the canonical prefix state
--- - hiding written auxiliary `byt` inside a verb record instead of storing its token
-
--- -----------------------------------------------------------------------------
--- CURRENT IMPLEMENTATION GATES
--- -----------------------------------------------------------------------------
--- 1. Keep product/rule decisions in current normative docs and GitHub issues;
---    do not revive already-closed #1/#2/#4/#5/#60 as blockers.
--- 2. Implement the already-decided separation of real-word catalog and
---    internal morphology review cache in production schema (#6/#8/#9; decision #80).
--- 3. Implement simplified morphology declaration (#86/#87), including automatic
---    system inference and persistence of canonical kvaziPrefix/POS where applicable.
--- 4. Implement the closed #79/#83 prefix and auxiliary semantics exactly as
---    represented in docs/architecture/02-database-model.md and #7/#8.
--- 5. Preserve single-account authorship from #81 and free-text valence from #85;
---    do not reintroduce coauthor or structured-valence-slot models.
--- 6. Review concrete MVP query paths and indexes with EXPLAIN before production.
---
--- Until these gates are satisfied, this file is a schema design checklist,
--- not an executable migration.
+-- Nezavádět compliance evidence/prohlášení, generic audit/provenance graf,
+-- DB snapshoty, event sourcing, tokeny mailových funkcí před #104–#106,
+-- povinné ručně vyplněné paradigma ani reachability filtr modelové nabídky.
+-- Prefix/POS/NFC/score odvozuje server podle versioned validátoru; pomocné být
+-- zůstává samostatný surface-valid a score-bearing token jediného přísudku.

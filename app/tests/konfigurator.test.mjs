@@ -137,7 +137,7 @@ test('sentence type determines punctuation and expressed/implicit subject constr
     assert.equal(deriveValidationState(d, schema).sentenceOk, true);
     d.implicitSubject = true;
     assert.equal(deriveValidationState(d, schema).sentenceOk, false);
-    d.tokens.shift(); d.tokens[0].form.testImperative = true;
+    d.tokens.shift(); d.tokens[0].form.testImperative = true; d.tokens[0].form.verbFormType = 'imperative';
     assert.equal(deriveValidationState(d, schema).sentenceOk, type === 'imperative');
   }
   const d = fixture(); d.sentenceType = '';

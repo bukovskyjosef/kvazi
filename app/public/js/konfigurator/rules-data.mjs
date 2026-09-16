@@ -110,3 +110,5 @@ export function optionMap(values, labels = {}) {
 }
 
 export const adjectiveDegrees = () => nd().adjective_degrees;
+
+export const implicitSubjectRule = () => nd().implicit_subject;
