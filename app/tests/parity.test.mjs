@@ -642,7 +642,7 @@ for (const [field,value] of Object.entries({number:'banana',verbPerson:'4',verbG
 
 test('pronoun declaration parity',()=> {
   // Pronoun with surface-valid motif so the surface gate passes and structure is evaluated.
-  const w=tok('t1','kvazi',{pos:'pronoun',lemma:'kvazi',lexicalStatus:'real',role:'subject',evidence:{morphology:'test',needsAnalogy:false}});
+  const w=tok('t1','kvazi',{pos:'pronoun',lemma:'kvazi',lexicalStatus:'real',role:'subject',form:{pronoun:{case:'1',number:'singular',gender:'notApplicable',person:'1'}},evidence:{morphology:'test',needsAnalogy:false}});
   assert.equal(both(isolated(w)).structureOk,true);
 });
 // Government parity: each preposition needs a surface-valid motif pair.

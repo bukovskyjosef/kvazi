@@ -32,3 +32,8 @@ if grep -qi 'skipped' "$log"; then
   echo 'Mandatory catalog browser scenarios were skipped' >&2
   exit 1
 fi
+node app/tests/workflow.browser.mjs | tee "$log"
+if grep -qi 'skipped' "$log"; then
+  echo 'Mandatory M3 browser scenarios were skipped' >&2
+  exit 1
+fi

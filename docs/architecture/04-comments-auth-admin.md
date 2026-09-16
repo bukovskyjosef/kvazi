@@ -42,9 +42,10 @@ Samostatný typ nebo tabulka `admin_user` se nepoužívá. Admin roli nelze zís
 
 KISS rozhraní:
 
-### Dashboard
-- čekající věty,
-- schválené věty.
+### Fronta a detail
+- `/admin/vety.php` – konkrétní aktuální revisions čekající na rozhodnutí,
+- `/admin/veta.php?revisionId=N` – exact immutable detail, serverový výsledek a interní review,
+- read-only GET bez binding/decision side effectů; žádný obecný dashboard.
 
 ### Věty
 - detail,
@@ -53,11 +54,12 @@ KISS rozhraní:
 - vrátit k doplnění/přepracování (autor poté odesílá novou revizi sám).
 
 ### Katalog
-- navrhnout lexém/tvar,
-- schválit,
-- odmítnout,
-- deaktivovat,
-- připojit zdroj.
+- exact položka se serverově rekonstruuje z tokenu immutable revize,
+- v admin detailu potvrdit jako skutečné slovo (true) nebo explicitně nepotvrdit real-word status (false),
+- připojit plain-text důvod a zdroj,
+- samostatná interní morphology review UI používá M2 služby; katalog a cache se neslévají.
+
+Kompletní approval, owner resubmit a veřejný subset kontrakt je v `07-product-workflow.md`.
 
 Stejný uživatelský účet může být současně hráčem i administrátorem. Rozdíl je pouze v autorizaci.
 

@@ -49,11 +49,11 @@ Komentáře nejsou součástí MVP.
 - normativní tabulky,
 - vysvětlující příklady.
 
-### `/vety`
-- věty schválené podle aktuální verze,
-- možnost zobrazit historická schválení podle starších verzí.
+### `/vety.php`
+- pouze konkrétní schválené revisions, včetně historických schválení,
+- scores pocházejí z autoritativního výsledku dané revision; její detail uvádí rules version.
 
-### `/veta/{slug}`
+### `/veta.php?revisionId=N`
 Veřejně je dostupný pouze detail revize, která má publikovatelné schválení podle příslušné verze pravidel.
 
 Zobrazuje zejména:

@@ -104,6 +104,8 @@ Povoleny jsou substantiva, adjektiva, slovesa, skutečná česká zájmena a `k`
 
 Zájmena jsou zvláštní `real-word-only` kategorie. Nemají produktivní soutěžní morfologický model. Hráč deklaruje konkrétní použitý tvar, zájmenný lexém/lemma, slovní druh a relevantní morfologické vlastnosti konkrétního tvaru. Platnost deklarace ověřuje katalog skutečných slov podle oddílu 9.
 
+Od runtime release `public-1.3` je podle rozhodnutí #74/#109 úplnou explicitní deklarací použitého zájmenného tvaru čtveřice pád (1–7), číslo (jednotné/množné), rod (mužský životný/mužský neživotný/ženský/střední) a osoba (1–3). U každé kategorie může hráč výslovně uvést „nevztahuje se“ (`notApplicable`). Chybějící hodnota, prázdný řetězec ani `null` tuto deklaraci nenahrazují; relevance se nedovozuje automaticky z lemmatu. Jde o deklaraci konkrétního skutečného tvaru pro katalogové posouzení, nikoli o produktivní zájmenné paradigma.
+
 ## 8. Kvazislovo
 
 Kvazislovo nemusí existovat v češtině ani mít konkrétní věcný význam. U každého kvazislova musí být v závazné analýze určeny údaje vyžadované příslušným kanonickým modelem, zejména slovní druh, lemma/základní tvar, soutěžní morfologický model, konkrétní použitý tvar a další modelové vlastnosti.

@@ -23,7 +23,7 @@ $_ftCsrf = function_exists('auth_csrf_token') ? auth_csrf_token() : '';
           <?php endif; ?>
         </span>
         <span class="footer-sep">&middot;</span>
-        <a href="/moje.php">Administrace</a>
+        <a href="/moje-vety.php">Moje věty</a>
         <span class="footer-sep">&middot;</span>
         <form method="post" action="/logout.php" style="display:inline">
           <input type="hidden" name="csrf" value="<?= htmlspecialchars($_ftCsrf) ?>">

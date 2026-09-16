@@ -257,12 +257,13 @@ export function deriveValidationState(draft, schema = publicSchema) {
         if (!w.lemma.trim()) missing.push('Základní tvar / neurčitek.');
         if (!fieldEnums().lexicalStatus.includes(w.lexicalStatus)) missing.push('Skutečné slovo nebo kvazislovo podle celé identity.');
         if (w.pos === 'pronoun' && w.lexicalStatus !== 'real') missing.push('Nová zájmena nelze vytvářet.');
+        if (w.pos === 'pronoun' && (w.model ?? '') !== '') missing.push('Zájmeno nemá produktivní soutěžní model.');
         const model = getModel(w, schema);
         if (!model && w.pos !== 'pronoun') missing.push('Povolený soutěžní model.');
         if (model?.identity && Object.entries(model.identity).some(([key, value]) => w.identity[key] !== value)) missing.push('Rod nebo životnost neodpovídá zvolenému modelu.');
         for (const f of wordFields(w, schema)) {
           const value = getPath(w, f.path);
-          if (f.options ? !Object.hasOwn(f.options, value) : typeof value !== 'string' || !value.trim()) missing.push(f.label + '.');
+          if (f.options ? typeof value !== 'string' || !Object.hasOwn(f.options, value) : typeof value !== 'string' || !value.trim()) missing.push(f.label + '.');
         }
         if (!w.evidence.morphology.trim()) missing.push('Morfologická obhajoba a odkaz na použitý model.');
         if (['noun', 'adjective'].includes(w.pos) && w.lemma.trim() && model) {

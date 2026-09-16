@@ -91,6 +91,8 @@ Nový verdict používá explicitní `data/active-release.json`, společný data
 
 Čistý Docker bootstrap používá všechny soubory `docker/db/init/`. Existující DB potřebuje jednorázově nové `05-m1-release.sql` a atomické `06-m1-core.sql` přes `psql -v ON_ERROR_STOP=1`; init adresář se nad existujícím volume automaticky znovu nespouští. Historické revize/výsledky zůstávají zachované. Konfliktní legacy data migraci zastaví; reset volume není upgrade.
 
+Nad hotovou M1/M2 DB se M3 nasazuje pouze aplikací `docker/db/init/07-m3-release.sql` přes `psql -v ON_ERROR_STOP=1` a novým aplikačním/runtime balíkem. Migrace registruje immutable release, nepřidává tabulky/sloupce/indexy a nespouští revalidaci. Produktové stránky a jejich privacy/decision kontrakt popisuje [07-product-workflow.md](../docs/architecture/07-product-workflow.md).
+
 Povinný runner ověří browser launch před testy, PHP syntax, celý Node/parity/HTTP/DB stack, čistý bootstrap a upgrade v samostatné disposable databázi a všechny browser scénáře. Cleanup test fixtures používá privilegovaný bypass immutable triggerů pouze pro vlastní testová data.
 
-Za TLS proxy nastavte `AUTH_COOKIE_SECURE=1`; přímé HTTPS jej nastaví automaticky. Session má absolutní životnost dvě hodiny. Logout vyžaduje POST a stejný CSRF token jako ostatní browserové změny. Budoucí admin endpointy používají serverový `auth_require_admin()`; skutečné endpointové testy se doplní při jejich implementaci.
+Za TLS proxy nastavte `AUTH_COOKIE_SECURE=1`; přímé HTTPS jej nastaví automaticky. Session má absolutní životnost dvě hodiny. Logout vyžaduje POST a stejný CSRF token jako ostatní browserové změny. Admin stránky i endpointy používají serverový `auth_require_admin()`; HTTP/DB a browser regrese ověřují jejich autorizaci a mutation CSRF.

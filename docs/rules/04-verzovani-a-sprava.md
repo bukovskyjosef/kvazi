@@ -31,6 +31,12 @@ Je-li podání vráceno k doplnění, původní revize se nepřepisuje. Další 
 
 Řešení se historicky váže k verzi pravidel platné při jeho podání. Již schválené řešení je historický fakt; běžná průběžná správa katalogu skutečných slov není důvodem k jeho bezdůvodnému zpětnému rušení.
 
+### Administrativní uznání a lexikální posouzení
+
+Podle přijatého workflow M3 musí být před schválením konkrétní revize vyřešeny deterministická validace, nezbytné morfologické review a samostatné lexikální posouzení. U skutečného slova a zájmena musí být přesná katalogová položka potvrzená jako skutečná; u kvazislova musí být přesná položka výslovně posouzená jako nepotvrzená skutečná identita. Samotná absence katalogového záznamu před schválením nestačí. U normativního prefixu kvazi- je předmětem katalogového posouzení skutečný neprefixovaný základ; pomocné být a funkční jednopísmenné tokeny mají normativní výjimku. Nepotvrzený hráčský lookup přitom nadále neblokuje odevzdání návrhu k review.
+
+Vrácení a zamítnutí vyžadují neprázdný plain-text důvod pro autora a mohou proběhnout i při nevyřešeném review. Jedna revize má pouze jedno standardní rozhodnutí. Vrácení poslední revize umožní autorovi nové odeslání; schválená nebo zamítnutá revize se touto cestou nepřepracovává. Historické revize, výsledky a stabilně použitá morfologická rozhodnutí se nepřepisují.
+
 ## Revalidace
 Automatická revalidace starých podání není součástí MVP ani povinným krokem vydání release. Případné budoucí explicitní posouzení stejné immutable revize podle novější verze pravidel se řeší samostatně. Nové posouzení vytváří nový validační výsledek; nepřepisuje starý verdikt.
 

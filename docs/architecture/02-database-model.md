@@ -42,7 +42,7 @@ Výsledky jsou immutable. Unikátní `(revision_id, rules_version)` ponechává 
 
 `administrative_decision` obsahuje sentence, revision, admina, `approve/return/reject`, důvod a čas. Composite FK odmítá revizi jiné sentence. Jedna revize má nejvýše jedno standardní finální rozhodnutí; rozhodnutá revize má právě jedno. Záznam se nepřepisuje ani nemaže. DB ověřuje roli rozhodujícího admina při zápisu; endpoint musí navíc autorizovat skutečně přihlášeného uživatele a ověřit CSRF.
 
-UI/API admin rozhodnutí patří dalším taskům. Persistence nevytváří univerzální workflow engine.
+M3 UI/API kontrakt a transakční approval preconditions jsou v `07-product-workflow.md`. Persistence nevytváří univerzální workflow engine.
 
 ## Interní morfologická review cache
 
@@ -52,7 +52,7 @@ Oddělená interní doména pro #6:
 - `morphology_review_decision`: stabilní ID, case/rules version, monotónní `decision_no`, `APPROVED/REJECTED`, důvod, admin a čas. `REJECTED` vyžaduje důvod. Oprava přidává další rozhodnutí; historii nepřepisuje. Pro budoucí exact lookup se použije nejvyšší `decision_no` daného case.
 - `validation_result_review`: explicitní stabilní vazba validation result + token ID → skutečně použité review decision. Composite FK brání propojení různých rules verzí. Jednou připojená reference se nemění ani nemaže.
 
-`UNKNOWN` znamená absenci rozhodnutí. Nová rules version nepřebírá staré znalosti. M2 služby podle `06-review-services.md` implementují interní lookup, append-only rozhodování, stabilní vazby a reusable review preconditions. Server ověřuje úplnost exact klíče a rekonstruuje jej z konkrétního tokenu immutable revize/výsledku. Cache nikdy neposkytuje hráčský membership endpoint; admin detail a finální sentence approve navazují v #99/#100.
+`UNKNOWN` znamená absenci rozhodnutí. Nová rules version nepřebírá staré znalosti. M2 služby podle `06-review-services.md` implementují interní lookup, append-only rozhodování, stabilní vazby a reusable review preconditions. Server ověřuje úplnost exact klíče a rekonstruuje jej z konkrétního tokenu immutable revize/výsledku. Cache nikdy neposkytuje hráčský membership endpoint; M3 admin detail a finální sentence approve používají tyto služby podle `07-product-workflow.md`.
 
 ## Katalog skutečných slov
 
@@ -62,6 +62,6 @@ M2 služby podle `06-review-services.md` poskytují serverovou kontrolu úplnost
 
 ## Bootstrap a upgrade
 
-Čistá DB se vytváří přímo v cílovém stavu z `docker/db/init/01–06`. Existující DB aplikuje nová `05-m1-release.sql` a atomické `06-m1-core.sql`; staré release a výsledky zůstávají zachovány. Upgrade odstraní obsolete compliance/audit tabulky. Pokud legacy data odporují novým constraintům, upgrade selže a nevybírá za vlastníka historický verdict. Nepoužívat reset volume jako migraci.
+Čistá DB se vytváří přímo v cílovém stavu ze všech `docker/db/init/01–07`. Existující pre-M1 DB nejprve aplikuje `05-m1-release.sql` a atomické `06-m1-core.sql`; M3 přidává pouze `07-m3-release.sql` pro registraci nového release. Žádné M3 tabulky, sloupce ani indexy nepřibývají. Registrace je atomická a idempotentní; conflicting release hash/validator selže. Staré release a výsledky zůstávají zachovány. Konfliktní legacy data se autonomně nepřepisují. Nepoužívat reset volume jako migraci.
 
 Povinné testy ověřují čistý bootstrap, HTTP/DB lifecycle, odmítnuté zápisy, neměnnost, versioning, oddělení katalogu/cache a skutečný browser submit. Privilegované mazání pouze vlastních disposable test fixtures je vyhrazené testům; aplikace nemá cestu k obcházení historie.

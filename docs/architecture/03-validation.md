@@ -176,6 +176,8 @@ Serverová pipeline smí stejně jako frontend short-circuitovat po definitivní
 
 Backend nesmí přijmout klientský score, rules version, prefix flag ani jinou odvozeninu jako autoritativní hodnotu.
 
+Od public-1.3 / validator 1.3.0 kontroluje deklarace podle #109 také všechna čtyři explicitní zájmenná form fields. FE a PHP čtou společný `pronoun_form_signature` runtime kontrakt; přesný field schema popisuje normativní rozhodcovská specifikace a `05-konfigurator-ux.md`. Chybění, prázdný string a null nejsou explicitní notApplicable.
+
 ## Revalidace
 
 Jedna immutable revize může mít samostatný validační výsledek pro více `rules_version`. Starý verdikt zůstává zachován; revalidace nevytváří novou `sentence_revision`.
