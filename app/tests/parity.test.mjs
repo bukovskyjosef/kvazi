@@ -1,8 +1,18 @@
 /**
- * Parity test: same deterministic fixture corpus run through both JS (Node) and PHP engines.
- * Compares verdicts, score and per-token morphology against independent expected
- * surfaces for all 14 noun models, 4 adjective models, 5 verb models and branches.
- * Unreachable surfaces remain positive morphology cases, with separate surface verdicts.
+ * Parity test suite — JS (Node) ↔ PHP engine agreement on the same fixture corpus.
+ *
+ * Strategy (per #90/#93):
+ *   1. Surface parity: DFA motif validation, charScore, sequence.ok — both engines agree.
+ *   2. Representative active deep: surface-valid fixtures for reachable noun/adj/verb models
+ *      verify formCheck.ok/expected parity. Deep-negative fixtures use *different* surface-valid
+ *      motifs (not appended chars) so sequence.ok=true and formCheck.ok=false is genuine.
+ *   3. Staged notEvaluated: surface-invalid fixtures confirm both engines return
+ *      formCheck.status='notEvaluated', formCheck.ok=null — never a false positive/negative.
+ *   4. Dormant deep validators (kuře, otcův, matčin, V-NOUT, V-ÝT, V-OVAT) are exercised
+ *      in unit tests (morpho.test.mjs) where validateForm is called directly without the
+ *      surface gate. The parity suite does not cover them because their motif surfaces are
+ *      currently unreachable, but the implementation is preserved.
+ *   5. Structural, agreement, government, closed-enum and tampering parity round out the suite.
  *
  * Requires:
  *   - global.__normative set before morpho calls (done below)
@@ -516,36 +526,58 @@ function isolated(w) { return {sentenceType:'declarative', implicitSubject:false
 // ── Representative active deep parity (surface-valid fixtures only) ──────────
 
 // Surface-valid noun models: pán (kvazi), hrad (kvaz), žena-sg2 (kvazy), stavení (kvazí)
+// Deep-negative: a *different* surface-valid motif that doesn't match the expected form.
 const surfaceValidNouns = [
-  ['pán','kvaz','kvazi','plural','1'],
-  ['hrad','kvaz','kvaz','singular','1'],
-  ['žena','kvaza','kvazy','singular','2'],
-  ['stavení','kvazí','kvazí','singular','1'],
+  ['pán','kvaz','kvazi','plural','1','kvaz'],      // expects kvazi, wrong = kvaz
+  ['hrad','kvaz','kvaz','singular','1','kvazi'],    // expects kvaz, wrong = kvazi
+  ['žena','kvaza','kvazy','singular','2','kvazi'],  // expects kvazy, wrong = kvazi
+  ['stavení','kvazí','kvazí','singular','1','kvazi'],// expects kvazí, wrong = kvazi
 ];
-for (const [model,lemma,surface,number,caseNum] of surfaceValidNouns) {
+for (const [model,lemma,surface,number,caseNum,wrongSurface] of surfaceValidNouns) {
   test(`active deep parity noun ${model}`, () => {
     const {gender,animacy=''} = global.__normative.noun_models[model];
     const w = nounTok('t1',surface,{lemma,model,gender,animacy,number,caseNum});
-    assert.equal(both(isolated(w)).morphologyOk,true);
-    w.surface += 'x';
-    assert.equal(both(isolated(w)).morphologyOk,false);
+    const pos = both(isolated(w));
+    assert.equal(pos.morphologyOk, true);
+    assert.equal(pos.sequence.ok, true, 'positive fixture must be surface-valid');
+    // Deep-negative: surface-valid wrong form triggers formCheck.ok=false, not surface gate.
+    w.surface = wrongSurface;
+    const neg = both(isolated(w));
+    assert.equal(neg.sequence.ok, true, 'negative fixture must be surface-valid');
+    assert.equal(neg.tokens.t1.formCheck.ok, false, 'deep morphology must reject wrong form');
+    assert.equal(neg.morphologyOk, false);
   });
 }
 
 // Surface-valid verb: V-IT present 3sg (kvazí)
 test('active deep parity verb V-IT present 3sg', () => {
   const w = verbTok('t1','kvazí',{lemma:'kvazit',model:'V-IT',verbFormType:'present',verbPerson:'3',number:'singular'});
-  assert.equal(both(isolated(w)).morphologyOk,true);
-  w.surface='kvazý'; assert.equal(both(isolated(w)).morphologyOk,false);
+  const pos = both(isolated(w));
+  assert.equal(pos.morphologyOk, true);
+  assert.equal(pos.sequence.ok, true, 'positive fixture must be surface-valid');
+  // Deep-negative: kvazý is surface-valid but wrong for V-IT present 3sg (expects kvazí).
+  w.surface='kvazý';
+  const neg = both(isolated(w));
+  assert.equal(neg.sequence.ok, true, 'negative fixture must be surface-valid');
+  assert.equal(neg.tokens.t1.formCheck.ok, false, 'deep morphology must reject wrong form');
+  assert.equal(neg.morphologyOk, false);
 });
 
 // Surface-valid adjectives: mladý (kvazý), jarní (kvazí)
-for (const [model,lemma,surface] of [['mladý','kvazý','kvazý'],['jarní','kvazí','kvazí']]) {
+// Deep-negative: swap surfaces (kvazý ↔ kvazí) — both surface-valid, wrong for the other model.
+for (const [model,lemma,surface,wrongSurface] of [['mladý','kvazý','kvazý','kvazí'],['jarní','kvazí','kvazí','kvazý']]) {
   test(`active deep parity adjective ${model}`, () => {
     const w=tok('t1',surface,{pos:'adjective',lemma,model,identity:{},lexicalStatus:'quasi',role:'agreeingAttribute',
       form:{gender:'masculineAnimate',number:'singular',case:'1',degree:'1'},evidence:{morphology:'test',needsAnalogy:false}});
-    assert.equal(both(isolated(w)).morphologyOk,true);
-    w.surface+='x'; assert.equal(both(isolated(w)).morphologyOk,false);
+    const pos = both(isolated(w));
+    assert.equal(pos.morphologyOk, true);
+    assert.equal(pos.sequence.ok, true, 'positive fixture must be surface-valid');
+    // Deep-negative: surface-valid wrong form.
+    w.surface = wrongSurface;
+    const neg = both(isolated(w));
+    assert.equal(neg.sequence.ok, true, 'negative fixture must be surface-valid');
+    assert.equal(neg.tokens.t1.formCheck.ok, false, 'deep morphology must reject wrong form');
+    assert.equal(neg.morphologyOk, false);
   });
 }
 
@@ -609,7 +641,8 @@ for (const [field,value] of Object.entries({number:'banana',verbPerson:'4',verbG
 // ── Remaining structural/surface parity ──────────────────────────────────────
 
 test('pronoun declaration parity',()=> {
-  const w=tok('t1','já',{pos:'pronoun',lemma:'já',lexicalStatus:'real',role:'subject',evidence:{morphology:'test',needsAnalogy:false}});
+  // Pronoun with surface-valid motif so the surface gate passes and structure is evaluated.
+  const w=tok('t1','kvazi',{pos:'pronoun',lemma:'kvazi',lexicalStatus:'real',role:'subject',evidence:{morphology:'test',needsAnalogy:false}});
   assert.equal(both(isolated(w)).structureOk,true);
 });
 // Government parity: each preposition needs a surface-valid motif pair.

@@ -92,18 +92,22 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
     </div>`;
 }
 export function renderValidation(draft, state) {
-  // Morphology may be notEvaluated when surface gate failed — show as neutral, not success.
-  const morphNotEvaluated = !state.sequence.ok && draft.tokens.length > 0 && Object.values(state.tokens).some(t => t.formCheck.status === 'notEvaluated');
-  const morphLabel = morphNotEvaluated ? 'Morfologická kontrola nevyhodnocena (povrchová chyba)' : 'Morfologická shoda ověřena';
-  const morphClass = morphNotEvaluated ? 'status-neutral' : (state.morphologyOk ? 'status-ok' : 'status-missing');
-  const morphPrefix = morphNotEvaluated ? '–' : (state.morphologyOk ? '✓' : 'Chybí:');
-  const rows = [
-    [state.sequence.ok, 'Znaková kontrola'],
-    [state.syntax.ok && state.sentenceOk, 'Větná struktura a syntaktické vazby'],
-    [state.structureOk, 'Strukturované údaje úplné'],
-  ];
-  document.getElementById('validation').innerHTML = rows.map(([ok, label]) => `<p class="${ok ? 'status-ok' : 'status-missing'}">${ok ? '✓' : 'Chybí:'} ${label}</p>`).join('')
-    + `<p class="${morphClass}">${morphPrefix} ${morphLabel}</p>`
+  // When surface gate failed, all Phase 2/3 layers are notEvaluated — show as neutral.
+  const deepNotEvaluated = !state.sequence.ok && draft.tokens.length > 0;
+  const neutralRow = (label) => `<p class="status-neutral">– ${label} nevyhodnoceno (povrchová chyba)</p>`;
+  const deepRows = deepNotEvaluated
+    ? [neutralRow('Větná struktura a syntaktické vazby'), neutralRow('Strukturované údaje'), neutralRow('Morfologická kontrola')]
+    : [
+        `<p class="${state.syntax.ok && state.sentenceOk ? 'status-ok' : 'status-missing'}">${state.syntax.ok && state.sentenceOk ? '✓' : 'Chybí:'} Větná struktura a syntaktické vazby</p>`,
+        `<p class="${state.structureOk ? 'status-ok' : 'status-missing'}">${state.structureOk ? '✓' : 'Chybí:'} Strukturované údaje úplné</p>`,
+        (() => {
+          const morphClass = state.morphologyOk ? 'status-ok' : 'status-missing';
+          return `<p class="${morphClass}">${state.morphologyOk ? '✓' : 'Chybí:'} Morfologická shoda ověřena</p>`;
+        })(),
+      ];
+  document.getElementById('validation').innerHTML =
+    `<p class="${state.sequence.ok ? 'status-ok' : 'status-missing'}">${state.sequence.ok ? '✓' : 'Chybí:'} Znaková kontrola</p>`
+    + deepRows.join('')
     + `<p class="${state.submitReady ? 'status-ok' : 'status-missing'}">${state.submitReady ? '✓' : 'Chybí:'} Připraveno k odeslání</p>`
     + `<p>Slov: ${state.wordCount} · Skóre znaků: ${state.charScore} (Q = 1, KV = 2; prefix kvazi- = 0)</p>`
     + list([...state.sentenceIssues, ...state.sequence.issues.map(i => i.message), ...state.syntax.issues.map(i => `${draft.tokens.find(w => w.id === i.id)?.surface || ''}: ${i.message}`)])

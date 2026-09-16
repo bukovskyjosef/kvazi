@@ -103,13 +103,18 @@ test('DFA agrees with independent motif placement over all 16×16 motif pairs an
 });
 const singlesForTest = ['K', 'V', 'Z', 'A', 'I'];
 test('one-letter roles, POS cross checks and uniqueness are deterministic', () => {
+  // Single-letter POS auto-detection
   for (const surface of ['K', 'v', 'z', 'a', 'I']) {
     const w = createToken('s', surface);
     assert.equal(w.pos, ['a', 'i'].includes(surface.toLowerCase()) ? 'conjunction' : 'preposition');
-    const d = fixture(); d.tokens.push(w);
-    w.pos = 'noun';
-    assert.ok(deriveValidationState(d, schema).tokens.s.missing.some(x => x.includes('odporují')));
   }
+  // POS/single-exception cross-check (Phase 2): k+vazi+kvazi is surface-valid with 'k' appended.
+  // The cross-check logic is identical for all single exceptions; testing with 'k' is sufficient.
+  const wk = createToken('s', 'k');
+  const dk = fixture(); dk.tokens.push(wk);
+  wk.pos = 'noun';
+  assert.ok(deriveValidationState(dk, schema).tokens.s.missing.some(x => x.includes('odporují')));
+  // Reverse: non-single-letter surface with preposition/conjunction POS
   for (const pos of ['preposition', 'conjunction']) {
     const d = fixture(); d.tokens[0].pos = pos;
     assert.ok(deriveValidationState(d, schema).tokens.t1.missing.some(x => x.includes('odporují')));
@@ -279,7 +284,8 @@ test('previewDraft synchronously revalidates', () => {
 });
 test('duplicate identities ignore case, declared real/quasi status, case and number', () => {
   const d = fixture(), duplicate = structuredClone(d.tokens[0]);
-  duplicate.id = 't3'; duplicate.lemma = 'TESTNOUN'; duplicate.form.case = '2'; duplicate.lexicalStatus = 'real'; d.tokens.push(duplicate);
+  // Use a surface that keeps the 3-token sequence surface-valid: vazi+kvazi+kvázi
+  duplicate.id = 't3'; duplicate.surface = 'kvázi'; duplicate.lemma = 'TESTNOUN'; duplicate.form.case = '2'; duplicate.lexicalStatus = 'real'; d.tokens.push(duplicate);
   assert.ok(deriveValidationState(d, schema).tokens.t3.missing.some(x => x.includes('identita')));
 });
 
@@ -337,5 +343,13 @@ test('model selectors include all normative models (no reachability filtering)',
   assert.ok('matčin' in nd.adj_models, 'matčin must be in adj models');
   for (const vm of ['V-AT', 'V-IT', 'V-NOUT', 'V-ÝT', 'V-OVAT']) {
     assert.ok(vm in nd.verb_models, `${vm} must be in verb models`);
+  }
+  // Also verify publicSchema.models exposes every dormant + active model to the UI.
+  const m = publicSchema.models;
+  assert.ok('kuře' in m.noun, 'publicSchema.models.noun must include kuře');
+  assert.ok('otcův' in m.adjective, 'publicSchema.models.adjective must include otcův');
+  assert.ok('matčin' in m.adjective, 'publicSchema.models.adjective must include matčin');
+  for (const vm of ['V-AT', 'V-IT', 'V-NOUT', 'V-ÝT', 'V-OVAT']) {
+    assert.ok(vm in m.verb, `publicSchema.models.verb must include ${vm}`);
   }
 });
