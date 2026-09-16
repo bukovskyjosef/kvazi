@@ -298,8 +298,66 @@ try {
     console.log('Scene 14 (authenticated submit) skipped: Docker DB not reachable.');
   }
 
+  // ── Scene 15: Model offering completeness — dormant models visible in UI ────
+  // Verify that reachability does NOT filter the model selector. All normative
+  // models must appear as <option>, including dormant ones.
+  await page.goto(`${baseUrl}/konfigurator.php`);
+  const e15 = page.locator('#newSurface');
+  await e15.fill('kvazi'); await e15.press('Enter');
+  await page.locator('#token-t1').click();
+
+  // Noun models: check kuře (dormant) is present
+  await page.getByLabel('Slovní druh', { exact: true }).selectOption('noun');
+  const nounModelOptions = await page.locator('#word-model option').evaluateAll(opts => opts.map(o => o.value));
+  for (const model of ['kuře']) {
+    assert.ok(nounModelOptions.includes(model), `noun model selector must include dormant model "${model}"`);
+  }
+
+  // Adjective models: check otcův and matčin (dormant) are present
+  await page.getByLabel('Slovní druh', { exact: true }).selectOption('adjective');
+  const adjModelOptions = await page.locator('#word-model option').evaluateAll(opts => opts.map(o => o.value));
+  for (const model of ['otcův', 'matčin']) {
+    assert.ok(adjModelOptions.includes(model), `adjective model selector must include dormant model "${model}"`);
+  }
+
+  // Verb models: all 5 must be present, including dormant V-NOUT, V-ÝT, V-OVAT
+  await page.getByLabel('Slovní druh', { exact: true }).selectOption('verb');
+  const verbModelOptions = await page.locator('#word-model option').evaluateAll(opts => opts.map(o => o.value));
+  for (const model of ['V-AT', 'V-IT', 'V-NOUT', 'V-ÝT', 'V-OVAT']) {
+    assert.ok(verbModelOptions.includes(model), `verb model selector must include "${model}"`);
+  }
+
+  // ── Scene 16: Surface-invalid UX — deep layers shown as neutral, not FAIL ─────
+  // Insert a surface-invalid token and verify the validation panel does not show
+  // deep layers as failure — they must be neutral ("nevyhodnoceno").
+  await page.goto(`${baseUrl}/konfigurator.php`);
+  const e16 = page.locator('#newSurface');
+  await e16.fill('jsme'); await e16.press('Enter');
+  assert.equal(await page.locator('#tokens .token-chip').count(), 1);
+
+  // Validation panel must show surface error
+  const valPanel = page.locator('#validation');
+  const valHtml = await valPanel.innerHTML();
+  assert.ok(valHtml.includes('status-missing'), 'surface error should be displayed');
+
+  // Deep layers must be neutral (status-neutral), NOT fail (status-missing for deep rows)
+  const neutralRows = await valPanel.locator('.status-neutral').count();
+  assert.ok(neutralRows >= 3, `expected ≥3 neutral deep rows (syntax, structure, morphology), got ${neutralRows}`);
+
+  // No deep layer should show as checked-ok either (they were not evaluated)
+  // The only status-ok that could appear would be if deep ran — verify deep rows say "nevyhodnoceno"
+  const neutralTexts = await valPanel.locator('.status-neutral').allTextContents();
+  assert.ok(neutralTexts.some(t => t.includes('nevyhodnoceno')), 'neutral rows must indicate "nevyhodnoceno"');
+
+  // Submit must stay disabled
+  assert.equal(await page.locator('#submitButton').isDisabled(), true, 'submit must be disabled for surface-invalid draft');
+
+  // Live status should reflect the not-evaluated state
+  const liveStatus = await page.locator('#liveStatus').textContent();
+  assert.ok(liveStatus.includes('nesplněna'), 'live status should report surface check not met');
+
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit.');
+  console.log('Browser checks passed: insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
 } finally {
   if (dbUp) {
     try { deleteTestUser(BRW_USR); } catch { /* non-fatal */ }
