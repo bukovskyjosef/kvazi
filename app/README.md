@@ -10,8 +10,8 @@ Autoritativní kontext:
 
 ## Stack
 
-- PHP 8.x
-- PostgreSQL
+- PHP 8.3 + Apache (pdo, pdo_pgsql, intl, mbstring)
+- PostgreSQL 18
 - HTML5
 - CSS
 - vanilla JavaScript
@@ -21,7 +21,7 @@ Autoritativní kontext:
 Z kořene repozitáře:
 
 ```sh
-docker compose up -d
+docker compose up --build
 ```
 
 Compose načítá lokální `.env` nebo runtime env (např. z Coolify). Bez `.env` použije pouze development fallback `kvazi/kvazi`. Volitelně zkopírujte `.env.example` do ignorovaného `.env` a nastavte vlastní hodnoty před prvním bootstrapem DB. `DB_PASSWORD` je jediný název hesla; změna env na existujícím PostgreSQL volume sama heslo DB nezmění. `.env.example` je dokumentace kontraktu, nemá skutečné secrets. PHP dotenv soubory nenačítá; mimo Compose musí web server dostat stejné proměnné ze svého runtime environmentu (lokální server lze spustit pomocí `php -S 127.0.0.1:8080 -t app/public`).
@@ -33,6 +33,45 @@ http://127.0.0.1:8080/konfigurator.php
 ```
 
 Vyžaduje přihlášeného uživatele pro submit; samotná stránka se zobrazí i nepřihlášenému.
+
+Compose používá stejný root Dockerfile jako production image, source bind mounty pouze překrývají baked-in `app/public` a `app/data`. PostgreSQL 18 ukládá data do named `db_data` na `/var/lib/postgresql` (uvnitř `18/docker`), init adresář se spouští jen nad novou prázdnou DB. Běžné `compose up` volume nemaže. PG16 volume nelze přímo otevřít PG18 image: před přechodem zachovejte původní volume a proveďte explicitní dump/restore do samostatného PG18 volume nebo podporovaný major upgrade. To je odlišné od forward SQL upgrade aplikačního schématu. Nepoužívejte `down -v` jako migraci. Pro izolovaný nový lokální stack lze zvolit vlastní Compose project `docker compose -p kvazi_pg18 up --build` po zastavení původních kontejnerů; starý project volume zůstane zachovaný. Viz [oficiální PG18 volume layout](https://docs.docker.com/guides/postgresql/).
+
+## Production image a samostatná PostgreSQL 18 DB
+
+Z rootu repozitáře buildněte samostatný PHP/Apache image:
+
+```sh
+docker build -f docker/php/Dockerfile -t kvazi-app:release .
+```
+
+Image obsahuje pouze runtime `app/public` v `/var/www/html` a `app/data` v `/var/www/data` mimo document root; root `.dockerignore` omezuje context na runtime a packaging, vylučuje `.env*`, Git a test artefakty. Aplikace nemá PostgreSQL server ani DB startup/migration hook. V Coolify odpovídá samostatné Application, PostgreSQL 18 samostatnému persistentnímu resource; žádný source bind mount není potřeba. Interní HTTP port je **80**, veřejný readiness endpoint **GET `/healthz`**. Vrací pouze JSON status `ok`/200 nebo `unavailable`/503 po DB `SELECT 1`, bez session a interních údajů. Apache mapuje přesnou URL bez redirectu; `/healthz.php` používá stejný handler.
+
+Runtime env je přesně kontrakt `.env.example`: `APP_ENV`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `AUTH_COOKIE_SECURE`, `TRUSTED_PROXY_CIDRS`. Produkční DB endpoint/name/user/password nastavte explicitně; `db` je jen local-dev fallback, externí hostname ani port nejsou fixní. HTTPS/proxy kontrakt níže zůstává platný. Image ani jeho tag neobsahují deployment secrets.
+
+**Úplně nová prázdná externí DB:** vytvoření DB/resource provede provoz explicitně mimo application container. Z autorizovaného prostředí s `psql` a `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER` a bezpečně dodaným heslem (runtime `PGPASSWORD` nebo chráněný pgpass) jednorázově aplikujte bootstrap v tomto pořadí:
+
+```sh
+set -e
+for sql in docker/db/init/01-init.sql \
+           docker/db/init/02-user-account.sql \
+           docker/db/init/03-submission.sql \
+           docker/db/init/04-corrective-release.sql \
+           docker/db/init/05-m1-release.sql \
+           docker/db/init/06-m1-core.sql \
+           docker/db/init/07-m3-release.sql; do
+  psql -v ON_ERROR_STOP=1 -f "$sql"
+done
+```
+
+SQL soubory jsou explicitní provozní krok z repozitáře, nikoli obsah application image. Potom nasadíte image s runtime env. **Existující DB:** aplikujte pouze relevantní forward upgrade pro její aktuální stav podle sekce níže, poté nový image; nikdy automaticky nereplayujte celý init adresář. Application restart/redeploy DB neinitializuje, neupgraduje ani neřídí její lifecycle. Žádný nový migration framework se nezavádí.
+
+Povinný runner assertuje skutečný DB major **18**, ověřuje disposable bootstrap/upgrade/conflicting rollback a původní immutable/cleanup/regression stack. `deployment.acceptance.mjs` navíc vždy buildí root image a vytvoří vlastní external PG18 resource s odlišným hostname/portem/name/user/password a vlastní volume; application má `Mounts=[]`, testuje runtime layout/versions/extensions, safe healthz 200/503, stránky a marker/release fingerprint po application redeploy. Uklízí pouze vlastní test image/network/container/volume. Samostatný cílený běh:
+
+```sh
+node --test app/tests/deployment.acceptance.mjs
+```
+
+Deployment acceptance je povinnou součástí `bash app/tests/run-integration.sh`, bez volitelného skipu. Skutečné Coolify resource/DNS/CI/CD/backup/mail nejsou tímto packagingem vytvářené.
 
 ## Struktura konfigurátoru
 
