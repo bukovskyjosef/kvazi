@@ -528,6 +528,7 @@ table.mt input:focus { background: rgba(255,179,92,.1); outline: none; }
 /* ── Validation status ── */
 .status-ok      { color: #4ade80; font-weight: 600; }
 .status-missing { color: #fbbf24; font-weight: 600; }
+.status-neutral { color: #9ca3af; font-weight: 600; }
 .status-list { padding-left: 22px; line-height: 1.8; }
 
 /* ── Submit / actions ── */

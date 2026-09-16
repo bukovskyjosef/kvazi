@@ -211,21 +211,22 @@ test('formCheck ok when surface matches declared form', () => {
   assert.equal(state.tokens.t1.formCheck.ok, true);
   assert.equal(state.tokens.t1.formCheck.expected, 'kvaz');
 });
-test('morphologyOk uses formCheck across all tokens', () => {
+test('morphologyOk uses formCheck across all tokens (surface-valid draft)', () => {
+  // Use a surface-valid two-token sequence: vazi + kvazi
   const d = createDraft();
-  // noun with correct form
-  const noun = createToken('t1', 'kvaz');
-  Object.assign(noun, { pos: 'noun', lemma: 'kvaz', model: 'hrad', identity: { gender: 'masculine', animacy: 'inanimate' }, form: { case: '1', number: 'singular' }, lexicalStatus: 'quasi', role: 'subject', relations: { head: 't2' } });
+  const noun = createToken('t1', 'vazi');
+  Object.assign(noun, { pos: 'noun', lemma: 'vaz', model: 'hrad', identity: { gender: 'masculine', animacy: 'inanimate' }, form: { case: '1', number: 'singular' }, lexicalStatus: 'quasi', role: 'subject', relations: { head: 't2' } });
   noun.evidence.morphology = 'ok';
-  // verb with V-AT type — unknown surface doesn't matter for morphologyOk here since lemma check fails first
   const verb = createToken('t2', 'kvazi');
   Object.assign(verb, { pos: 'verb', lemma: 'kvazat', model: 'V-AT', form: { verbFormType: 'present', verbPerson: '3', number: 'singular', aspect: 'imperfective' }, lexicalStatus: 'quasi', role: 'predicate', valency: { declaration: 'x' } });
   verb.evidence.morphology = 'ok';
   d.tokens = [noun, verb];
   d.nextId = 3;
+  d.sentenceType = 'declarative';
   const state = deriveValidationState(d);
-  // noun formCheck ok, verb: stem='kvaz', ending='á', expected='kvazá' ≠ 'kvazi' — formCheck fails
-  assert.equal(state.tokens.t1.formCheck.ok, true);
+  // noun: hrad, case=1, singular, stem='vaz', expected='vaz', surface='vazi' — FAIL
+  assert.equal(state.tokens.t1.formCheck.ok, false);
+  // verb: V-AT, present, 3sg, stem='kvaz', ending='á', expected='kvazá', surface='kvazi' — FAIL
   assert.equal(state.tokens.t2.formCheck.ok, false);
   assert.equal(state.morphologyOk, false);
 });
@@ -289,4 +290,52 @@ test('editing verb surface to prefix re-infers noun POS',()=> {
   d=mutateDraft(d,{type:'surface',id:'t1',value:'kvaziqazi'});
   assert.equal(d.tokens[0].pos,'noun');
   assert.equal(d.tokens[0].kvaziPrefix,global.__normative.kvazi_prefix);
+});
+
+// ── Staged validation: surface gate → deep short-circuit (#91) ──
+test('surface-invalid draft: formCheck is notEvaluated, not false success', () => {
+  // Single surface-invalid token (bad charset)
+  const d = createDraft();
+  const w = createToken('t1', 'xyz');
+  Object.assign(w, { pos: 'noun', lemma: 'xyz', model: 'hrad', identity: { gender: 'masculine', animacy: 'inanimate' }, form: { case: '1', number: 'singular' }, lexicalStatus: 'quasi', role: 'subject', relations: { head: 't2' } });
+  w.evidence.morphology = 'test';
+  d.tokens = [w];
+  const state = deriveValidationState(d);
+  assert.equal(state.sequence.ok, false, 'surface gate should fail');
+  assert.equal(state.tokens.t1.formCheck.status, 'notEvaluated');
+  assert.equal(state.tokens.t1.formCheck.ok, null, 'notEvaluated must not pretend ok=true');
+  assert.equal(state.morphologyOk, false, 'morphologyOk false when deep not evaluated');
+  assert.equal(state.submitReady, false);
+});
+
+test('surface-invalid draft: validateSyntax and agreement are not run', () => {
+  const d = createDraft();
+  const w = createToken('t1', 'xyz');
+  Object.assign(w, { pos: 'noun', role: 'subject', relations: { head: 't2' } });
+  d.tokens = [w];
+  const state = deriveValidationState(d);
+  // syntax issues should be empty (not run), not populated
+  assert.deepEqual(state.syntax.issues, []);
+  assert.equal(state.syntax.ok, false);
+});
+
+test('surface-valid draft: deep validation runs normally', () => {
+  const d = fixture();
+  const state = deriveValidationState(d, schema);
+  assert.equal(state.sequence.ok, true, 'fixture is surface-valid');
+  // formCheck should be evaluated (not notEvaluated)
+  for (const t of Object.values(state.tokens)) {
+    assert.notEqual(t.formCheck.status, 'notEvaluated', 'deep validation should run for surface-valid');
+  }
+});
+
+test('model selectors include all normative models (no reachability filtering)', () => {
+  // Verify normative data contains expected models — this is a regression anchor
+  const nd = globalThis.__normative;
+  assert.ok('kuře' in nd.noun_models, 'kuře must be in noun models');
+  assert.ok('otcův' in nd.adj_models, 'otcův must be in adj models');
+  assert.ok('matčin' in nd.adj_models, 'matčin must be in adj models');
+  for (const vm of ['V-AT', 'V-IT', 'V-NOUT', 'V-ÝT', 'V-OVAT']) {
+    assert.ok(vm in nd.verb_models, `${vm} must be in verb models`);
+  }
 });

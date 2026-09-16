@@ -25,7 +25,9 @@ function render() {
   element('newSurface').hidden = !!draft.closingPunct;
   const submitBtn = element('submitButton');
   if (submitBtn) submitBtn.disabled = !state.submitReady;
-  const summary = `${state.wordCount} slov, skóre ${state.charScore}. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologická shoda ${state.morphologyOk ? 'ověřena' : 'neověřena'}. ${state.submitReady ? 'Připraveno k odeslání.' : 'Zatím není připraveno k odeslání.'}`;
+  const morphNotEvaluated = !state.sequence.ok && draft.tokens.length > 0 && Object.values(state.tokens).some(t => t.formCheck.status === 'notEvaluated');
+  const morphSummary = morphNotEvaluated ? 'nevyhodnocena (povrchová chyba)' : (state.morphologyOk ? 'ověřena' : 'neověřena');
+  const summary = `${state.wordCount} slov, skóre ${state.charScore}. Znaková kontrola ${state.sequence.ok ? 'splněna' : 'nesplněna'}. Struktura ${state.syntax.ok && state.sentenceOk && state.structureOk ? 'úplná' : 'k doplnění'}. Morfologická shoda ${morphSummary}. ${state.submitReady ? 'Připraveno k odeslání.' : 'Zatím není připraveno k odeslání.'}`;
   if (element('liveStatus').textContent !== summary) element('liveStatus').textContent = summary;
 }
 function dispatch(action) {

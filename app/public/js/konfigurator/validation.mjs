@@ -136,9 +136,18 @@ export function validateSyntax(draft, schema = publicSchema) {
   return { ok: words.length > 0 && issues.length === 0, issues };
 }
 
+// Explicit deep-validation status when surface gate already decided INVALID.
+// The deep morpho/syntax engine (morpho.mjs) remains intact as dormant/reusable
+// implementation for future rules versions — only the call site is gated.
+const NOT_EVALUATED = Object.freeze({ status: 'notEvaluated', reason: 'surfaceInvalid', ok: null, expected: null, message: null });
+
 export function deriveValidationState(draft, schema = publicSchema) {
+  // ── Phase 1: surface gate ──────────────────────────────────
   const sequence = validateTokenSequence(draft.tokens);
-  const syntax = validateSyntax(draft, schema);
+  const surfaceOk = sequence.ok;
+
+  // ── Phase 2+3 run only when surface gate passes ────────────
+  const syntax = surfaceOk ? validateSyntax(draft, schema) : { ok: false, issues: [] };
   const sentenceIssues = [];
   const punct = ndPunctuation();
   const predicates = draft.tokens.filter(w => w.role === 'predicate');
@@ -156,34 +165,35 @@ export function deriveValidationState(draft, schema = publicSchema) {
     if (!schema.allowsImplicitSubject?.(verbs[0], draft)) sentenceIssues.push('Dovolený imperativ pro nevyjádřený podmět musí určit dokončený slovesný model (#2/#4).');
   } else if (subjects.length !== 1) sentenceIssues.push('Věta musí mít právě jeden výslovný podmět.');
 
-  // Subject/predicate agreement (deterministic where derivable from normative data)
-  const subjectWord = subjects[0];
-  const predicateWord = predicates[0];
-  if (subjectWord && predicateWord && predicateWord.pos === 'verb') {
-    const vft = predicateWord.form?.verbFormType;
-    const nounModelData = ndNounModels();
-    if (subjectWord.pos === 'noun') {
-      const subjModel = nounModelData[subjectWord.model];
-      if (vft === 'present') {
-        const vPerson = predicateWord.form?.verbPerson;
-        const sn = subjectWord.form?.number, vn = predicateWord.form?.number;
-        if (sn && vn && sn !== vn) sentenceIssues.push('Číslo slovesa neodpovídá číslu podmětu.');
-        if (vPerson && vPerson !== '3') sentenceIssues.push('Podmět je podstatné jméno; přítomný/budoucí slovesný tvar musí být ve 3. osobě.');
-      }
-      if (vft === 'lParticiple' && subjModel) {
-        const subjGender = subjModel.gender;
-        const subjNumber = subjectWord.form?.number;
-        const verbGender = predicateWord.form?.verbGender;
-        const verbNumber = predicateWord.form?.number;
-        if (verbGender && subjGender && verbGender !== subjGender) sentenceIssues.push(`Rod l-příčestí (${verbGender}) neodpovídá rodu podmětu (${subjGender}).`);
-        if (verbNumber && subjNumber && verbNumber !== subjNumber) sentenceIssues.push(`Číslo l-příčestí (${verbNumber}) neodpovídá číslu podmětu (${subjNumber}).`);
-        // For masculine plural l-participle, animacy of predicate must match subject noun model.
-        if (verbGender === 'masculine' && subjGender === 'masculine' &&
-            verbNumber === 'plural' && subjNumber === 'plural') {
-          const subjAnimacy = subjModel.animacy; // 'animate' | 'inanimate' | ''
-          const verbAnimacy = predicateWord.form?.verbAnimacy;
-          if (subjAnimacy && verbAnimacy && subjAnimacy !== verbAnimacy) {
-            sentenceIssues.push(`Životnost l-příčestí (${verbAnimacy}) neodpovídá životnosti podmětu (${subjAnimacy}).`);
+  // Subject/predicate agreement — only when surface gate passed (deterministic where derivable)
+  if (surfaceOk) {
+    const subjectWord = subjects[0];
+    const predicateWord = predicates[0];
+    if (subjectWord && predicateWord && predicateWord.pos === 'verb') {
+      const vft = predicateWord.form?.verbFormType;
+      const nounModelData = ndNounModels();
+      if (subjectWord.pos === 'noun') {
+        const subjModel = nounModelData[subjectWord.model];
+        if (vft === 'present') {
+          const vPerson = predicateWord.form?.verbPerson;
+          const sn = subjectWord.form?.number, vn = predicateWord.form?.number;
+          if (sn && vn && sn !== vn) sentenceIssues.push('Číslo slovesa neodpovídá číslu podmětu.');
+          if (vPerson && vPerson !== '3') sentenceIssues.push('Podmět je podstatné jméno; přítomný/budoucí slovesný tvar musí být ve 3. osobě.');
+        }
+        if (vft === 'lParticiple' && subjModel) {
+          const subjGender = subjModel.gender;
+          const subjNumber = subjectWord.form?.number;
+          const verbGender = predicateWord.form?.verbGender;
+          const verbNumber = predicateWord.form?.number;
+          if (verbGender && subjGender && verbGender !== subjGender) sentenceIssues.push(`Rod l-příčestí (${verbGender}) neodpovídá rodu podmětu (${subjGender}).`);
+          if (verbNumber && subjNumber && verbNumber !== subjNumber) sentenceIssues.push(`Číslo l-příčestí (${verbNumber}) neodpovídá číslu podmětu (${subjNumber}).`);
+          if (verbGender === 'masculine' && subjGender === 'masculine' &&
+              verbNumber === 'plural' && subjNumber === 'plural') {
+            const subjAnimacy = subjModel.animacy;
+            const verbAnimacy = predicateWord.form?.verbAnimacy;
+            if (subjAnimacy && verbAnimacy && subjAnimacy !== verbAnimacy) {
+              sentenceIssues.push(`Životnost l-příčestí (${verbAnimacy}) neodpovídá životnosti podmětu (${subjAnimacy}).`);
+            }
           }
         }
       }
@@ -232,18 +242,23 @@ export function deriveValidationState(draft, schema = publicSchema) {
       }
     }
     if (w.evidence.needsAnalogy && (!w.evidence.explanation.trim() || !w.evidence.analogy.trim())) missing.push('Obhajoba nejasného/fiktivního vztahu a běžná česká analogie.');
-    const formCheck = validateForm(w);
+    // Deep morphological form-check: only run when surface gate passed.
+    // When surface is invalid, the verdict is already INVALID; deep validation
+    // cannot change it. The deep engine (morpho.mjs) remains as dormant/reusable code.
+    const formCheck = surfaceOk ? validateForm(w) : NOT_EVALUATED;
     tokens[w.id] = { missing, formCheck };
   }
   const idsOk = new Set(draft.tokens.map(w => w.id)).size === draft.tokens.length && draft.tokens.every(w => typeof w.id === 'string' && !!w.id);
   if (!idsOk) sentenceIssues.push('Interní ID slov musejí být neprázdná a jedinečná.');
   const structureOk = draft.tokens.length > 0 && Object.values(tokens).every(t => !t.missing.length);
-  const morphologyOk = draft.tokens.length > 0 && Object.values(tokens).every(t => t.formCheck.ok);
+  // morphologyOk: true only when all form-checks actively succeeded.
+  // notEvaluated (ok===null) does not count as success.
+  const morphologyOk = draft.tokens.length > 0 && Object.values(tokens).every(t => t.formCheck.ok === true);
   const sentenceOk = !sentenceIssues.length;
   for (const w of draft.tokens) {
     const t = tokens[w.id];
     t.issues = [...sequence.issues.filter(i => i.id === null || i.id === w.id), ...syntax.issues.filter(i => i.id === w.id)].map(i => i.message);
-    t.complete = !t.missing.length && !t.issues.length && t.formCheck.ok;
+    t.complete = !t.missing.length && !t.issues.length && t.formCheck.ok === true;
   }
   const previewSurfaces = draft.tokens.map((w, i) => {
     const s = nfc(w.surface);
@@ -260,7 +275,7 @@ export function deriveValidationState(draft, schema = publicSchema) {
     return sum + len;
   }, 0);
   return { sequence, syntax, sentenceIssues, tokens, structureOk, morphologyOk, sentenceOk, fullVerbOk,
-    submitReady: sequence.ok && syntax.ok && sentenceOk && structureOk && morphologyOk,
+    submitReady: surfaceOk && syntax.ok && sentenceOk && structureOk && morphologyOk,
     text: previewSurfaces.join(' ') + termPunct,
     wordCount: draft.tokens.length, charScore };
 }

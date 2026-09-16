@@ -731,14 +731,26 @@ class KvaziValidator {
     // Full deriveValidationState (mirrors validation.mjs deriveValidationState)
     // ─────────────────────────────────────────────────────────
 
+    // Explicit deep-validation status when surface gate already decided INVALID.
+    // The deep morpho engine (validateNoun/Adjective/Verb/Auxiliary) remains intact
+    // as dormant/reusable implementation for future rules versions.
+    private const NOT_EVALUATED = [
+        'status' => 'notEvaluated', 'reason' => 'surfaceInvalid',
+        'ok' => null, 'expected' => null, 'message' => null,
+    ];
+
     public function deriveValidationState(array $draft): array {
         $tokens     = $draft['tokens'] ?? [];
         $sentType   = $draft['sentenceType'] ?? '';
         $punctMap   = $this->nd['punctuation'];
         $implicit   = $draft['implicitSubject'] ?? false;
 
+        // ── Phase 1: surface gate ────────────────────────────────
         $sequence = $this->validateTokenSequence($tokens);
-        $syntax   = $this->validateSyntax($draft);
+        $surfaceOk = $sequence['ok'];
+
+        // ── Phase 2+3 run only when surface gate passes ──────────
+        $syntax = $surfaceOk ? $this->validateSyntax($draft) : ['ok' => false, 'issues' => []];
 
         $sentenceIssues = [];
         $predicates     = array_filter($tokens, fn($w) => ($w['role'] ?? '') === 'predicate');
@@ -758,7 +770,6 @@ class KvaziValidator {
             if ($sentType !== 'imperative' || count($subjects) !== 0) {
                 $sentenceIssues[] = 'Nevyjádřený podmět je možný jen u rozkazovací věty bez explicitního podmětu.';
             }
-            // For implicit subject in imperative, the verb must have a known model
             $verbArr = array_values($verbs);
             $verbModels = $this->nd['verb_models'];
             $verbModel = $verbArr[0]['model'] ?? '';
@@ -774,7 +785,10 @@ class KvaziValidator {
         $identities   = [];
         foreach ($tokens as $w) {
             $missing   = $this->checkFieldSchema($w);
-            $formCheck = $this->validateForm($w);
+            // Deep morphological form-check: only run when surface gate passed.
+            // When surface is invalid, the verdict is already INVALID; deep validation
+            // cannot change it. The deep engine remains as dormant/reusable code.
+            $formCheck = $surfaceOk ? $this->validateForm($w) : self::NOT_EVALUATED;
 
             // Duplicate identity check for nouns/adjectives
             $pos = $w['pos'] ?? '';
@@ -800,52 +814,51 @@ class KvaziValidator {
             $tokenResults[$w['id']] = ['missing' => $missing, 'formCheck' => $formCheck, 'issues' => []];
         }
 
-        // Subject/predicate agreement (deterministic where derivable)
-        $subjectWord   = null;
-        $predicateWord = null;
-        foreach ($tokens as $w) {
-            if (($w['role'] ?? '') === 'subject')   $subjectWord   = $w;
-            if (($w['role'] ?? '') === 'predicate') $predicateWord = $w;
-        }
-        if ($subjectWord && $predicateWord && ($predicateWord['pos'] ?? '') === 'verb') {
-            $vft     = $predicateWord['form']['verbFormType'] ?? '';
-            $nounModels = $this->nd['noun_models'];
-            if ($subjectWord['pos'] === 'noun') {
-                $subjModel = $nounModels[$subjectWord['model'] ?? ''] ?? null;
-                // Present/future: verb person must be 3rd for noun subject.
-                if ($vft === 'present') {
-                    $vPerson = $predicateWord['form']['verbPerson'] ?? '';
-                    $sn = $subjectWord['form']['number'] ?? '';
-                    $vn = $predicateWord['form']['number'] ?? '';
-                    if ($sn && $vn && $sn !== $vn) $sentenceIssues[] = 'Číslo slovesa neodpovídá číslu podmětu.';
-                    if ($vPerson && $vPerson !== '3') {
-                        $sentenceIssues[] = 'Podmět je podstatné jméno; přítomný/budoucí slovesný tvar musí být ve 3. osobě.';
-                    }
-                }
-                // L-participle: gender and number must match subject noun.
-                if ($vft === 'lParticiple' && $subjModel) {
-                    $subjGender  = $subjModel['gender'];
-                    $subjNumber  = $subjectWord['form']['number'] ?? '';
-                    $verbGender  = $predicateWord['form']['verbGender'] ?? '';
-                    $verbNumber  = $predicateWord['form']['number'] ?? '';
-                    if ($verbGender && $subjGender) {
-                        $expectedVerbGender = $subjGender === 'masculine'
-                            ? ($subjModel['animacy'] === 'animate' ? 'masculine' : 'masculine')
-                            : $subjGender;
-                        if ($verbGender !== $expectedVerbGender) {
-                            $sentenceIssues[] = "Rod l-příčestí ({$verbGender}) neodpovídá rodu podmětu ({$expectedVerbGender}).";
+        // Subject/predicate agreement — only when surface gate passed (deterministic where derivable)
+        if ($surfaceOk) {
+            $subjectWord   = null;
+            $predicateWord = null;
+            foreach ($tokens as $w) {
+                if (($w['role'] ?? '') === 'subject')   $subjectWord   = $w;
+                if (($w['role'] ?? '') === 'predicate') $predicateWord = $w;
+            }
+            if ($subjectWord && $predicateWord && ($predicateWord['pos'] ?? '') === 'verb') {
+                $vft     = $predicateWord['form']['verbFormType'] ?? '';
+                $nounModels = $this->nd['noun_models'];
+                if ($subjectWord['pos'] === 'noun') {
+                    $subjModel = $nounModels[$subjectWord['model'] ?? ''] ?? null;
+                    if ($vft === 'present') {
+                        $vPerson = $predicateWord['form']['verbPerson'] ?? '';
+                        $sn = $subjectWord['form']['number'] ?? '';
+                        $vn = $predicateWord['form']['number'] ?? '';
+                        if ($sn && $vn && $sn !== $vn) $sentenceIssues[] = 'Číslo slovesa neodpovídá číslu podmětu.';
+                        if ($vPerson && $vPerson !== '3') {
+                            $sentenceIssues[] = 'Podmět je podstatné jméno; přítomný/budoucí slovesný tvar musí být ve 3. osobě.';
                         }
                     }
-                    if ($verbNumber && $subjNumber && $verbNumber !== $subjNumber) {
-                        $sentenceIssues[] = "Číslo l-příčestí ({$verbNumber}) neodpovídá číslu podmětu ({$subjNumber}).";
-                    }
-                    // Animacy agreement for masculine plural l-participle.
-                    if ($verbGender === 'masculine' && $subjGender === 'masculine' &&
-                        $verbNumber === 'plural' && $subjNumber === 'plural') {
-                        $subjAnimacy = $subjModel['animacy'] ?? '';
-                        $verbAnimacy = $predicateWord['form']['verbAnimacy'] ?? '';
-                        if ($subjAnimacy && $verbAnimacy && $subjAnimacy !== $verbAnimacy) {
-                            $sentenceIssues[] = "Životnost l-příčestí ({$verbAnimacy}) neodpovídá životnosti podmětu ({$subjAnimacy}).";
+                    if ($vft === 'lParticiple' && $subjModel) {
+                        $subjGender  = $subjModel['gender'];
+                        $subjNumber  = $subjectWord['form']['number'] ?? '';
+                        $verbGender  = $predicateWord['form']['verbGender'] ?? '';
+                        $verbNumber  = $predicateWord['form']['number'] ?? '';
+                        if ($verbGender && $subjGender) {
+                            $expectedVerbGender = $subjGender === 'masculine'
+                                ? ($subjModel['animacy'] === 'animate' ? 'masculine' : 'masculine')
+                                : $subjGender;
+                            if ($verbGender !== $expectedVerbGender) {
+                                $sentenceIssues[] = "Rod l-příčestí ({$verbGender}) neodpovídá rodu podmětu ({$expectedVerbGender}).";
+                            }
+                        }
+                        if ($verbNumber && $subjNumber && $verbNumber !== $subjNumber) {
+                            $sentenceIssues[] = "Číslo l-příčestí ({$verbNumber}) neodpovídá číslu podmětu ({$subjNumber}).";
+                        }
+                        if ($verbGender === 'masculine' && $subjGender === 'masculine' &&
+                            $verbNumber === 'plural' && $subjNumber === 'plural') {
+                            $subjAnimacy = $subjModel['animacy'] ?? '';
+                            $verbAnimacy = $predicateWord['form']['verbAnimacy'] ?? '';
+                            if ($subjAnimacy && $verbAnimacy && $subjAnimacy !== $verbAnimacy) {
+                                $sentenceIssues[] = "Životnost l-příčestí ({$verbAnimacy}) neodpovídá životnosti podmětu ({$subjAnimacy}).";
+                            }
                         }
                     }
                 }
@@ -859,7 +872,9 @@ class KvaziValidator {
         }
 
         $structureOk  = !empty($tokens) && !array_filter($tokenResults, fn($t) => !empty($t['missing']));
-        $morphologyOk = !empty($tokens) && !array_filter($tokenResults, fn($t) => !$t['formCheck']['ok']);
+        // morphologyOk: true only when all form-checks actively succeeded.
+        // notEvaluated (ok===null) does not count as success.
+        $morphologyOk = !empty($tokens) && !array_filter($tokenResults, fn($t) => $t['formCheck']['ok'] !== true);
         $sentenceOk   = empty($sentenceIssues);
 
         // Merge sequence/syntax issues into per-token results
@@ -874,7 +889,7 @@ class KvaziValidator {
             $tokenResults[$w['id']]['issues'] = $tokenIssues;
             $tokenResults[$w['id']]['complete'] = empty($tokenResults[$w['id']]['missing'])
                 && empty($tokenIssues)
-                && $tokenResults[$w['id']]['formCheck']['ok'];
+                && $tokenResults[$w['id']]['formCheck']['ok'] === true;
         }
 
         // charScore
@@ -890,7 +905,7 @@ class KvaziValidator {
         $termPunct = $draft['closingPunct'] ?? ($punctMap[$sentType] ?? '');
         $text = implode(' ', $previewParts) . $termPunct;
 
-        $submitReady = $sequence['ok'] && $syntax['ok'] && $sentenceOk && $structureOk && $morphologyOk;
+        $submitReady = $surfaceOk && $syntax['ok'] && $sentenceOk && $structureOk && $morphologyOk;
 
         return [
             'sequence'      => $sequence,

@@ -187,7 +187,9 @@ try {
   assert.equal(payload11.draft.tokens[0].kvaziPrefix, 'kvazi', 'kvaziPrefix should be kvazi for kvazipan');
   assert.equal(payload11.draft.tokens[0].pos, 'noun', 'pos should be noun for kvazipan (from JSON)');
 
-  // ── Scene 12: Auxiliary být — jsme declared as auxiliary ──────────────────
+  // ── Scene 12: Surface-invalid auxiliary — staged validation produces notEvaluated ──
+  // "jsme" fails the surface gate (characters J,S,M,E outside kvazi charset).
+  // Deep form-check must NOT run; the UI must show notEvaluated, not a false positive.
   await page.goto(`${baseUrl}/konfigurator.php`);
   const e12 = page.locator('#newSurface');
   await e12.fill('jsme');
@@ -200,8 +202,10 @@ try {
   await page.getByLabel('Deklarovaná identita').selectOption('real');
   await page.getByRole('button', { name: 'Zobrazit náhled JSON (neodesílá)' }).click();
   const payload12 = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.equal(payload12.validation.tokens['t1'].formCheck.ok, true, 'jsme as auxiliary: formCheck.ok should be true');
-  assert.equal(payload12.validation.morphologyOk, true, 'morphologyOk should be true for valid auxiliary token');
+  assert.equal(payload12.validation.tokens['t1'].formCheck.status, 'notEvaluated', 'jsme is surface-invalid: formCheck must be notEvaluated, not deep-checked');
+  assert.equal(payload12.validation.tokens['t1'].formCheck.ok, null, 'notEvaluated formCheck.ok is null');
+  assert.equal(payload12.validation.morphologyOk, false, 'morphologyOk false when formCheck is notEvaluated');
+  assert.equal(payload12.validation.submitReady, false, 'submitReady false for surface-invalid token');
 
   // ── Scene 13: Positive submitReady — completely declared valid 2-token draft ─
   await page.goto(`${baseUrl}/konfigurator.php`);
@@ -295,7 +299,7 @@ try {
   }
 
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, auxiliary, submitReady, auth-submit.');
+  console.log('Browser checks passed: insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit.');
 } finally {
   if (dbUp) {
     try { deleteTestUser(BRW_USR); } catch { /* non-fatal */ }

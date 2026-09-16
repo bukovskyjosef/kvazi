@@ -62,6 +62,7 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
   const functional = isFunctional(w);
   const formCheckHtml = !functional ? (() => {
     const fc = status.formCheck;
+    if (fc.status === 'notEvaluated') return `<p class="status-neutral">Morfologická kontrola nebyla provedena — nejprve opravte povrchovou/znakovou chybu.</p>`;
     if (fc.ok && fc.expected !== null) return `<p class="status-ok">✓ Morfologická shoda: použitý tvar odpovídá deklaraci (očekáváno „${esc(fc.expected)}").${fc.expected === w.surface ? '' : ' <em>Pozor: povrchový tvar se liší od očekávaného — zkontrolujte zápis.</em>'}</p>`;
     if (!fc.ok && fc.message) return `<p class="status-missing">Chybí: ${esc(fc.message)}</p>`;
     return '';
@@ -91,14 +92,25 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema) {
     </div>`;
 }
 export function renderValidation(draft, state) {
-  const rows = [[state.sequence.ok, 'Znaková kontrola'], [state.syntax.ok && state.sentenceOk, 'Větná struktura a syntaktické vazby'], [state.structureOk, 'Strukturované údaje úplné'], [state.morphologyOk, 'Morfologická shoda ověřena'], [state.submitReady, 'Připraveno k odeslání']];
+  // Morphology may be notEvaluated when surface gate failed — show as neutral, not success.
+  const morphNotEvaluated = !state.sequence.ok && draft.tokens.length > 0 && Object.values(state.tokens).some(t => t.formCheck.status === 'notEvaluated');
+  const morphLabel = morphNotEvaluated ? 'Morfologická kontrola nevyhodnocena (povrchová chyba)' : 'Morfologická shoda ověřena';
+  const morphClass = morphNotEvaluated ? 'status-neutral' : (state.morphologyOk ? 'status-ok' : 'status-missing');
+  const morphPrefix = morphNotEvaluated ? '–' : (state.morphologyOk ? '✓' : 'Chybí:');
+  const rows = [
+    [state.sequence.ok, 'Znaková kontrola'],
+    [state.syntax.ok && state.sentenceOk, 'Větná struktura a syntaktické vazby'],
+    [state.structureOk, 'Strukturované údaje úplné'],
+  ];
   document.getElementById('validation').innerHTML = rows.map(([ok, label]) => `<p class="${ok ? 'status-ok' : 'status-missing'}">${ok ? '✓' : 'Chybí:'} ${label}</p>`).join('')
+    + `<p class="${morphClass}">${morphPrefix} ${morphLabel}</p>`
+    + `<p class="${state.submitReady ? 'status-ok' : 'status-missing'}">${state.submitReady ? '✓' : 'Chybí:'} Připraveno k odeslání</p>`
     + `<p>Slov: ${state.wordCount} · Skóre znaků: ${state.charScore} (Q = 1, KV = 2; prefix kvazi- = 0)</p>`
     + list([...state.sentenceIssues, ...state.sequence.issues.map(i => i.message), ...state.syntax.issues.map(i => `${draft.tokens.find(w => w.id === i.id)?.surface || ''}: ${i.message}`)])
     + draft.tokens.map((w, i) => {
       const t = state.tokens[w.id];
       const items = [...t.missing];
-      if (t.formCheck && !t.formCheck.ok && t.formCheck.message) items.push(t.formCheck.message);
+      if (t.formCheck && t.formCheck.ok === false && t.formCheck.message) items.push(t.formCheck.message);
       return `<details><summary>${i + 1}. ${esc(w.surface)} – ${t.complete ? 'úplné' : 'chybějící údaje'}</summary>${list(items)}</details>`;
     }).join('');
 }
