@@ -27,7 +27,28 @@ Audit nemá potvrdit záměr autora. Má aktivně hledat:
 - přílišnou expert advantage,
 - rozdíl mezi tím, co říkají pravidla, a tím, co předpokládá architektura nebo DB,
 - místa, kde by implementace mohla nechtěně vytvořit nové soutěžní pravidlo,
-- místa, která jsou pro běžného hráče zbytečně složitá.
+- místa, která jsou pro běžného hráče zbytečně složitá,
+- místa, kde implementace nebo testy platí vysokou cenu za větev, která už deterministicky selhává na dřívějším obecném gate.
+
+## Reachability a validační hloubka
+
+Auditor musí rozlišovat tři odlišné otázky:
+
+1. **Je model nebo větev normativně povolená?**
+2. **Je tato normativní možnost hráči dostupná v konfigurátoru?**
+3. **Jak hluboko ji musí aktivní runtime a integrační testy validovat před konečným INVALID verdiktem?**
+
+Podle stabilního rozhodnutí #88 platí:
+
+- reachability není filtr pravidel ani modelových roletek; všechny normativně povolené modely a hlavní volby mají zůstat hráči nabízené,
+- známá slepá cesta se hráči nemá označovat ani skrývat,
+- pokud konkrétní surface selže už na obecné NFC/charset/délka/motiv/token/prefix vrstvě, deep branch-specific validace, která už nemůže změnit verdikt, nemusí být součástí aktivního flow,
+- hotová funkční deep implementace se kvůli současné nedosažitelnosti nemaže; má se přednostně zachovat jako dormant/reusable kód,
+- levné unit testy dormant implementace jsou v pořádku, ale auditor nemá automaticky požadovat exhaustive browser/HTTP/DB/cross-engine matici každé globálně mrtvé větve,
+- optimalizace nesmí oslabit backend authority: surface-valid podvržený request nesmí projít jen proto, že klient tvrdí model nebo větev, která je běžně nedosažitelná,
+- audit reachability nesmí vytvořit candidate solver nebo UI nápovědu nad konkrétním hráčským slovem.
+
+Auditor má tedy jako nález zachytit jak **neoprávněné reachability filtrování UI**, tak **zbytečnou aktivní deep-validaci/testovací orchestraci**, která běží i po definitivním surface failure.
 
 ## Povinně auditované oblasti
 
@@ -46,14 +67,16 @@ Posuď zejména:
 - zda nevytváří nové pravidlo mimo rozhodcovskou specifikaci,
 - zda neprozrazuje příliš mnoho kandidátních tahů,
 - zda uzavřené seznamy skutečně eliminují expert advantage,
-- zda jsou TODO správně označené a nic z nich není omylem používáno jako hotové pravidlo.
+- zda jsou TODO správně označené a nic z nich není omylem používáno jako hotové pravidlo,
+- zda reachability není omylem používána k odstraňování normativních modelů nebo k jejich označování jako slepých.
 
 ### C. Governance
 - decision ownership,
 - issue workflow a labely,
 - verzování a revalidace,
 - interní katalog,
-- oddělení platnosti a implementace.
+- oddělení platnosti a implementace,
+- oddělení úplné modelové nabídky od optimalizace validační hloubky.
 
 ### D. Architektura a DB
 Audituj:
@@ -73,7 +96,8 @@ Hledej:
 - konflikt mezi catalog truth a user-declared analysis,
 - možnosti race condition,
 - privacy/security problémy,
-- místa, kde DB constraint může nechtěně přebít pravidla.
+- místa, kde DB constraint může nechtěně přebít pravidla,
+- validační fáze prováděné po okamžiku, kdy už dřívější obecný gate definitivně rozhodl neplatnost.
 
 ### E. Budoucí implementace
 Posuď, zda dokumentace dostatečně odděluje:
@@ -81,7 +105,8 @@ Posuď, zda dokumentace dostatečně odděluje:
 - technickou specifikaci,
 - implementační detail,
 - provozní data,
-- interní morfologickou znalost.
+- interní morfologickou znalost,
+- aktivní validační cestu a dormant zachovanou implementaci pro dnes nedosažitelné větve.
 
 ## Forma výstupu
 
@@ -143,6 +168,8 @@ Nikdy nezavírej nález jen proto, aby byl backlog menší; jeho podstata musí 
 - Nedoplňuj chybějící produktové rozhodnutí vlastním předpokladem.
 - Nevytvářej implementaci jako náhradu za neuzavřenou specifikaci.
 - Nevytvářej textový soubor sloužící jako paralelní backlog auditních nálezů.
+- Neskrývej normativní model z UI pouze proto, že je dnes nedosažitelný.
+- Nevyžaduj drahou branch-by-branch integrační matici pro dead path jen proto, že existuje v normativní tabulce, pokud její výsledek nikdy nemůže překonat obecný surface gate.
 
 ## Co je žádoucí
 
@@ -151,7 +178,8 @@ Auditor může:
 - zakládat a komentovat GitHub Issues,
 - navrhovat zjednodušení,
 - navrhovat spojení nebo rozdělení issues,
-- upozornit, že existující issue je špatně položené nebo špatně označené.
+- upozornit, že existující issue je špatně položené nebo špatně označené,
+- doporučit odpojení existující funkční deep implementace z aktivního flow a její zachování jako dormant kódu, pokud dřívější gate vždy rozhodne neplatnost.
 
 ## Hlavní red-team otázka
 
