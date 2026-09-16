@@ -32,6 +32,14 @@ class KvaziValidator {
             throw new RuntimeException("Integrita normativních dat selhala. Očekáváno {$expectedHash}, nalezeno {$actualHash}.");
         }
         $this->nd = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        $implicitRule = $this->nd['implicit_subject'] ?? null;
+        if (!is_array($implicitRule)
+            || !is_string($implicitRule['sentence_type'] ?? null)
+            || !array_key_exists($implicitRule['sentence_type'], $this->nd['punctuation'])
+            || !is_string($implicitRule['verb_form_type'] ?? null)
+            || !in_array($implicitRule['verb_form_type'], $this->nd['field_enums']['verbFormType'], true)) {
+            throw new RuntimeException('Invalid release implicit_subject rule');
+        }
         $this->version = $this->nd['version'];
         if (($manifest['version'] ?? '') !== $this->version || ($manifest['validator_version'] ?? '') !== self::VERSION
             || ($manifest['normative_file'] ?? '') !== 'normative.json') {
@@ -818,7 +826,7 @@ class KvaziValidator {
         if (count($predicates) !== 1) $sentenceIssues[] = 'Věta musí mít právě jeden přísudek.';
 
         if ($implicit) {
-            $implicitRule = $this->nd['implicit_subject'] ?? ['sentence_type' => 'imperative', 'verb_form_type' => 'imperative'];
+            $implicitRule = $this->nd['implicit_subject'];
             $predicate = array_values($predicates)[0] ?? [];
             if (($predicate['form']['verbFormType'] ?? '') !== $implicitRule['verb_form_type']) {
                 $sentenceIssues[] = 'Nevyjádřený podmět vyžaduje skutečný imperativní tvar přísudku.';

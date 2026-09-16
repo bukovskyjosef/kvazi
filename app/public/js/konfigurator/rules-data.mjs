@@ -111,4 +111,4 @@ export function optionMap(values, labels = {}) {
 
 export const adjectiveDegrees = () => nd().adjective_degrees;
 
-export const implicitSubjectRule = () => nd().implicit_subject ?? { sentence_type: 'imperative', verb_form_type: 'imperative' };
+export const implicitSubjectRule = () => nd().implicit_subject;

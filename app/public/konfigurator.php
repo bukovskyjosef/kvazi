@@ -53,13 +53,18 @@ if ($incomingSentenceId && ($user = auth_user()) !== null) {
     }
 }
 // Normative data inlined for browser JS — loaded from active rules release.
-$normativeJson = '{}';
 $appRoot = dirname(__DIR__);
 try {
     $validator = kvazi_load_validator($appRoot);
     $normativeJson = json_encode($validator->getNormativeData(),
-        JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
-} catch (Throwable) {}
+        JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+} catch (Throwable) {
+    http_response_code(503);
+    header('Content-Type: text/html; charset=UTF-8');
+    echo '<!DOCTYPE html><html lang="cs"><meta charset="UTF-8"><title>Pravidla nejsou dostupná</title>';
+    echo '<p>Pravidla soutěže se nyní nepodařilo načíst.</p></html>';
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="cs">

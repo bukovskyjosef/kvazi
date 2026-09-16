@@ -49,9 +49,8 @@ KISS rozhraní:
 ### Věty
 - detail,
 - schválit,
-- odmítnout,
-- vrátit k doplnění (autor poté odesílá novou revizi sám),
-- archivovat.
+- zamítnout,
+- vrátit k doplnění/přepracování (autor poté odesílá novou revizi sám).
 
 ### Katalog
 - navrhnout lexém/tvar,
