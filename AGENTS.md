@@ -40,6 +40,24 @@ Každý hráčský vstup a každý normativní dokument balíku musí u svého z
 
 Architektura, databázové návrhy, UI, validátor, interní katalog a aplikační kód jsou normativním pravidlům podřízené. Implementují pravidla; samy je nemění.
 
+### Reachability, aktivní validační cesta a dormant implementace
+
+Reachability je analytická informace, nikoli filtr pravidel ani nabídky konfigurátoru.
+
+Pro práci na formuláři, validátoru a testech platí:
+
+- všechny normativně povolené modely a hlavní volby zůstávají hráči nabízené i tehdy, když jsou podle aktuálních povrchových pravidel globálně nedosažitelné,
+- UI nesmí model, větev ani volbu skrýt nebo označit jako slepou jen na základě reachability,
+- validační pipeline smí a má použít obecnou povrchovou kontrolu (NFC, povolené znaky, délka, motiv/tokenová sekvence a prefixová povrchová pravidla) jako časný rozhodující gate,
+- pokud konkrétní token nebo věta na této vrstvě už deterministicky selže, není povinnost dále spouštět drahou specializovanou morfologickou či syntaktickou validaci, která nemůže změnit konečný verdikt,
+- pokud hotová deep-validace takové větve už existuje a je funkční, **nemaže se ani se hromadně nezakomentovává pouze kvůli současné nedosažitelnosti**; preferuje se zachování jako dormant/reusable kódu odpojeného od aktivního flow,
+- dormant implementace může mít levné unit/regression testy proti zahnívání, ale sama o sobě nevynucuje branch-by-branch browser, HTTP, DB nebo cross-engine E2E matici,
+- surface-valid request musí i nadále projít dostatečnou serverovou kontrolou deklarace; short-circuit nesmí vytvořit cestu, jak podstrčit neplatný model, enum, prefix, POS, score nebo jinou klientskou odvozeninu,
+- reachability analýza nesmí fungovat jako solver nad konkrétním hráčským slovem ani napovídat, která analýza by jeho kandidátu prošla,
+- pokud budoucí rules release změní povrchový motiv/abecedu tak, že dormant větev bude znovu dosažitelná, vývojář má nejprve prověřit a znovu zapojit zachovanou implementaci a teprve pro nově aktivní cestu doplnit odpovídající integrační pokrytí.
+
+Podrobnější technický kontrakt validačních fází je v `docs/architecture/03-validation.md`; aktuální implementační práce se vždy řídí také GitHub Issues.
+
 ### Mapa autority
 
 Detailní klasifikace všech artefaktů je **pouze** v `docs/README.md`. Neudržuj její úplnou kopii v dalších README ani v lokálních sekcích „Místo v normativním balíku“.
@@ -102,7 +120,9 @@ Musí před implementací přečíst relevantní normativní pravidla, architekt
 Nesmí:
 - měnit význam pravidel kvůli jednodušší implementaci,
 - považovat DB schéma, UI nebo existující kód za vyšší autoritu než pravidla,
-- potichu vyplňovat mezery v neuzavřené specifikaci.
+- potichu vyplňovat mezery v neuzavřené specifikaci,
+- zaměnit optimalizaci validačního flow za zúžení normativní nabídky modelů,
+- mazat funkční dormant implementaci pouze proto, že ji aktuální surface/motiv dělá nedosažitelnou, pokud issue výslovně nepožaduje její odstranění z jiného důvodu.
 
 Pokud lze technický základ vytvořit parametricky bez předjímání otevřené otázky, je to přípustné; jinak platí vývojový gate z governance workflow.
 
