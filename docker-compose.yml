@@ -4,16 +4,17 @@ services:
     container_name: kvazi_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: kvazi
-      POSTGRES_USER: kvazi
-      POSTGRES_PASSWORD: kvazi
+      # Local development fallbacks only; production overrides via runtime env.
+      POSTGRES_DB: ${DB_NAME:-kvazi}
+      POSTGRES_USER: ${DB_USER:-kvazi}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kvazi}
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./docker/db/init:/docker-entrypoint-initdb.d:ro
     ports:
       - "5435:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kvazi -d kvazi"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,12 +27,14 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: kvazi
-      DB_USER: kvazi
-      DB_PASS: kvazi
+      APP_ENV: ${APP_ENV:-development}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-kvazi}
+      DB_USER: ${DB_USER:-kvazi}
+      DB_PASSWORD: ${DB_PASSWORD:-kvazi}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-0}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-}
     volumes:
       - ./app/public:/var/www/html:ro
       - ./app/data:/var/www/data:ro

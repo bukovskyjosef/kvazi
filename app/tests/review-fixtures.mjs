@@ -29,16 +29,16 @@ export async function login(username, password) {
   const apiCsrf = (await page.text()).match(/name="csrf"\s+content="([^"]+)"/)[1];
   return { cookie, csrf: apiCsrf };
 }
-export async function fixtures() {
+export async function fixtures({deferUser = false} = {}) {
   const tag = 'mtest' + randomBytes(8).toString('hex').replace(/[0-9]/g, v => String.fromCharCode(103 + Number(v)));
   const password = 'MilestoneTest1!';
   const hash = execFileSync('php', ['-r', 'echo password_hash($argv[1], PASSWORD_BCRYPT, ["cost" => 10]);', password], { encoding: 'utf8' });
-  const user = Number(db(`INSERT INTO kvazi.user_account(username,email,password_hash,role)
+  let user = deferUser ? 0 : Number(db(`INSERT INTO kvazi.user_account(username,email,password_hash,role)
     VALUES (${pg(tag)},${pg(tag + '@kvazi.int')},${pg(hash)},'USER') RETURNING id`));
   const adminName = tag + 'admin';
   const admin = Number(db(`INSERT INTO kvazi.user_account(username,email,password_hash,role)
     VALUES (${pg(adminName)},${pg(adminName + '@kvazi.int')},${pg(hash)},'ADMIN') RETURNING id`));
-  const sessions = { user: await login(tag, password), admin: await login(adminName, password), admin2: await login(adminName, password) };
+  const sessions = { user: deferUser ? null : await login(tag, password), admin: await login(adminName, password), admin2: await login(adminName, password) };
   const token = { id: 't1', pos: 'noun', surface: tag + 'zi', lemma: tag + 'z', model: 'pán', lexicalStatus: 'quasi',
     identity: { gender: 'masculine', animacy: 'animate' }, form: { case: '1', number: 'plural' }, role: 'subject', relations: {} };
   function revision(tokens = [token], rules = active) {
@@ -62,7 +62,11 @@ export async function fixtures() {
       DELETE FROM kvazi.morphology_review_case WHERE identity_json->>'lemma' LIKE ${pg(tag + '%')};
       DELETE FROM kvazi.user_account WHERE id IN (${user},${admin}); COMMIT;`);
   }
-  return { tag, user, admin, username: tag, adminName, password, sessions, token, revision, cleanup };
+  return { tag, get user() { return user; }, registerUser(id) {
+    assert.equal(user, 0);
+    assert.equal(db(`SELECT username FROM kvazi.user_account WHERE id=${Number(id)}`), tag);
+    user = Number(id);
+  }, admin, username: tag, adminName, password, sessions, token, revision, cleanup };
 }
 export const validDraft = () => ({ sentenceType: 'imperative', implicitSubject: true, tokens: [{ id: 't1', surface: 'kvazi', pos: 'verb',
   lemma: 'kvaziit', model: 'V-IT', lexicalStatus: 'quasi', identity: {}, form: { verbFormType: 'imperative', verbPerson: '2sg', aspect: 'biaspectual' },

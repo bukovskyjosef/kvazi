@@ -1,14 +1,68 @@
 <?php
 declare(strict_types=1);
 
+// Public responses never contain PHP warnings, paths or stack traces.
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
 /**
  * Auth helpers for Nejdelší kvazivěta.
  * Include at the top of every page that needs auth state.
  * Call auth_session_start() before any output.
  */
 
+function auth_response_headers(): void {
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: same-origin');
+    header('X-Frame-Options: DENY');
+}
+
+/** Preserve a local URL, rejecting browser authority changes and encoded controls. */
+function auth_safe_internal_return_path(mixed $value): string {
+    if (!is_string($value)) return '/moje.php';
+    $decoded = $value;
+    for ($i = 0; $i < 8; $i++) {
+        if (!preg_match('~\A/[A-Za-z0-9_-]~', $decoded)
+            || preg_match('~[\x00-\x20\x7f\\\\]~', $decoded)) return '/moje.php';
+        $next = rawurldecode($decoded);
+        if ($next === $decoded) return $value;
+        $decoded = $next;
+    }
+    return '/moje.php';
+}
+
+/** Small byte-based IPv4/IPv6 CIDR match; malformed entries never grant trust. */
+function auth_ip_in_cidr(string $ip, string $cidr): bool {
+    $parts = explode('/', $cidr);
+    if (count($parts) !== 2 || !filter_var($ip, FILTER_VALIDATE_IP)
+        || !filter_var($parts[0], FILTER_VALIDATE_IP) || !preg_match('/\A[0-9]{1,3}\z/', $parts[1])) return false;
+    $address = inet_pton($ip);
+    $network = inet_pton($parts[0]);
+    $bits = (int)$parts[1];
+    if (strlen($address) !== strlen($network) || $bits > strlen($address) * 8) return false;
+    $bytes = intdiv($bits, 8);
+    if (substr($address, 0, $bytes) !== substr($network, 0, $bytes)) return false;
+    $remaining = $bits % 8;
+    return $remaining === 0 || ((ord($address[$bytes]) ^ ord($network[$bytes])) & (255 << (8 - $remaining))) === 0;
+}
+
+/** Trust only the immediate configured proxy and one CF-Connecting-IP value. */
+function auth_client_ip(): string {
+    $remote = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!is_string($remote) || !filter_var($remote, FILTER_VALIDATE_IP)) return 'local';
+    $remote = inet_ntop(inet_pton($remote));
+    foreach (explode(',', getenv('TRUSTED_PROXY_CIDRS') ?: '') as $cidr) {
+        if (!auth_ip_in_cidr($remote, trim($cidr))) continue;
+        $client = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? '';
+        return is_string($client) && filter_var($client, FILTER_VALIDATE_IP)
+            ? inet_ntop(inet_pton($client)) : $remote;
+    }
+    return $remote;
+}
+
 function auth_session_start(): void {
     if (session_status() !== PHP_SESSION_NONE) return;
+    auth_response_headers();
     $secure = getenv('AUTH_COOKIE_SECURE') === '1' || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     ini_set('session.cookie_httponly', '1');
     ini_set('session.cookie_samesite', 'Lax');
@@ -34,7 +88,7 @@ function kvazi_db(): PDO {
         getenv('DB_PORT') ?: '5432',
         getenv('DB_NAME') ?: 'kvazi'
     );
-    $pdo = new PDO($dsn, getenv('DB_USER') ?: 'kvazi', getenv('DB_PASS') ?: 'kvazi', [
+    $pdo = new PDO($dsn, getenv('DB_USER') ?: 'kvazi', getenv('DB_PASSWORD') ?: 'kvazi', [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
@@ -67,7 +121,7 @@ function auth_require_admin(): void {
 /** Redirect to login if not authenticated. */
 function auth_require(string $returnTo = ''): void {
     if (auth_user() === null) {
-        $qs = $returnTo ? '?return=' . urlencode($returnTo) : '';
+        $qs = $returnTo ? '?return=' . urlencode(auth_safe_internal_return_path($returnTo)) : '';
         header('Location: /login.php' . $qs);
         exit;
     }
@@ -102,8 +156,8 @@ function auth_login(string $identifier, string $password): array|string {
     try {
         $pdo  = kvazi_db();
         // Atomic attempt reservation prevents parallel failed logins bypassing
-        // the ten-attempt / fifteen-minute window. Never trust forwarded IP headers.
-        $remote = $_SERVER['REMOTE_ADDR'] ?? 'local';
+        // the ten-attempt / fifteen-minute window. Forwarded IP requires explicit trust.
+        $remote = auth_client_ip();
         $pdo->exec("DELETE FROM kvazi.login_throttle WHERE window_started_at < now() - interval '1 day'");
         $limit = $pdo->prepare("INSERT INTO kvazi.login_throttle (remote_address, failures)
             VALUES (:remote, 1) ON CONFLICT (remote_address) DO UPDATE SET

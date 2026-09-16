@@ -21,7 +21,7 @@ Ověření registračního e-mailu a obnova hesla jsou odložené do #104/#105 p
 
 Security základ používá bcrypt (cost 12), session ID rotation při loginu, `HttpOnly`, `SameSite=Lax`, `session.use_strict_mode` a absolutní životnost session dvě hodiny. V přímém HTTPS režimu se nastavuje `Secure`; za TLS proxy musí provoz nastavit `AUTH_COOKIE_SECURE=1` (aplikace nevěří klientským forwarded hlavičkám). Login i registrace používají společné CSRF helpery; JSON submit ověřuje stejný token explicitní hodnotou. Logout je CSRF chráněný POST a ruší session i cookie. Budoucí admin operace používají `auth_require_admin()` serverově.
 
-E-mail se ukládá jako `strtolower(trim(email))`; DB vynucuje unikátnost `lower(btrim(email))`. Login má atomický limit deseti pokusů za patnáct minut podle přímé IP adresy. Neúspěchy zůstávají započítané, úspěch čítač ruší; staré čítače se mažou. Za proxy musí provoz zvážit sdílení IP adres. Nejde o account lockout.
+E-mail se ukládá jako `strtolower(trim(email))`; DB vynucuje unikátnost `lower(btrim(email))`. Login má atomický limit deseti pokusů za patnáct minut podle `auth_client_ip()`: default je přímá `REMOTE_ADDR`, pouze explicitní `TRUSTED_PROXY_CIDRS` bezprostřední proxy umožní jednu validní `CF-Connecting-IP`; `X-Forwarded-For` se ignoruje. Neúspěchy zůstávají započítané, úspěch čítač ruší; staré čítače se mažou. Cloudflare/Coolify trust boundary a runtime env kontrakt popisuje `app/README.md`. Nejde o account lockout.
 
 Uživatelský obsah je plain text; PHP používá `htmlspecialchars` a JS escapuje interpolovaný text nebo používá `textContent`.
 

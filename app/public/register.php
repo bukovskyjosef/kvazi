@@ -15,6 +15,9 @@ $values  = ['username' => '', 'email' => ''];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!auth_csrf_check()) {
         $error = 'Neplatný bezpečnostní token. Obnovte stránku a zkuste znovu.';
+    } elseif (count(array_filter(['username', 'email', 'password', 'password2'], fn($field) => !is_string($_POST[$field] ?? ''))) > 0) {
+        http_response_code(400);
+        $error = 'Neplatný formát registračních údajů.';
     } else {
         $values['username'] = trim($_POST['username'] ?? '');
         $values['email']    = trim($_POST['email'] ?? '');

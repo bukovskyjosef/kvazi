@@ -22,6 +22,7 @@ JS
 docker exec -i "$db_container" psql -U kvazi -d "$test_db" -v ON_ERROR_STOP=1 <<'SQL' >/dev/null
 DO $$ BEGIN
   IF to_regclass('kvazi.process_compliance') IS NOT NULL OR to_regclass('kvazi.audit_log') IS NOT NULL THEN RAISE EXCEPTION 'legacy tables'; END IF;
+  IF EXISTS (SELECT 1 FROM kvazi.user_account) THEN RAISE EXCEPTION 'bootstrap must not create accounts or credentials'; END IF;
 END $$;
 -- Seed historical facts, then re-run the idempotent atomic upgrade below.
 INSERT INTO kvazi.user_account (username,email,password_hash) VALUES ('bootstrap_test','bootstrap@kvazi.test','not-a-login-credential');

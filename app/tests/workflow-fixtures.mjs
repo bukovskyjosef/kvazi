@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import {fixtures, db, pg, active, post, validDraft, BASE, login} from './review-fixtures.mjs';
 export {db, pg, active, post, validDraft, BASE};
-export async function workflowFixtures() {
-  const f = await fixtures();
+export async function workflowFixtures(options = {}) {
+  const f = await fixtures(options);
   const originalCleanup = f.cleanup;
   const foreignName = f.tag + 'foreign';
   const foreignUser = Number(db(`INSERT INTO kvazi.user_account(username,email,password_hash,role)
-    SELECT ${pg(foreignName)},${pg(foreignName+'@kvazi.int')},password_hash,'USER' FROM kvazi.user_account WHERE id=${f.user} RETURNING id`));
+    SELECT ${pg(foreignName)},${pg(foreignName+'@kvazi.int')},password_hash,'USER' FROM kvazi.user_account WHERE id=${f.admin} RETURNING id`));
   f.sessions.foreign = await login(foreignName,f.password);
   const catalogBackups = new Map();
   function context(revisionId) {
@@ -51,7 +51,13 @@ export async function workflowFixtures() {
     return {status:r.status, html:await r.text(), location:r.headers.get('location')};
   }
   function cleanup() {
-    db(`DELETE FROM kvazi.user_account WHERE id=${foreignUser} AND username=${pg(foreignName)}`);
+    db(`BEGIN; SET LOCAL session_replication_role=replica;
+      DELETE FROM kvazi.validation_result_review WHERE validation_result_id IN (SELECT v.id FROM kvazi.validation_result v JOIN kvazi.sentence s ON s.id=v.sentence_id WHERE s.user_id=${foreignUser});
+      DELETE FROM kvazi.administrative_decision WHERE sentence_id IN (SELECT id FROM kvazi.sentence WHERE user_id=${foreignUser});
+      DELETE FROM kvazi.validation_result WHERE sentence_id IN (SELECT id FROM kvazi.sentence WHERE user_id=${foreignUser});
+      DELETE FROM kvazi.sentence_revision WHERE submitted_by=${foreignUser};
+      DELETE FROM kvazi.sentence WHERE user_id=${foreignUser};
+      DELETE FROM kvazi.user_account WHERE id=${foreignUser} AND username=${pg(foreignName)}; COMMIT;`);
     db(`BEGIN; SET LOCAL session_replication_role=replica;
       DELETE FROM kvazi.real_word_catalog WHERE admin_id=${f.admin}; COMMIT;`);
     for (const [lemma, rows] of catalogBackups) {
@@ -66,6 +72,6 @@ export async function workflowFixtures() {
       DELETE FROM kvazi.morphology_review_case c WHERE identity_json->>'lemma' IN ('kvaziit','qaziit')
       AND NOT EXISTS (SELECT 1 FROM kvazi.morphology_review_decision d WHERE d.case_id=c.id); COMMIT;`);
   }
-  return {...f, context, revision, submit, catalog, morph, decide, get, backupCatalog, cleanup};
+  return Object.assign(f, {foreignUser, context, revision, submit, catalog, morph, decide, get, backupCatalog, cleanup});
 }
 export const idsForApi = ids => ({revisionId:ids.revisionId, validationResultId:ids.validationResultId});

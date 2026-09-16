@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'test_gate_exit=$?; if [ "$test_gate_exit" -ne 0 ]; then echo "RELEASE GATE: FAIL" >&2; fi' EXIT
 cd "$(dirname "$0")/../.."
 export KVAZI_INTEGRATION_REQUIRED=1
 export KVAZI_TEST_BASE_URL="${KVAZI_TEST_BASE_URL:-${KVAZI_BASE_URL:-http://localhost:8080}}"
 export KVAZI_BASE_URL="$KVAZI_TEST_BASE_URL"
 export KVAZI_DB_CONTAINER="${KVAZI_DB_CONTAINER:-kvazi_db}"
+command -v docker >/dev/null
+command -v php >/dev/null
+command -v node >/dev/null
 docker info >/dev/null
 docker exec "$KVAZI_DB_CONTAINER" pg_isready -U kvazi -d kvazi
 docker exec "$KVAZI_DB_CONTAINER" psql -U kvazi -d kvazi -v ON_ERROR_STOP=1 -c 'SELECT 1' >/dev/null
-node --input-type=module -e 'const r = await fetch(process.env.KVAZI_TEST_BASE_URL + "/api/normative.php", {signal: AbortSignal.timeout(3000)}); if (!r.ok) throw new Error(`HTTP ${r.status}`); const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || "playwright"); const b = await chromium.launch({headless:true, ...(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH} : {})}); await b.close();'
+node --input-type=module -e 'const r = await fetch(process.env.KVAZI_TEST_BASE_URL + "/api/normative.php", {signal: AbortSignal.timeout(3000)}); if (!r.ok) throw new Error(`HTTP ${r.status}`); const nd = await r.json(); if (typeof nd.version !== "string") throw new Error("PHP runtime/normative response invalid"); const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || "playwright"); const b = await chromium.launch({headless:true, ...(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH} : {})}); await b.close();'
 log=$(mktemp)
-trap 'rm -f "$log"' EXIT
+trap 'test_gate_exit=$?; rm -f "$log"; if [ "$test_gate_exit" -ne 0 ]; then echo "RELEASE GATE: FAIL" >&2; fi' EXIT
 bash app/tests/check-bootstrap.sh
 node app/tools/check-releases.mjs
 find app -name '*.php' -print0 | xargs -0 -n1 php -l
@@ -37,3 +41,6 @@ if grep -qi 'skipped' "$log"; then
   echo 'Mandatory M3 browser scenarios were skipped' >&2
   exit 1
 fi
+echo 'M4 SECURITY BASELINE: PASS'
+echo 'M4 LIFECYCLE ACCEPTANCE: PASS'
+echo 'RELEASE GATE: PASS'

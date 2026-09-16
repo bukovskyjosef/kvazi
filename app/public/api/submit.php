@@ -69,7 +69,7 @@ try {
     $valResult = $validator->deriveValidationState($draft);
 } catch (Throwable $e) {
     http_response_code(422);
-    echo json_encode(['ok' => false, 'error' => 'Validace selhala: ' . $e->getMessage()]);
+    echo json_encode(['ok' => false, 'error' => 'Validace selhala: neplatná struktura deklarace.']);
     exit;
 }
 

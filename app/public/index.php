@@ -11,7 +11,7 @@ function db_status(): array {
             getenv('DB_PORT') ?: '5432',
             getenv('DB_NAME') ?: 'kvazi'
         );
-        $pdo = new PDO($dsn, getenv('DB_USER') ?: 'kvazi', getenv('DB_PASS') ?: 'kvazi', [
+        $pdo = new PDO($dsn, getenv('DB_USER') ?: 'kvazi', getenv('DB_PASSWORD') ?: 'kvazi', [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_TIMEOUT => 3,
         ]);

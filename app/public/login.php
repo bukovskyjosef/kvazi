@@ -10,11 +10,14 @@ if (auth_user() !== null) {
 }
 
 $error  = '';
-$return = preg_replace('/[^\/\w\-\.?=&%]/', '', $_GET['return'] ?? '');
+$return = auth_safe_internal_return_path($_GET['return'] ?? '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!auth_csrf_check()) {
         $error = 'Neplatný bezpečnostní token. Obnovte stránku a zkuste znovu.';
+    } elseif (!is_string($_POST['identifier'] ?? '') || !is_string($_POST['password'] ?? '')) {
+        http_response_code(400);
+        $error = 'Neplatný formát přihlašovacích údajů.';
     } else {
         $result = auth_login($_POST['identifier'] ?? '', $_POST['password'] ?? '');
         if (is_array($result)) {
@@ -59,7 +62,7 @@ $csrf = auth_csrf_token();
         <label for="identifier">E-mail nebo uživatelské jméno</label>
         <input type="text" id="identifier" name="identifier"
                autocomplete="username"
-               value="<?= htmlspecialchars($_POST['identifier'] ?? '') ?>"
+               value="<?= htmlspecialchars(is_string($_POST['identifier'] ?? '') ? ($_POST['identifier'] ?? '') : '') ?>"
                placeholder="vas@email.cz nebo uzivatelske-jmeno">
       </div>
       <div class="fld-f">

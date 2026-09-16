@@ -20,7 +20,7 @@ test('public empty DB has no fake approved sentence; actual list/detail boundary
     const socket = createServer(); socket.listen(0,'127.0.0.1'); await once(socket,'listening');
     const port = socket.address().port; await new Promise(resolve => socket.close(resolve));
     php = spawn('php',['-S',`127.0.0.1:${port}`,'-t',new URL('../public/',import.meta.url).pathname],{stdio:'ignore',
-      env:{...process.env,DB_HOST:'127.0.0.1',DB_PORT:dbPort,DB_NAME:database,DB_USER:'kvazi',DB_PASS:'kvazi'}});
+      env:{...process.env,DB_HOST:'127.0.0.1',DB_PORT:dbPort,DB_NAME:database,DB_USER:'kvazi',DB_PASSWORD:'kvazi'}});
     exited = once(php,'exit');
     const base = `http://127.0.0.1:${port}`;
     const deadline = Date.now()+5000;

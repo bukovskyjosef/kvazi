@@ -1,6 +1,11 @@
 # Claude
 .claude
 
+# Runtime environment and secrets; example documents the public contract.
+.env
+.env.*
+!.env.example
+
 # Playwright
 node_modules/
 /test-results/
