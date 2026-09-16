@@ -129,8 +129,10 @@ function kvazi_exact_key(array $token, array $nd, bool $catalog = false): ?array
         if (!is_array($signature)) throw new InvalidArgumentException('Chybí úplná zájmenná form-signature.');
         foreach (['case', 'number', 'gender', 'person'] as $field) {
             $value = $signature[$field] ?? null;
-            $allowed = $nd['field_enums'][$field === 'person' ? 'verbPerson' : $field];
-            if (!is_string($value) || ($value !== 'notApplicable' && !in_array($value, $allowed, true))) {
+            // Historical M2 datasets predate the explicit signature contract.
+            $allowed = isset($nd['pronoun_form_signature']) ? $nd['pronoun_form_signature'][$field]
+                : array_merge($nd['field_enums'][$field === 'person' ? 'verbPerson' : $field], ['notApplicable']);
+            if (!is_string($value) || !in_array($value, $allowed, true)) {
                 throw new InvalidArgumentException('Neúplná nebo neplatná zájmenná form-signature.');
             }
             $form[$field] = $value;

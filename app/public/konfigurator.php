@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/validator.php';
+require_once __DIR__ . '/includes/workflow.php';
 auth_session_start();
 $activePage = 'konfigurator';
 $csrf = auth_csrf_token();
@@ -10,12 +11,14 @@ $csrf = auth_csrf_token();
 // Only available when the sentence belongs to the logged-in user and was returned.
 $resubmitJson = 'null';
 $incomingSentenceId = isset($_GET['sentenceId']) ? (int)$_GET['sentenceId'] : null;
-if ($incomingSentenceId && ($user = auth_user()) !== null) {
+if (isset($_GET['sentenceId'])) {
+    auth_require('/konfigurator.php?' . http_build_query($_GET));
+    $user = auth_user();
     try {
         $db = kvazi_db();
         // Load latest revision draft_json if the sentence was returned to this user
         $rs = $db->prepare(
-            'SELECT sr.draft_json
+            'SELECT sr.draft_json, ad.action
                FROM kvazi.sentence s
                JOIN kvazi.sentence_revision sr
                  ON sr.sentence_id = s.id
@@ -24,33 +27,22 @@ if ($incomingSentenceId && ($user = auth_user()) !== null) {
                           FROM kvazi.sentence_revision r2
                          WHERE r2.sentence_id = s.id
                     )
+               LEFT JOIN kvazi.administrative_decision ad ON ad.revision_id = sr.id
               WHERE s.id = :sid AND s.user_id = :uid'
         );
         $rs->execute([':sid' => $incomingSentenceId, ':uid' => $user['id']]);
         $row = $rs->fetch(PDO::FETCH_ASSOC);
         if ($row) {
-            // Verify the latest admin decision for the latest revision is 'return'.
-            // Scoped to revision_id so a return(rev1) cannot authorise rev3 once rev2 exists.
-            $ad = $db->prepare(
-                'SELECT action FROM kvazi.administrative_decision
-                  WHERE revision_id = (
-                      SELECT id FROM kvazi.sentence_revision
-                       WHERE sentence_id = :sid
-                       ORDER BY revision_no DESC LIMIT 1
-                  )
-                  ORDER BY decided_at DESC LIMIT 1'
-            );
-            $ad->execute([':sid' => $incomingSentenceId]);
-            if ($ad->fetchColumn() === 'return') {
+            // Draft and return authorization belong to the same exact revision
+            // in one statement snapshot, even during concurrent resubmission.
+            if ($row['action'] === 'return') {
                 $resubmitJson = json_encode([
                     'sentenceId' => $incomingSentenceId,
-                    'draft'      => json_decode($row['draft_json'], true),
+                    'draft'      => json_decode($row['draft_json'], false, 512, JSON_THROW_ON_ERROR),
                 ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
-            }
-        }
-    } catch (Throwable) {
-        // Fall through — fresh editor
-    }
+            } else { throw new KvaziReviewConflict('Preload vyžaduje latest returned revizi.'); }
+        } else { throw new KvaziReviewNotFound('Věta nebyla nalezena.'); }
+    } catch (Throwable $e) { kvazi_page_failure($e); }
 }
 // Normative data inlined for browser JS — loaded from active rules release.
 $appRoot = dirname(__DIR__);
@@ -84,6 +76,9 @@ try {
    style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap"></p>
 
 <main class="container" style="padding-top:20px;padding-bottom:60px">
+  <aside class="notice" aria-label="Alternativní cesta podání"><strong>Nevejde se váš případ do formuláře?</strong>
+    Pokud se domníváte, že vaše věta pravidla splňuje, ale konfigurátor ji neumí správně zachytit, napište nám na
+    <a href="mailto:veta@kvazi.cz">veta@kvazi.cz</a>. Omezení formuláře samo o sobě neznamená, že je řešení podle pravidel zakázané.</aside>
   <p class="notice">⚠︎ Pracovní verze konfigurátoru. Tlačítko „Odeslat přihlášku” odešle aktuální přihlášku na server a uloží její záznam k přihlášenému účtu; náhled JSON nic neodesílá. Automatická kontrola ověřuje jen deterministické části deklarace, jazykové posouzení probíhá až v review.</p>
   <section class="card" aria-labelledby="sentenceHeading">
     <div id="sentencePreview" class="sentence-preview"></div>

@@ -14,6 +14,7 @@ import {
   verbModels as ndVerbModels,
   relationShapes as ndRelationShapes,
 } from './rules-data.mjs';
+import { pronounFields } from './catalog.mjs';
 
 // Re-export for view.mjs which imports relationShapes from schema.mjs.
 export const relationShapes = ndRelationShapes;
@@ -96,7 +97,7 @@ export const publicSchema = {
     noun: [..._nominalFields],
     adjective: [field('form.gender', 'Rod použitého tvaru', genders), ..._nominalFields],
     verb: _verbBaseFields,
-    pronoun: [],
+    get pronoun() { return pronounFields(); },
   },
   valency: null,
   allowsImplicitSubject: (verb, draft) =>

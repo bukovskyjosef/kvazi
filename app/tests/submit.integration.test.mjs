@@ -253,7 +253,7 @@ integrationTest('valid submit: HTTP 200 and DB rows created', async () => {
   assert.equal(vrCount, 1, 'validation_result row should be created');
 
   assert.equal(dbQuery("SELECT to_regclass('kvazi.process_compliance') IS NULL, to_regclass('kvazi.audit_log') IS NULL"), 't|t');
-  assert.equal(dbQuery('SELECT rules_version, validator_version FROM kvazi.validation_result WHERE revision_id = :rid', {rid: body.revisionId}), `${ACTIVE_VERSION}|1.2.0`);
+  assert.equal(dbQuery('SELECT rules_version, validator_version FROM kvazi.validation_result WHERE revision_id = :rid', {rid: body.revisionId}), `${ACTIVE_VERSION}|${JSON.parse(readFileSync(new URL(`../data/rules/${ACTIVE_VERSION}/manifest.json`, import.meta.url))).validator_version}`);
 
   // Authoritative charScore and wordScore in DB must match API response
   const storedScores = dbQuery(
@@ -339,22 +339,21 @@ integrationTest('revision lifecycle: rev1 → return → rev2 → 409 → return
 
   assert.equal(snapshot(), beforeRevision, 'rev1 remains byte-for-byte immutable');
   assert.equal(resultSnapshot(), beforeValidation, 'rev1 validation remains immutable');
-  const preload = async () => {
+  const preload = async (expectedStatus = 200) => {
     const r = await fetch(`${BASE}/konfigurator.php?sentenceId=${sentenceId}`, {headers:{Cookie:cookie}});
-    assert.equal(r.status,200);
-    return JSON.parse((await r.text()).match(/window\.__resubmit = (.*?);<\/script>/)[1]);
+    assert.equal(r.status, expectedStatus);
+    const html = await r.text();
+    return expectedStatus === 200 ? JSON.parse(html.match(/window\.__resubmit = (.*?);<\/script>/)[1]) : null;
   };
-  assert.equal(await preload(),null,'return rev1 cannot preload pending rev2');
+  assert.equal(await preload(409),null,'return rev1 cannot preload pending rev2');
   const read = await fetch(`${BASE}/moje-vety.php`, {headers:{Cookie:cookie}});
   assert.equal(read.status,200);
   const html = await read.text();
-  const card = html.split(`<span class="submission-id">#${sentenceId}</span>`)[1].split('<div class="submission-card">')[0];
-  assert.ok(card.includes('Rev.1') && card.includes('Rev.2'));
-  const rev2Section = card.split('Rev.2')[1].split('Rev.1')[0];
-  const rev1Section = card.split('Rev.1')[1];
+  const rev2Section = html.split(`data-revision-id="${revisionId2}"`)[1].split('</article>')[0];
+  const rev1Section = html.split(`data-revision-id="${revisionId1}"`)[1].split('</article>')[0];
   assert.ok(rev1Section.includes('Vráceno'));
   assert.ok(!rev2Section.includes('Vráceno'));
-  assert.ok(!card.includes('Upravit a znovu odeslat'));
+  assert.ok(!html.includes('Upravit a znovu odeslat'));
 
   // ── Attempt rev3 without new return → 409 ─────────────────────────────────
   const konfPage3 = await fetch(`${BASE}/konfigurator.php`, { headers: { 'Cookie': cookie } });
@@ -625,7 +624,7 @@ integrationTest('active release new verdict leaves an original historical versio
   const {cookie,apiCsrf}=await loginSession(USR,USR_PASS);
   const r=await fetch(`${BASE}/api/submit.php`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify({csrf:apiCsrf,draft:VALID_DRAFT,rulesVersion:'public-1'})});
   assert.equal(r.status,200);const body=await r.json();
-  assert.equal(dbQuery('SELECT rules_version,validator_version FROM kvazi.validation_result WHERE revision_id=:rid',{rid:body.revisionId}),`${ACTIVE_VERSION}|1.2.0`);
+  assert.equal(dbQuery('SELECT rules_version,validator_version FROM kvazi.validation_result WHERE revision_id=:rid',{rid:body.revisionId}),`${ACTIVE_VERSION}|${JSON.parse(readFileSync(new URL(`../data/rules/${ACTIVE_VERSION}/manifest.json`, import.meta.url))).validator_version}`);
   assert.equal(snapshot(),before);
   assert.equal(dbCount('kvazi.validation_result','revision_id=:rid',{rid}),1,'publishing/using new release does not revalidate historical facts');
 });

@@ -409,9 +409,9 @@ try {
 
   // ── Scene 18: Browser logout uses CSRF-protected POST ─────────────────────
   if(dbUp) {
-    await page.getByRole('button',{name:'Odhlásit se',exact:true}).click();
+    await page.getByRole('navigation',{name:'Hlavní navigace'}).getByRole('button',{name:'Odhlásit se',exact:true}).click();
     await page.waitForURL(baseUrl+'/');
-    assert.equal(await page.getByRole('link',{name:'Přihlásit se',exact:true}).count(),1);
+    assert.equal(await page.getByRole('navigation',{name:'Hlavní navigace'}).getByRole('link',{name:'Přihlásit se',exact:true}).count(),1);
     assert.equal(await page.getByRole('button',{name:'Odhlásit se',exact:true}).count(),0);
   }
 

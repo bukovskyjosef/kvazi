@@ -46,7 +46,7 @@ function kvazi_review_api_text(array $payload, string $field): string {
 function kvazi_review_api_failure(Throwable $e): never {
     if ($e instanceof InvalidArgumentException) kvazi_review_api_error(422, $e->getMessage());
     if ($e instanceof KvaziReviewNotFound) kvazi_review_api_error(404, $e->getMessage());
-    if ($e instanceof KvaziReviewConflict || ($e instanceof PDOException && in_array($e->getCode(), ['40001', '40P01'], true))) {
+    if ($e instanceof KvaziReviewConflict || ($e instanceof PDOException && in_array($e->getCode(), ['40001', '40P01', '23505'], true))) {
         kvazi_review_api_error(409, 'Případ se mezitím změnil. Obnovte jeho stav.');
     }
     kvazi_review_api_error(503, 'Službu se nyní nepodařilo použít.');

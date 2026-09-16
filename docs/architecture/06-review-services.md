@@ -1,6 +1,6 @@
 # Exact-match katalog a interní morfologické review služby
 
-> **Status:** technický kontrakt služeb M2 podle #6/#102. Soutěžní identitu určuje `../rules/02-rozhodcovska-specifikace.md` a normativní moduly kvazitaháku; persistence je v `02-database-model.md`, hráčský UX v `05-konfigurator-ux.md`.
+> **Status:** technický kontrakt služeb M2 podle #6/#102, používaný M3 workflow podle `07-product-workflow.md`. Soutěžní identitu určuje `../rules/02-rozhodcovska-specifikace.md` a normativní moduly kvazitaháku; persistence je v `02-database-model.md`, hráčský UX v `05-konfigurator-ux.md`.
 
 ## Kanonický klíč
 

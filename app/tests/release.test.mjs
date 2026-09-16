@@ -22,9 +22,16 @@ const invalidImplicitRules = {
   'non-string verb form type': { sentence_type: 'imperative', verb_form_type: [] },
   'unknown verb form type': { sentence_type: 'imperative', verb_form_type: 'unknown' },
 };
+const invalidPronounRules = {
+  'missing pronoun signature contract': undefined,
+  'null pronoun signature contract': null,
+  'scalar pronoun signature contract': 'notApplicable',
+  'incomplete pronoun signature contract': {case:['1','notApplicable']},
+  'invalid pronoun signature enum': {...JSON.parse(data).pronoun_form_signature, person:['4','notApplicable']},
+};
 const scenarios = ['correct release', 'corrupt data', 'wrong manifest version',
   'wrong validator version', 'wrong dataset identity', 'unsafe active path',
-  ...Object.keys(invalidImplicitRules)];
+  ...Object.keys(invalidImplicitRules), ...Object.keys(invalidPronounRules)];
 
 function writeRelease(root, scenario) {
   mkdirSync(join(root, 'data', 'rules', active), { recursive: true });
@@ -33,10 +40,11 @@ function writeRelease(root, scenario) {
   if (scenario === 'corrupt data') raw += ' ';
   if (scenario === 'wrong manifest version') m.version = 'another-release';
   if (scenario === 'wrong validator version') m.validator_version = 'unidentified-engine';
-  if (scenario === 'wrong dataset identity' || Object.hasOwn(invalidImplicitRules, scenario)) {
+  if (scenario === 'wrong dataset identity' || Object.hasOwn(invalidImplicitRules, scenario) || Object.hasOwn(invalidPronounRules, scenario)) {
     const nd = JSON.parse(raw);
     if (scenario === 'wrong dataset identity') nd.version = 'another-release';
-    else nd.implicit_subject = invalidImplicitRules[scenario];
+    else if (Object.hasOwn(invalidImplicitRules, scenario)) nd.implicit_subject = invalidImplicitRules[scenario];
+    else nd.pronoun_form_signature = invalidPronounRules[scenario];
     raw = JSON.stringify(nd);
     // Keep integrity valid so these cases exercise identity/structure checks.
     m.normative_hash = createHash('sha256').update(raw).digest('hex');
@@ -57,12 +65,14 @@ for(const scenario of scenarios) {
       if(scenario==='correct release') assert.equal(run(),`${active}|${manifest.validator_version}`);
       else if (Object.hasOwn(invalidImplicitRules, scenario)) {
         assert.throws(run, error => /Invalid release implicit_subject rule/.test(error.stderr.toString()));
+      } else if (Object.hasOwn(invalidPronounRules, scenario)) {
+        assert.throws(run, error => /Invalid release pronoun_form_signature/.test(error.stderr.toString()));
       } else assert.throws(run);
     } finally {rmSync(root,{recursive:true,force:true});}
   });
 }
 
-test('configurator HTTP: valid public-1.2 renders; every invalid release fails closed', async () => {
+test('configurator HTTP: valid active release renders; every invalid release fails closed', async () => {
   const root = mkdtempSync(join(tmpdir(), 'kvazi-configurator-release-'));
   let php;
   let exited;
@@ -95,7 +105,7 @@ test('configurator HTTP: valid public-1.2 renders; every invalid release fails c
       const html = await response.text();
       if (scenario === 'correct release') {
         assert.equal(response.status, 200);
-        assert.equal(active, 'public-1.2');
+        assert.equal(active, 'public-1.3');
         assert.deepEqual(JSON.parse(html.match(/window\.__normative = (.*);<\/script>/)[1]), JSON.parse(data));
         assert.match(html, /src="\/js\/konfigurator\/editor\.mjs"/);
         assert.match(html, /id="submitButton"/);
@@ -113,4 +123,15 @@ test('configurator HTTP: valid public-1.2 renders; every invalid release fails c
     }
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('M3 release: public-1.2 bytes unchanged, public-1.3 hash valid, active public-1.3 / validator 1.3.0', () => {
+  for (const version of ['public-1','public-1.1','public-1.2']) for (const file of ['normative.json','manifest.json']) {
+    const path = `app/data/rules/${version}/${file}`;
+    const old = execFileSync('git',['show',`26bf3affbafbbf70cf646d83012e4c3eba199df3:${path}`]);
+    assert.ok(readFileSync(path).equals(old),`${version}/${file} immutable`);
+  }
+  assert.equal(active,'public-1.3'); assert.equal(manifest.validator_version,'1.3.0');
+  assert.equal(manifest.normative_hash,createHash('sha256').update(data).digest('hex'));
+  assert.deepEqual(Object.keys(JSON.parse(data).pronoun_form_signature),['case','number','gender','person']);
 });

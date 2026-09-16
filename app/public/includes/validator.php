@@ -14,7 +14,7 @@
 declare(strict_types=1);
 
 class KvaziValidator {
-    public const VERSION = '1.2.0';
+    public const VERSION = '1.3.0';
     private array $nd; // normative data
     private string $version;
     private string $validatorVersion;
@@ -32,6 +32,16 @@ class KvaziValidator {
             throw new RuntimeException("Integrita normativních dat selhala. Očekáváno {$expectedHash}, nalezeno {$actualHash}.");
         }
         $this->nd = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        $signature = $this->nd['pronoun_form_signature'] ?? null;
+        if (!is_array($signature) || count($signature) !== 4 || array_diff(['case', 'number', 'gender', 'person'], array_keys($signature))) {
+            throw new RuntimeException('Invalid release pronoun_form_signature');
+        }
+        foreach ($signature as $field => $values) {
+            if (!is_array($values) || !array_is_list($values) || !$values) throw new RuntimeException('Invalid release pronoun_form_signature');
+            foreach ($values as $value) if (!is_string($value) || $value === '') throw new RuntimeException('Invalid release pronoun_form_signature');
+            $expected = array_merge($this->nd['field_enums'][$field === 'person' ? 'verbPerson' : $field], ['notApplicable']);
+            if (count($values) !== count($expected) || array_diff($values, $expected) || array_diff($expected, $values)) throw new RuntimeException('Invalid release pronoun_form_signature');
+        }
         $implicitRule = $this->nd['implicit_subject'] ?? null;
         if (!is_array($implicitRule)
             || !is_string($implicitRule['sentence_type'] ?? null)
@@ -657,6 +667,15 @@ class KvaziValidator {
                 if (!$lemma) $missing[] = 'Základní tvar / neurčitek.';
                 if (!in_array($w['lexicalStatus'] ?? '', $this->nd['field_enums']['lexicalStatus'], true)) $missing[] = 'Skutečné slovo nebo kvazislovo podle celé identity.';
                 if ($pos === 'pronoun' && ($w['lexicalStatus'] ?? '') !== 'real') $missing[] = 'Nová zájmena nelze vytvářet.';
+                if ($pos === 'pronoun') {
+                    if (($w['model'] ?? '') !== '') $missing[] = 'Zájmeno nemá produktivní soutěžní model.';
+                    $signature = $w['form']['pronoun'] ?? null;
+                    $labels = ['case' => 'Pád zájmena', 'number' => 'Číslo zájmena', 'gender' => 'Rod zájmena', 'person' => 'Osoba zájmena'];
+                    foreach ($this->nd['pronoun_form_signature'] as $field => $allowed) {
+                        $value = is_array($signature) ? ($signature[$field] ?? null) : null;
+                        if (!is_string($value) || !in_array($value, $allowed, true)) $missing[] = $labels[$field] . '.';
+                    }
+                }
 
                 // Model check
                 $nounModels = $this->nd['noun_models'];

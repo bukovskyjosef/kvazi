@@ -1,5 +1,5 @@
 // Exact-request eligibility and local result snapshots. The server constructs the key.
-import { fieldEnums, nounModels, adjModels, verbModels, singleTokens, auxBytForms } from './rules-data.mjs';
+import { fieldEnums, nounModels, adjModels, verbModels, singleTokens, auxBytForms, pronounSignature } from './rules-data.mjs';
 const text = value => typeof value === 'string' ? value.normalize('NFC').toLowerCase().normalize('NFC') : '';
 
 export function catalogCandidate(w) {
@@ -10,7 +10,7 @@ export function catalogCandidate(w) {
     const signature = {};
     for (const field of ['case', 'number', 'gender', 'person']) {
       const value = w.form?.pronoun?.[field];
-      if (value !== 'notApplicable' && !fieldEnums()[field === 'person' ? 'verbPerson' : field].includes(value)) return null;
+      if (!pronounSignature()[field].includes(value)) return null;
       signature[field] = value;
     }
     return { surface: text(w.surface), lemma: text(w.lemma), pos: 'pronoun', lexicalStatus: 'real', form: { pronoun: signature } };
@@ -61,5 +61,5 @@ export function pronounFields() {
   const values = { number: { singular: 'Jednotné', plural: 'Množné' }, gender: {
     masculineAnimate: 'Mužský životný', masculineInanimate: 'Mužský neživotný', feminine: 'Ženský', neuter: 'Střední' } };
   return Object.entries(labels).map(([name, label]) => ({ path: `form.pronoun.${name}`, label,
-    options: { ...Object.fromEntries(fieldEnums()[name === 'person' ? 'verbPerson' : name].map(v => [v, values[name]?.[v] ?? `${v}.`])), notApplicable: 'Nevztahuje se' } }));
+    options: Object.fromEntries(pronounSignature()[name].map(v => [v, v === 'notApplicable' ? 'Nevztahuje se' : values[name]?.[v] ?? `${v}.`])) }));
 }

@@ -124,6 +124,20 @@ class KvaziMorphologyReview {
         });
     }
 
+    /** ADMIN read-only projection: never creates a stable binding or a case. */
+    public function peek(int $revisionId, int $resultId, string $tokenId): array {
+        [$revision, $key] = $this->context($revisionId, $resultId, $tokenId);
+        $case = $this->findCase($revision, $key, false);
+        $decision = $case ? $this->latest((int)$case['id']) : null;
+        $q = $this->db->prepare('SELECT d.id, d.case_id, d.verdict FROM kvazi.validation_result_review b
+            JOIN kvazi.morphology_review_decision d ON d.id = b.review_decision_id
+            WHERE b.validation_result_id = :vid AND b.token_id = :token');
+        $q->execute([':vid' => $resultId, ':token' => $tokenId]);
+        $used = $q->fetch(PDO::FETCH_ASSOC) ?: null;
+        if ($used && (!$case || (int)$used['case_id'] !== (int)$case['id'])) throw new KvaziReviewConflict('Review vazba neodpovídá přesnému případu revize.');
+        return $this->response($case, $decision, $used) + ['key' => $key];
+    }
+
     public function decide(int $revisionId, int $resultId, string $tokenId, int $expectedNo,
         string $verdict, string $reason, int $adminId): array {
         if (!in_array($verdict, ['APPROVED', 'REJECTED'], true) || $expectedNo < 0
