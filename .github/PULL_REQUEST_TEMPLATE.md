@@ -34,6 +34,15 @@ Pokud změna obsahuje produktové nebo pravidlové rozhodnutí:
 - [ ] nevznikl paralelní Markdown backlog nebo ruční seznam otevřených bodů
 - [ ] TODO nebylo omylem proměněno v implicitní rozhodnutí
 
+## Reachability a validační flow
+Pokud změna sahá do konfigurátoru, validátoru nebo testovací matice:
+- [ ] normativně povolené modely/hlavní volby zůstávají v UI nabízené bez reachability filtru
+- [ ] UI hráči neprozrazuje slepé cesty ani nefiltruje analýzu podle konkrétního surface kandidáta
+- [ ] short-circuit nastává pouze po dřívějším deterministickém failure, který už sám stačí k INVALID verdiktu
+- [ ] surface-valid direct request stále prochází dostatečnou serverovou kontrolou deklarace
+- [ ] funkční deep-validace dnes nedosažitelné větve nebyla bez samostatného důvodu smazána; je-li odpojena, zůstává udržovatelná jako dormant/reusable kód
+- [ ] povinné integrační testy pokrývají aktivní flow a server authority, nikoli uměle exhaustive dead-path matici
+
 ## Testy / ověření
 
 ## Poznámky pro review
