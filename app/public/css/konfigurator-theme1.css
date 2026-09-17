@@ -354,6 +354,9 @@ details.optional-wrap[open] > summary::before { content: '▾ '; }
   color: #1e1b4b;
   transition: border-color .12s, box-shadow .12s;
 }
+/* Native popup colors must stay paired across platforms and OS themes. */
+.fld select { color-scheme: light; }
+.fld select option { background-color: #fff; color: #1e1b4b; }
 .fld select:focus, .fld input[type=text]:focus {
   outline: none;
   border-color: #6366f1;
