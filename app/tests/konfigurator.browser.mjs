@@ -465,8 +465,50 @@ try {
   assert.equal(await linearEntry.evaluate(el => el.matches(':placeholder-shown')), true);
   assert.equal(await linearEntry.evaluate(el => el === document.activeElement), true);
 
+  // ── Scene 20: Native select readability in both app and OS themes ────────
+  const luminance = color => {
+    const rgb = color.match(/\d+/g).slice(0, 3).map(v => {
+      const s = Number(v) / 255;
+      return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4;
+    });
+    return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+  };
+  let posOptions;
+  for (const theme of ['1', '2']) for (const osTheme of ['light', 'dark']) {
+    await page.emulateMedia({colorScheme: osTheme});
+    await page.evaluate(t => localStorage.setItem('kvazi-theme', t), theme);
+    await page.goto(`${baseUrl}/konfigurator.php`);
+    await page.locator('#newSurface').fill('vazi');
+    await page.locator('#newSurface').press('Enter');
+    const pos = page.getByLabel('Slovní druh', {exact:true});
+    assert.equal(await pos.inputValue(), '');
+    assert.equal(await page.locator('#word-model').isDisabled(), true);
+    const options = await pos.locator('option').evaluateAll(opts => opts.map(o => [o.value, o.textContent]));
+    posOptions ??= options;
+    assert.deepEqual(options, posOptions, 'Theme changes preserve option labels, values and order');
+    for (const value of ['', 'noun']) {
+      await pos.selectOption(value);
+      assert.equal(await pos.inputValue(), value);
+      const fields = await page.locator('.fld select').evaluateAll(selects => selects.map(s => ({
+        scheme: getComputedStyle(s).colorScheme,
+        color: getComputedStyle(s).color,
+        options: [...s.options].map(o => ({color: getComputedStyle(o).color, background: getComputedStyle(o).backgroundColor})),
+      })));
+      for (const field of fields) {
+        assert.equal(field.scheme, theme === '1' ? 'light' : 'dark');
+        for (const option of field.options) {
+          assert.match(option.background, /^rgb\(/, 'Popup background is opaque');
+          assert.equal(option.color, field.color, 'Closed select and popup use the same foreground');
+          const a = luminance(option.color), b = luminance(option.background);
+          assert.ok((Math.max(a, b) + .05) / (Math.min(a, b) + .05) >= 4.5,
+            `Readable placeholder/normal/selected/disabled-select options: theme${theme}, OS ${osTheme}`);
+        }
+      }
+    }
+  }
+
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: 19 scenarios; placeholder-lifecycle, append-delete-order, fixed-surface, actual-imperative, indicative-rejection, API-error-XSS, POST-logout, insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
+  console.log('Browser checks passed: 20 scenarios; native-select-contrast (both app/OS themes, placeholder/selected/disabled-select), placeholder-lifecycle, append-delete-order, fixed-surface, actual-imperative, indicative-rejection, API-error-XSS, POST-logout, insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
 } finally {
   if (dbUp) {
     deleteTestUser(BRW_USR);
