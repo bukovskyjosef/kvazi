@@ -639,7 +639,7 @@ a:focus-visible {
 /* Hero stat row */
 .hero-stats {
   display: flex;
-  gap: 2px;
+  gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
 }
