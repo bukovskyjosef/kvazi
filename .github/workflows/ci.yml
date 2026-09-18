@@ -34,7 +34,7 @@ jobs:
       MAIL_OUTBOX_PATH: /tmp/kvazi-mail-outbox.jsonl
       KVAZI_TEST_BASE_URL: http://127.0.0.1:8080
       PLAYWRIGHT_MODULE: ${{ github.workspace }}/.github/ci/node_modules/playwright/index.mjs
-      KVAZI_RELEASE_BASE: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+      KVAZI_RELEASE_BASE: origin/${{ github.base_ref }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -44,9 +44,14 @@ jobs:
       - name: Classify change risk
         id: risk
         run: |
-          BASE="${{ github.event.pull_request.base.sha }}"
-          if [ -z "$BASE" ]; then BASE="origin/main"; fi
-          CHANGED=$(git diff --name-only "$BASE"...HEAD 2>/dev/null || git diff --name-only "$BASE"..HEAD)
+          BASE_REF="${{ github.base_ref }}"
+          if [ -z "$BASE_REF" ]; then
+            echo "Missing pull-request base ref" >&2
+            exit 1
+          fi
+          git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+          BASE="origin/$BASE_REF"
+          CHANGED=$(git diff --name-only "$BASE"...HEAD)
           if [ -z "$CHANGED" ]; then
             echo "level=low" >> "$GITHUB_OUTPUT"
             echo "No changed files — low risk"
