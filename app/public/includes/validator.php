@@ -14,7 +14,7 @@
 declare(strict_types=1);
 
 class KvaziValidator {
-    public const VERSION = '1.3.1';
+    public const VERSION = '1.3.2';
     private array $nd; // normative data
     private string $version;
     private string $validatorVersion;
