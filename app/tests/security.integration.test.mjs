@@ -209,7 +209,7 @@ test('safe errors and exact player contract: malformed structures and unsupporte
 });
 
 test('HTTP minimum headers apply consistently to pages, JSON and denied responses', async () => {
-  for (const path of ['/','/login.php','/register.php','/verify-email.php','/resend-verification.php','/konfigurator.php','/vety.php','/veta.php?revisionId=0',
+  for (const path of ['/','/login.php','/register.php','/verify-email.php','/resend-verification.php','/forgot-password.php','/reset-password.php','/konfigurator.php','/vety.php','/veta.php?revisionId=0',
     '/moje-vety.php','/admin/vety.php','/api/normative.php','/api/submit.php','/api/admin/review-status.php']) {
     const r = await fetch(BASE+path,{redirect:'manual'});
     assert.equal(r.headers.get('x-content-type-options'),'nosniff',path);

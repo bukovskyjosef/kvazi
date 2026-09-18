@@ -74,7 +74,11 @@ $csrf = auth_csrf_token();
                autocomplete="current-password" placeholder="••••••••">
       </div>
 
-      <div style="margin-top:28px">
+      <p style="margin-top:12px;text-align:right;font-size:14px">
+        <a href="/forgot-password.php">Zapomněl jsem heslo</a>
+      </p>
+
+      <div style="margin-top:16px">
         <button type="submit" class="btn btn-accent"
                 style="width:100%;justify-content:center;border-radius:10px;font-size:15px">
           Přihlásit se

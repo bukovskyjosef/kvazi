@@ -64,6 +64,15 @@ class KvaziValidator {
     public function getNormativeData(): array { return $this->nd; }
     public function getValidatorVersion(): string { return $this->validatorVersion; }
 
+    /**
+     * Public Phase 1 surface validation for external callers (e.g. recovery challenge).
+     * Runs only NFC, charset, length, motif/token boundary, prefix surface rules.
+     * No morphology, syntax, catalog or deep validation.
+     */
+    public function validateTokenSequencePublic(array $tokens): array {
+        return $this->validateTokenSequence($tokens);
+    }
+
     // ─────────────────────────────────────────────────────────
     // NFC + case helpers
     // ─────────────────────────────────────────────────────────
