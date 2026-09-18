@@ -145,6 +145,18 @@ Povinný runner ověří browser launch před testy, PHP syntax, celý Node/pari
 
 Za TLS proxy nastavte `AUTH_COOKIE_SECURE=1`; přímé HTTPS jej nastaví automaticky. Session má absolutní životnost dvě hodiny. Logout vyžaduje POST a stejný CSRF token jako ostatní browserové změny. Admin stránky i endpointy používají serverový `auth_require_admin()`; HTTP/DB a browser regrese ověřují jejich autorizaci a mutation CSRF.
 
+## Transakční mail
+
+`includes/mail.php` poskytuje `kvazi_mail_send(string $to, string $subject, string $textBody): void` — minimální interní mail adapter bez externích závislostí.
+
+Dva transporty:
+- **smtp** — dependency-free SMTP klient (EHLO, STARTTLS, AUTH LOGIN, DATA). V produkci povinný; plaintext (`SMTP_TLS_MODE=none`) je v produkci zakázán.
+- **outbox** — deterministic JSONL sink do `MAIL_OUTBOX_PATH` pro integrační testy. V produkci zakázán (`APP_ENV=production`).
+
+Runtime env (viz `.env.example`): `MAIL_TRANSPORT`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_TLS_MODE`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, `MAIL_OUTBOX_PATH`. Produkční SMTP credentials (SMTP2GO) nastavte přes Coolify/runtime env, nikoli v repozitáři.
+
+Header injection (CR/LF v recipient, subject, from) je odmítnuta. Dot-stuffing v body dle RFC 5321 §4.5.2.
+
 ## Veřejné non-mail MVP
 
 Produkční web server musí spouštět PHP 8.3+ s `pdo_pgsql`, `intl` a `mbstring`, mít document root pouze `app/public` a ponechat `app/data` mimo něj ve stejné adresářové struktuře. Připojení do PostgreSQL nastavte přes runtime `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`; hodnoty `kvazi/kvazi` a porty v root Compose jsou pouze lokální development konfigurace. `APP_ENV=production` označuje produkční prostředí, ale samo nenastavuje secrets, HTTPS ani trust; tyto hodnoty musí provoz explicitně přepsat. Čistá DB používá všechny bootstrap SQL, existující instalace postupuje podle upgrade výše. Produkční secrets nepatří do repozitáře ani do `.env.example`, nastavují se přes Coolify/runtime env.
