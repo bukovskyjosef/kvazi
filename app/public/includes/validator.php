@@ -14,7 +14,7 @@
 declare(strict_types=1);
 
 class KvaziValidator {
-    public const VERSION = '1.3.0';
+    public const VERSION = '1.3.1';
     private array $nd; // normative data
     private string $version;
     private string $validatorVersion;
@@ -685,7 +685,7 @@ class KvaziValidator {
                     'noun'      => isset($nounModels[$w['model'] ?? '']),
                     'adjective' => isset($adjModels[$w['model'] ?? '']),
                     'verb'      => isset($verbModels[$w['model'] ?? '']),
-                    default     => true,
+                    default     => $pos === 'pronoun',
                 };
                 if (!$hasModel) $missing[] = 'Povolený soutěžní model.';
 
@@ -729,9 +729,6 @@ class KvaziValidator {
                     $valDecl = trim($w['valency']['declaration'] ?? '');
                     if (!$valDecl) $missing[] = 'Valenční obhajoba — jaká doplnění použití vyžaduje, která slova je realizují a o jaké české sloveso se opírá.';
                 }
-
-                $morphEvidence = trim($w['evidence']['morphology'] ?? '');
-                if (!$morphEvidence) $missing[] = 'Morfologická obhajoba a odkaz na použitý model.';
             }
         }
 

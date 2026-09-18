@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {workflowFixtures, BASE, db, pg, post, active, idsForApi} from './workflow-fixtures.mjs';
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const f = await workflowFixtures({deferUser:true});
@@ -60,7 +61,7 @@ try {
   }
   async function viewport(page,width) {
     await page.setViewportSize({width,height:900});
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),`no horizontal overflow at ${width}`);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),`no horizontal overflow at ${width}: ${JSON.stringify(await page.locator('body *').evaluateAll(nodes => nodes.filter(n => n.getBoundingClientRect().right > innerWidth).map(n => ({tag:n.tagName,id:n.id,cls:n.className,text:n.textContent.slice(0,80),width:n.getBoundingClientRect().width}))))}`);
     for (const link of await nav(page).locator('a,button').all()) {
       assert.ok(await link.isVisible());
       const bounds = await link.boundingBox(); assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width + 1);
@@ -129,7 +130,7 @@ try {
   const first = await submit();
   const rev1Fingerprint = fingerprint(first);
   const manifest = JSON.parse(db(`SELECT row_to_json(v) FROM kvazi.validation_result v WHERE id=${first.validationResultId}`));
-  assert.equal(manifest.rules_version,active); assert.equal(manifest.validator_version,'1.3.0');
+  assert.equal(manifest.rules_version,active); assert.equal(manifest.validator_version,JSON.parse(readFileSync(new URL(`../data/rules/${active}/manifest.json`,import.meta.url))).validator_version);
   assert.equal(manifest.is_valid,true); assert.equal(manifest.word_score,1); assert.equal(manifest.char_score,5);
   assert.equal(db(`SELECT user_id FROM kvazi.sentence WHERE id=${first.sentenceId}`),String(f.user));
   assert.equal(db(`SELECT submitted_by FROM kvazi.sentence_revision WHERE id=${first.revisionId}`),String(f.user));
@@ -183,7 +184,12 @@ try {
   assert.equal(await user.locator('#token-t1').count(),1); assert.ok(await user.locator('#submitButton').isEnabled());
   assert.equal(await user.locator('#newSurface').getAttribute('placeholder'),null);
   await user.locator('#token-t1').click();
-  assert.equal(await user.locator('#word-surface, #insertPlace').count(),0);
+  assert.equal(await user.locator('#insertPlace').count(),0);
+  assert.equal(await user.locator('#word-surface').inputValue(),'kvazi');
+  await user.locator('#word-surface').fill('qazi');
+  assert.equal(await user.locator('#submitButton').isDisabled(),true);
+  await user.locator('#word-surface').fill('kvazi');
+  assert.equal(await user.locator('#submitButton').isEnabled(),true);
   await user.getByRole('button',{name:'Smazat kvazi',exact:true}).click();
   assert.equal(await user.locator('#newSurface').getAttribute('placeholder'),'Kvazivětu zadejte zde…');
   await user.locator('#newSurface').fill('kvazi'); await user.locator('#newSurface').press('Enter');

@@ -44,7 +44,11 @@ Hráč zadává konkrétní povrchové tvary jako samostatné tokeny.
 - pořadí tokenů je stabilní a vazby používají jejich interní ID,
 - závěrečná interpunkce souvisí s typem věty.
 
-Surface vloženého tokenu je fixní; oprava vyžaduje smazání a nové vložení na konec. Deklarativní metadata zůstávají editovatelná. Placeholder hlavního vstupu se zobrazuje pouze při nulovém počtu tokenů a prázdném inputu. Validace je neblokující; neplatnost se projeví ve stavu kontroly a zablokuje submit.
+Surface vloženého tokenu lze přímo změnit v editoru vybraného slova. Zůstává jeho pořadí a interní ID; změna používá stejnou NFC normalizaci a převod na malá písmena jako vložení. Existující surface gate se okamžitě přepočítá, stejně jako inference jednopísmenného POS/role a prefixu `kvazi-`.
+
+Při zachování stejné deklarativní kategorie se zachovají kompatibilní hráčské údaje (model, vlastnosti tvaru, syntax a obhajoby). Funkčnímu slovu se aktualizuje lemma. Přechod mezi funkčními kategoriemi, od funkčního slova k běžnému nebo k jinému odvozenému POS resetuje deklaraci a reference ostatních tokenů na změněný token; hráč je musí znovu potvrdit. Změna prefixu u substantiva zachová model/tvar/syntax, ale vyprázdní lemma a podklady vztahující se ke staré identitě. Nové lemma systém nehádá. Morfologická shoda se vždy ověřuje proti novému surface; zachovaná deklarace sama nestačí k submitu.
+
+Každá změna surface zneplatní katalogový výsledek i pending request, včetně editace zpět na původní tvar; nikdy sama nespustí lookup. Lokální JSON preview se také zneplatní. Placeholder hlavního vstupu se zobrazuje pouze při nulovém počtu tokenů a prázdném inputu. Validace je neblokující; neplatnost se projeví ve stavu kontroly a zablokuje submit.
 
 ## 3. Typ věty
 
@@ -67,10 +71,12 @@ Podle slovního druhu a zvoleného modelu hráč deklaruje zejména:
 - morfologické vlastnosti konkrétního použitého tvaru,
 - větnou funkci nebo technickou roli,
 - požadované vazby na další tokeny,
-- morfologickou a případně významovou obhajobu,
+- volitelnou morfologickou obhajobu / zdroj a případně povinnou významovou obhajobu,
 - u slovesa valenční obhajobu volným textem.
 
 Podle #86 hráč **nevyplňuje celé paradigma** ani nepoužité tvary.
+
+Obecné `evidence.morphology` je nepovinné a neovlivňuje `structureOk` ani `submitReady` ve FE/PHP. Strukturovaná identita a použitý tvar zůstávají povinné. Plnovýznamové sloveso nadále vyžaduje `valency.declaration`; při `evidence.needsAnalogy` jsou povinné obě položky `explanation` a `analogy`. Runtime oprava je zaznamenaná v immutable release `public-1.3.1` / validator `1.3.1`; pravidlová mechanika se oproti `public-1.3` nemění.
 
 ### 4.2 Úplná modelová nabídka
 
@@ -97,6 +103,8 @@ Inference sama nezaručuje platnost tokenu.
 Po úplném vyplnění identity a relevantního použitého tvaru nabízí token explicitní akci „Ověřit v katalogu“. Vyžaduje přihlášení a poskytne pouze potvrzení přesné deklarace, nebo zprávu „Tato přesná deklarace zatím v katalogu potvrzena není. Můžete ji přesto odeslat k posouzení.“ Neúplný kandidát akci nenabízí. Smazání tokenu nebo změna identity/modelu či relevantního form field zneplatní starý výsledek; opožděná odpověď jej nesmí obnovit. Editace nikdy sama nespouští nový lookup. Obhajoby a povinná pole zůstávají viditelné a payload úplný; not found neovlivňuje submitReady.
 
 Zájmeno nemá produktivní model. Má čtyři explicitní selecty uložené jako `form.pronoun.{case,number,gender,person}`. Od `public-1.3` / validator `1.3.0` jsou všechny povinné pro autoritativní submit i katalogový lookup podle #109; chybění drží `structureOk=false` a `submitReady=false`. Povolené hodnoty FE/PHP čtou ze stejného `pronoun_form_signature` runtime datasetu. Každé pole nabízí explicitní „Nevztahuje se“ (`notApplicable`); prázdná hodnota ani null tuto deklaraci nenahrazují a vlastnosti se nedovozují z lemmatu. Přesný key kontrakt je v `06-review-services.md`. Enumy produktivních kategorií se nemění a historické releases zůstávají immutable.
+
+Osoba zájmena má vždy popisky „1. osoba“ až „3. osoba“, pád „1. pád“ až „7. pád“, v obou režimech terminologie. Hodnoty payloadu a runtime `pronoun_form_signature` se tím nemění.
 
 Normativní funkční jednopísmenná slova a pomocná sada být akci nepotřebují. Katalog u prefixovaného substantiva ověřuje jen kompletní základ. Interní morphology cache není dostupná hráčskou akcí.
 
@@ -129,6 +137,8 @@ První viditelná validační vrstva kontroluje zejména:
 - globální motivovou/tokenovou sekvenci.
 
 Tato vrstva je společná všem modelům a má přednost před deep validační diagnostikou.
+
+Po přechodu do stavu explicitní závěrečné interpunkce `.`, `?` nebo `!` a `state.sequence.ok=true` se zobrazí pozitivní feedback „Výborně, věta vypadá na první pohled správně, pojďme na obhajobu!“ s krátkým světelným efektem. Používá pouze existující Phase 1 výsledek, nezaručuje full validity a nemění submit readiness ani backend verdict. Výchozí interpunkce preview bez `closingPunct` nestačí. Reward se spustí jednou na přechod; výběr tokenu, katalogový výsledek, změna obhajoby ani JSON preview jej neopakují. Po otevření věty nebo surface failure se znovu připraví na další úspěšný přechod. Při `prefers-reduced-motion: reduce` animace neběží a zůstává čitelný statický success feedback v samostatném status regionu.
 
 ### 6.2 Deep-validace se nespouští zbytečně
 
@@ -234,6 +244,10 @@ Povinně má pokrýt zejména:
 
 - vkládání/editaci tokenů,
 - NFC a základní povrchovou kontrolu,
+- přímou editaci prvního/prostředního/posledního surface se stabilním ID/pořadím, změny POS/prefix inference a invalidaci lookupu i opožděné odpovědi,
+- správné popisky osoby/pádu zájmena v obou režimech terminologie,
+- surface reward pouze pro uzavřený PASS, single-fire a reduced motion,
+- pozitivní submit bez obecné morfologické obhajoby a odmítnutí při chybějící povinné valenci/analogii,
 - úplnost model selectorů včetně reprezentativní slepé možnosti (`kuře` je minimální regression anchor),
 - syntaktické vazby,
 - prefix inference,

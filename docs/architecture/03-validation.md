@@ -55,6 +55,8 @@ Pro surface-validního kandidáta se ověřuje obecná integrita strukturovanéh
 
 Tato vrstva je důležitá i proti direct HTTP klientovi. To, že nějakou hodnotu UI běžně nenabídne nebo že je určitá normativní větev dnes globálně povrchově nedosažitelná, neznamená, že backend smí klientské hodnotě slepě věřit.
 
+Obecný volný text `evidence.morphology` není requirement deklarace. Povinná zůstává strukturovaná identita/použitý tvar, slovní `valency.declaration` plnovýznamového slovesa a obě `evidence.explanation` + `evidence.analogy` při `needsAnalogy`. FE/PHP používají stejné podmínky; opravu obecného requirementu identifikuje runtime `public-1.3.1` / validator `1.3.1` při nezměněné pravidlové mechanice.
+
 ### Fáze 3 — deep deterministická validace
 
 Pokud surface kandidát projde předchozími vrstvami, validátor provede relevantní detailní kontroly schopné změnit jeho verdikt, zejména:

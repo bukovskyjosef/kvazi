@@ -1,6 +1,7 @@
 import test, {before, after} from 'node:test';
 import assert from 'node:assert/strict';
-import {workflowFixtures, db, pg, post, validDraft, idsForApi} from './workflow-fixtures.mjs';
+import {readFileSync} from 'node:fs';
+import {workflowFixtures, db, pg, post, validDraft, idsForApi, active} from './workflow-fixtures.mjs';
 let f;
 before(async () => {f = await workflowFixtures();});
 after(() => f?.cleanup());
@@ -252,5 +253,5 @@ test('direct HTTP pronoun completeness cannot bypass FE; active release register
     await assertStatus(post('/api/submit.php',f.sessions.user,{draft:bad}),422);
   }
   const complete = await f.submit(draft);
-  assert.equal(db(`SELECT rules_version || '|' || validator_version FROM kvazi.validation_result WHERE id=${complete.validationResultId}`),'public-1.3|1.3.0');
+  assert.equal(db(`SELECT rules_version || '|' || validator_version FROM kvazi.validation_result WHERE id=${complete.validationResultId}`),`${active}|${JSON.parse(readFileSync(new URL(`../data/rules/${active}/manifest.json`,import.meta.url))).validator_version}`);
 });

@@ -122,7 +122,7 @@ try {
   await page.keyboard.press('Enter');
   assert.equal(await page.locator('#tokens .token-chip').count(), 3);
   assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'kvazi', 'k']);
-  assert.equal(await page.locator('#insertPlace, #word-surface').count(), 0);
+  assert.equal(await page.locator('#insertPlace').count(), 0);
   assert.equal(await page.getByRole('button', {name:/Vložit (před|za) slovo/}).count(), 0);
   assert.equal(await page.getByLabel('Text slova', {exact:true}).count(), 0);
 
@@ -141,7 +141,7 @@ try {
   await entry.press('Enter');
   await page.locator('#token-t4').click();
   assert.equal(await page.getByLabel('Základní tvar', { exact: true }).inputValue(), '');
-  assert.equal(await page.locator('#word-surface').count(), 0);
+  assert.equal(await page.locator('#word-surface').inputValue(), 'vázi');
   assert.equal(await page.locator('#token-t4').evaluate(el => el === document.activeElement), true);
 
   // ── Scene 5: Preview JSON ─────────────────────────────────────────────────
@@ -242,7 +242,6 @@ try {
   await page.getByLabel('Číslo použitého tvaru').selectOption('plural');
   await page.getByLabel('Větná funkce', { exact: true }).selectOption('subject');
   await page.getByLabel('Řídící slovo', { exact: true }).selectOption('t2');
-  await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Nominativ plurálu vzoru pán.');
 
   // Declare t2 (kvazí) as verb V-IT present 3pl imperfective predicate
   await page.locator('#token-t2').click();
@@ -256,15 +255,39 @@ try {
   await page.getByLabel('Vid').selectOption('imperfective');
   await page.getByLabel('Větná funkce', { exact: true }).selectOption('predicate');
   await page.getByLabel('Valenční obhajoba').fill('Vzor V-IT (prosit). Nevyžaduje doplnění.');
-  await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Přítomný čas 3. os. pl. vzoru V-IT.');
 
   // Submit button must be enabled when draft is ready
   assert.equal(await page.locator('#submitButton').isDisabled(), false, 'Submit button enabled when submitReady=true');
+
+  await page.locator('#token-t1').click();
+  const surfaceEditor = page.getByLabel('Použitý tvar slova (bez mezer)');
+  for (const surface of ['qazi', 'xyz']) {
+    await surfaceEditor.fill(surface);
+    assert.equal(await page.locator('#submitButton').isDisabled(), true, 'edited surface cannot reuse an old valid morphology verdict');
+    assert.equal(await surfaceEditor.evaluate(el => el === document.activeElement), true);
+    await surfaceEditor.fill('kvazi');
+    assert.equal(await page.locator('#submitButton').isDisabled(), false, 'compatible declaration survives edit back');
+  }
+  await page.locator('#token-t2').click();
 
   await page.getByRole('button', { name: 'Zobrazit náhled JSON (neodesílá)' }).click();
   const payload13 = JSON.parse(await page.locator('#payload pre').textContent());
   assert.equal(payload13.validation.submitReady, true, 'submitReady should be true for fully declared valid draft');
   assert.equal(payload13.validation.charScore, 10, 'charScore should be 10');
+
+  const valencyInput = page.getByLabel('Valenční obhajoba');
+  await valencyInput.fill('');
+  assert.equal(await page.locator('#submitButton').isDisabled(), true);
+  await valencyInput.fill('Vzor V-IT (prosit). Nevyžaduje doplnění.');
+  await page.locator('#word-evidence-needsAnalogy').check();
+  await page.getByLabel('Krátká obhajoba vztahu').fill('Obhajoba.');
+  assert.equal(await page.locator('#submitButton').isDisabled(), true, 'missing analogy');
+  await page.getByLabel('Běžná česká analogie stejné konstrukce').fill('Děti spí.');
+  assert.equal(await page.locator('#submitButton').isDisabled(), false);
+  await page.getByLabel('Krátká obhajoba vztahu').fill('');
+  assert.equal(await page.locator('#submitButton').isDisabled(), true, 'missing explanation');
+  await page.locator('#word-evidence-needsAnalogy').uncheck();
+  assert.equal(await page.locator('#submitButton').isDisabled(), false);
 
   // ── Scene 14: Authenticated submit + DB verification ─────────────────────────
   if (dbUp) {
@@ -288,7 +311,6 @@ try {
     await page.getByLabel('Číslo použitého tvaru').selectOption('plural');
     await page.getByLabel('Větná funkce', { exact: true }).selectOption('subject');
     await page.getByLabel('Řídící slovo', { exact: true }).selectOption('t2');
-    await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Nominativ plurálu vzoru pán.');
 
     await page.locator('#token-t2').click();
     await page.getByLabel('Slovní druh', { exact: true }).selectOption('verb');
@@ -301,7 +323,6 @@ try {
     await page.getByLabel('Vid').selectOption('imperfective');
     await page.getByLabel('Větná funkce', { exact: true }).selectOption('predicate');
     await page.getByLabel('Valenční obhajoba').fill('Vzor V-IT (prosit). Nevyžaduje doplnění.');
-    await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('Přítomný čas 3. os. pl. vzoru V-IT.');
 
     await page.locator('#submitButton').click();
     await page.locator('#submitResult .alert-ok').waitFor({ timeout: 10000 });
@@ -452,7 +473,7 @@ try {
   assert.equal(await linearEntry.getAttribute('placeholder'), null);
   assert.equal(await linearEntry.evaluate(el => el.matches(':placeholder-shown')), false);
   await page.locator('#token-t1').click();
-  assert.equal(await page.locator('#insertPlace, #word-surface').count(), 0);
+  assert.equal(await page.locator('#insertPlace').count(), 0);
   assert.equal(await page.getByLabel('Text slova', {exact:true}).count(), 0);
   assert.equal(await page.getByRole('button', {name:/Vložit (před|za) slovo/}).count(), 0);
   await page.getByRole('button', {name:'Smazat b',exact:true}).click();
@@ -464,6 +485,82 @@ try {
   assert.equal(await linearEntry.getAttribute('placeholder'), placeholder);
   assert.equal(await linearEntry.evaluate(el => el.matches(':placeholder-shown')), true);
   assert.equal(await linearEntry.evaluate(el => el === document.activeElement), true);
+
+  // Direct surface editing keeps first/middle/last IDs and order; inference is fresh.
+  await page.goto(`${baseUrl}/konfigurator.php`);
+  await page.locator('#newSurface').fill('kvazi qazi kvazí ');
+  for (const [id, surface] of [['t1','KVÁZI\u0301'], ['t2','kvaziqazi'], ['t3','i']]) {
+    await page.locator(`#token-${id}`).click();
+    await page.getByLabel('Použitý tvar slova (bez mezer)').fill(surface);
+    assert.deepEqual(await page.locator('#tokens .chip[data-id]').evaluateAll(nodes => nodes.map(n => n.dataset.id)), ['t1','t2','t3']);
+  }
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Kvází','kvaziqazi','i']);
+  assert.equal(await page.locator('#word-pos').inputValue(), 'conjunction');
+  await page.getByLabel('Použitý tvar slova (bez mezer)').fill('qazi');
+  assert.equal(await page.locator('#word-pos').inputValue(), '');
+  await page.locator('#token-t2').click();
+  assert.equal(await page.locator('#word-pos').isDisabled(), true);
+  await page.getByLabel('Použitý tvar slova (bez mezer)').fill('qazi');
+  assert.equal(await page.locator('#word-pos').isDisabled(), false);
+  await page.getByLabel('Použitý tvar slova (bez mezer)').fill('xyz');
+  await page.locator('#previewButton').click();
+  const edited = JSON.parse(await page.locator('#payload pre').textContent());
+  assert.equal(edited.validation.sequence.ok, false);
+  assert.equal(edited.validation.submitReady, false);
+  assert.equal(edited.draft.tokens[1].kvaziPrefix, '');
+  assert.deepEqual(edited.draft.tokens.map(w => w.id), ['t1','t2','t3']);
+  await page.getByLabel('Použitý tvar slova (bez mezer)').fill('qazi');
+  assert.equal(await page.locator('#payload pre').count(), 0);
+  await page.locator('#previewButton').click();
+  assert.equal(JSON.parse(await page.locator('#payload pre').textContent()).validation.sequence.ok, true);
+
+  // Pronoun person and case labels are independent of terminology mode.
+  await page.locator('#word-pos').selectOption('pronoun');
+  for (let mode = 0; mode < 2; mode++) {
+    const optionLabels = name => page.getByLabel(name).locator('option[value]:not([value=""])').allTextContents();
+    assert.deepEqual(await optionLabels('Osoba zájmena'), ['1. osoba','2. osoba','3. osoba','Nevztahuje se']);
+    assert.deepEqual(await optionLabels('Pád zájmena'), ['1. pád','2. pád','3. pád','4. pád','5. pád','6. pád','7. pád','Nevztahuje se']);
+    await page.getByLabel('Osoba zájmena').selectOption('notApplicable');
+    assert.equal(await page.getByLabel('Osoba zájmena').inputValue(), 'notApplicable');
+    assert.equal(await page.getByLabel('Morfologická obhajoba a odkaz na model (nepovinné)', {exact:true}).isVisible(), true);
+    await page.locator('#termToggle').click();
+  }
+
+  // Reward uses Phase 1 only, single-fires on transitions and respects reduced motion.
+  for (const reducedMotion of ['no-preference', 'reduce']) {
+    await page.emulateMedia({reducedMotion});
+    await page.goto(`${baseUrl}/konfigurator.php`);
+    await page.evaluate(() => {
+      window.rewardCount = 0;
+      const el = document.getElementById('surfaceReward');
+      new MutationObserver(records => {
+        if (records.some(r => r.type === 'childList') && el.textContent) window.rewardCount++;
+      }).observe(el, {childList:true});
+    });
+    const reward = page.locator('#surfaceReward'), input = page.locator('#newSurface');
+    await input.fill('xyz.');
+    assert.equal(await reward.isVisible(), false);
+    assert.equal(await page.evaluate(() => window.rewardCount), 0);
+    await page.getByRole('button', {name:'Odebrat závěrečnou interpunkci'}).click();
+    await page.getByLabel('Použitý tvar slova (bez mezer)').fill('kvazi');
+    assert.equal(await reward.isVisible(), false, 'unclosed surface PASS has no reward');
+    for (const [index, punct] of ['.', '?', '!'].entries()) {
+      await input.fill(punct);
+      assert.equal(await reward.isVisible(), true);
+      assert.equal(await reward.textContent(), 'Výborně, věta vypadá na první pohled správně, pojďme na obhajobu!');
+      assert.equal(await page.evaluate(() => window.rewardCount), index + 1);
+      const animation = await reward.evaluate(el => getComputedStyle(el).animationName);
+      assert.equal(animation, reducedMotion === 'reduce' ? 'none' : 'surface-celebration');
+      await page.locator('#token-t1').click();
+      await page.locator('#previewButton').click();
+      assert.equal(await page.evaluate(() => window.rewardCount), index + 1, 'selection and preview do not refire');
+      assert.equal(JSON.parse(await page.locator('#payload pre').textContent()).validation.submitReady, false);
+      assert.equal(await page.locator('#submitButton').isDisabled(), true);
+      await page.getByRole('button', {name:'Odebrat závěrečnou interpunkci'}).click();
+      assert.equal(await reward.isVisible(), false);
+    }
+  }
+  await page.emulateMedia({reducedMotion:'no-preference'});
 
   // ── Scene 20: Native select readability in both app and OS themes ────────
   const luminance = color => {
@@ -508,7 +605,7 @@ try {
   }
 
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: 20 scenarios; native-select-contrast (both app/OS themes, placeholder/selected/disabled-select), placeholder-lifecycle, append-delete-order, fixed-surface, actual-imperative, indicative-rejection, API-error-XSS, POST-logout, insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
+  console.log('Browser checks passed: 23 scenarios; surface-edit-stable-IDs, pronoun-person-case-labels, surface-reward-single-fire-reduced-motion, optional-evidence-required-valency-analogy; native-select-contrast (both app/OS themes, placeholder/selected/disabled-select), placeholder-lifecycle, append-delete-order, actual-imperative, indicative-rejection, API-error-XSS, POST-logout, insertion, declaration, NFC, links, preview, labels, XSS, mobile, backspace, prefix-inference, staged-notEvaluated, submitReady, auth-submit, model-offering, surface-invalid-UX.');
 } finally {
   if (dbUp) {
     deleteTestUser(BRW_USR);

@@ -105,7 +105,7 @@ test('configurator HTTP: valid active release renders; every invalid release fai
       const html = await response.text();
       if (scenario === 'correct release') {
         assert.equal(response.status, 200);
-        assert.equal(active, 'public-1.3');
+        assert.equal(active, manifest.version);
         assert.deepEqual(JSON.parse(html.match(/window\.__normative = (.*);<\/script>/)[1]), JSON.parse(data));
         assert.match(html, /src="\/js\/konfigurator\/editor\.mjs"/);
         assert.match(html, /id="submitButton"/);
@@ -125,13 +125,19 @@ test('configurator HTTP: valid active release renders; every invalid release fai
   }
 });
 
-test('M3 release: public-1.2 bytes unchanged, public-1.3 hash valid, active public-1.3 / validator 1.3.0', () => {
+test('corrective release: historical bytes unchanged and normative mechanics identical to public-1.3', () => {
   for (const version of ['public-1','public-1.1','public-1.2']) for (const file of ['normative.json','manifest.json']) {
     const path = `app/data/rules/${version}/${file}`;
     const old = execFileSync('git',['show',`26bf3affbafbbf70cf646d83012e4c3eba199df3:${path}`]);
     assert.ok(readFileSync(path).equals(old),`${version}/${file} immutable`);
   }
-  assert.equal(active,'public-1.3'); assert.equal(manifest.validator_version,'1.3.0');
+  assert.equal(active,'public-1.3.1'); assert.equal(manifest.validator_version,'1.3.1');
+  for (const file of ['normative.json','manifest.json']) {
+    const path = `app/data/rules/public-1.3/${file}`;
+    assert.ok(readFileSync(path).equals(execFileSync('git',['show',`153ecb2:${path}`])));
+  }
+  const previous = JSON.parse(readFileSync('app/data/rules/public-1.3/normative.json'));
+  assert.deepEqual({...JSON.parse(data), version:previous.version}, previous, 'only release identity changes');
   assert.equal(manifest.normative_hash,createHash('sha256').update(data).digest('hex'));
   assert.deepEqual(Object.keys(JSON.parse(data).pronoun_form_signature),['case','number','gender','person']);
 });

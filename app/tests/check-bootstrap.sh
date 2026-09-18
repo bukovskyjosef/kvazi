@@ -68,6 +68,33 @@ DO $$ BEGIN
 END $$;
 SQL
 printf 'M2 -> M3 release upgrade, idempotence, conflicting-registration rollback: PASS; historical result preserved\n'
+# Corrective configurator registration also preserves history and rejects conflicts.
+docker exec -i "$db_container" psql -U kvazi -d "$test_db" -v ON_ERROR_STOP=1 <<'SQL' >/dev/null
+BEGIN; SET LOCAL session_replication_role=replica;
+DELETE FROM kvazi.rules_release WHERE version='public-1.3.1';
+COMMIT;
+SQL
+for attempt in 1 2; do
+  docker exec -i "$db_container" psql -U kvazi -d "$test_db" -v ON_ERROR_STOP=1 < docker/db/init/08-configurator-release.sql >/dev/null
+done
+docker exec -i "$db_container" psql -U kvazi -d "$test_db" -v ON_ERROR_STOP=1 <<'SQL' >/dev/null
+DO $$ BEGIN
+  IF (SELECT fingerprint FROM public.history_before) <> (SELECT md5(row_to_json(v)::text) FROM kvazi.validation_result v) THEN RAISE EXCEPTION 'Configurator upgrade changed history'; END IF;
+END $$;
+BEGIN; SET LOCAL session_replication_role=replica;
+UPDATE kvazi.rules_release SET validator_version='conflicting' WHERE version='public-1.3.1';
+COMMIT;
+SQL
+if docker exec -i "$db_container" psql -U kvazi -d "$test_db" -v ON_ERROR_STOP=1 < docker/db/init/08-configurator-release.sql >/dev/null 2>&1; then
+  echo 'Conflicting configurator registration unexpectedly succeeded' >&2
+  exit 1
+fi
+docker exec -i "$db_container" psql -U kvazi -d "$test_db" -v ON_ERROR_STOP=1 <<'SQL' >/dev/null
+DO $$ BEGIN
+  IF (SELECT validator_version FROM kvazi.rules_release WHERE version='public-1.3.1') <> 'conflicting' THEN RAISE EXCEPTION 'Configurator conflict overwrote release'; END IF;
+END $$;
+SQL
+printf 'Configurator release upgrade, idempotence, conflicting-registration rollback: PASS; historical result preserved\n'
 # Prove conflicting legacy decisions roll back the whole upgrade; do not choose
 # or delete a historical decision on the decision owner's behalf.
 docker exec -i "$db_container" psql -U kvazi -d "$test_db" -v ON_ERROR_STOP=1 <<'SQL' >/dev/null

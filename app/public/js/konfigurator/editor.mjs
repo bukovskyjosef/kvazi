@@ -3,11 +3,13 @@ import { deriveValidationState, previewDraft, validateTokenSequence } from './va
 import { esc, renderSentence, renderTokens, renderEditor, renderValidation } from './view.mjs';
 import { toggleMode, buttonLabel } from './terms.mjs';
 import { catalogCandidate, catalogFingerprint } from './catalog.mjs';
+import { createSurfaceRewardTracker } from './reward.mjs';
 
 let draft = window.__resubmit?.draft ?? createDraft(), selectedId = null;
 const resubmitSentenceId = window.__resubmit?.sentenceId ?? null;
 let composing = false;
 const catalogResults = new Map();
+const surfaceReward = createSurfaceRewardTracker();
 const element = id => document.getElementById(id);
 function updateInputPlaceholder() {
   const input = element('newSurface');
@@ -19,6 +21,16 @@ function render() {
   const focusId = focused?.id;
   const selection = (focused?.tagName === 'TEXTAREA' || (focused?.tagName === 'INPUT' && focused.type === 'text')) ? [focused.selectionStart, focused.selectionEnd] : null;
   const state = deriveValidationState(draft);
+  const reward = surfaceReward(draft, state);
+  const feedback = element('surfaceReward');
+  feedback.hidden = !reward.passed;
+  if (!reward.passed) {
+    feedback.textContent = '';
+    feedback.classList.remove('celebrate');
+  } else if (reward.fire) {
+    feedback.textContent = 'Výborně, věta vypadá na první pohled správně, pojďme na obhajobu!';
+    feedback.classList.add('celebrate');
+  }
   renderSentence(draft, state);
   renderTokens(draft, state, selectedId);
   for (const [id, result] of catalogResults) {
@@ -44,7 +56,9 @@ function render() {
   if (element('liveStatus').textContent !== summary) element('liveStatus').textContent = summary;
 }
 function dispatch(action) {
-  draft = mutateDraft(draft, action);
+  const next = mutateDraft(draft, action);
+  if (next !== draft && action.type === 'field' && action.path === 'surface') catalogResults.delete(action.id);
+  draft = next;
   // A displayed preview must never silently outlive its draft snapshot.
   element('payload').replaceChildren();
   render();

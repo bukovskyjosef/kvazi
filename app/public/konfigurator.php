@@ -66,6 +66,7 @@ try {
   <title>Konfigurátor kvazivěty</title>
   <meta name="csrf" content="<?= htmlspecialchars($csrf) ?>">
   <link rel="stylesheet" href="/css/site.css">
+  <link rel="stylesheet" href="/css/konfigurator-reward.css">
   <script>(function(){var t=localStorage.getItem('kvazi-theme')||'2';document.documentElement.dataset.theme=t;document.write('<link id="themeLink" rel="stylesheet" href="/css/konfigurator-theme'+t+'.css">')})()</script>
 </head>
 <body>
@@ -94,6 +95,7 @@ try {
         </div>
         <p id="inputStatus" role="status"></p>
       </form>
+      <p id="surfaceReward" class="status-ok surface-reward" role="status" aria-live="polite" aria-atomic="true" hidden></p>
     </div>
   </section>
   <section id="editor" class="card" aria-label="Deklarace vybraného slova"></section>
