@@ -40,8 +40,8 @@ function phpHash(password) {
 
 function createTestUser(username, email, password) {
   const hash = phpHash(password);
-  dbExec(`INSERT INTO kvazi.user_account (username, email, password_hash, role)
-           VALUES (:u, :e, :h, 'USER')
+  dbExec(`INSERT INTO kvazi.user_account (username, email, password_hash, role, email_verified_at)
+           VALUES (:u, :e, :h, 'USER', now())
            ON CONFLICT (username) DO NOTHING`, { u: username, e: email, h: hash });
 }
 

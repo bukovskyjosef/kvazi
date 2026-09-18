@@ -25,7 +25,7 @@ DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM kvazi.user_account) THEN RAISE EXCEPTION 'bootstrap must not create accounts or credentials'; END IF;
 END $$;
 -- Seed historical facts, then re-run the idempotent atomic upgrade below.
-INSERT INTO kvazi.user_account (username,email,password_hash) VALUES ('bootstrap_test','bootstrap@kvazi.test','not-a-login-credential');
+INSERT INTO kvazi.user_account (username,email,password_hash,email_verified_at) VALUES ('bootstrap_test','bootstrap@kvazi.test','not-a-login-credential',now());
 INSERT INTO kvazi.sentence (user_id) SELECT id FROM kvazi.user_account;
 INSERT INTO kvazi.sentence_revision (sentence_id,revision_no,rules_version,submitted_by,draft_json) SELECT id,1,'public-1',user_id,'{"tokens":[]}' FROM kvazi.sentence;
 INSERT INTO kvazi.validation_result (sentence_id,revision_id,rules_version,validator_version) SELECT sentence_id,id,'public-1','1.0.0' FROM kvazi.sentence_revision;

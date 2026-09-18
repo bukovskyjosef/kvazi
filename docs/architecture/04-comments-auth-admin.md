@@ -17,7 +17,7 @@ Magic-link přihlašování se pro MVP nepoužívá.
 
 Uživatel se přihlašuje klasicky svými přihlašovacími údaji.
 
-Ověření registračního e-mailu a obnova hesla jsou odložené do #104/#105. Mailový backend #106 (`includes/mail.php`) poskytuje `kvazi_mail_send()` s SMTP a outbox transportem; aktuální registrace provádí auto-login a nevytváří verification ani recovery tokeny.
+Registrace vyžaduje ověření e-mailu (#104): po úspěšné registraci aplikace odešle ověřovací e-mail s jednorázovým tokenem (platnost 24 hodin). Uživatel se nemůže přihlásit, dokud neověří e-mail kliknutím na odkaz ve zprávě. Auto-login po registraci se neprovádí. Tokeny jsou v tabulce `auth_token` (sdílená s budoucí obnovou hesla #105); DB ukládá pouze SHA-256 hash, nikoli plaintext. Opětovné zaslání je omezeno na 3 požadavky za hodinu; odpověď je vždy neutrální (anti-enumeration). Mailový backend #106 (`includes/mail.php`) poskytuje `kvazi_mail_send()` s SMTP a outbox transportem.
 
 Security základ používá bcrypt (cost 12), session ID rotation při loginu, `HttpOnly`, `SameSite=Lax`, `session.use_strict_mode` a absolutní životnost session dvě hodiny. V přímém HTTPS režimu se nastavuje `Secure`; za TLS proxy musí provoz nastavit `AUTH_COOKIE_SECURE=1` (aplikace nevěří klientským forwarded hlavičkám). Login i registrace používají společné CSRF helpery; JSON submit ověřuje stejný token explicitní hodnotou. Logout je CSRF chráněný POST a ruší session i cookie. Budoucí admin operace používají `auth_require_admin()` serverově.
 

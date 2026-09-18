@@ -83,11 +83,13 @@ try {
   assert.ok(user.url().endsWith('/register.php'));
   await user.locator('#username').fill(f.username); await user.locator('#email').fill(f.username+'@kvazi.int');
   await user.locator('#password').fill(f.password); await user.locator('#password2').fill(f.password);
-  await Promise.all([user.waitForURL(BASE+'/'),user.getByRole('button',{name:'Vytvořit účet',exact:true}).click()]);
+  await user.getByRole('button',{name:'Vytvořit účet',exact:true}).click();
+  await user.getByText('Registrace proběhla úspěšně').waitFor();
   f.registerUser(Number(db(`SELECT id FROM kvazi.user_account WHERE username=${pg(f.username)}`)));
   assert.equal(db(`SELECT role FROM kvazi.user_account WHERE id=${f.user}`),'USER'); scenes++;
-  await footer(user).getByRole('button',{name:'Odhlásit se',exact:true}).click();
-  await footer(user).getByRole('link',{name:'Přihlásit se',exact:true}).waitFor(); scenes++;
+  // Manually verify email in DB (no auto-login after registration).
+  db(`UPDATE kvazi.user_account SET email_verified_at=now() WHERE id=${f.user}`);
+  scenes++;
   async function login(page,name,viaReturn=false) {
     if (!viaReturn) await page.goto(BASE + '/login.php');
     await page.locator('#identifier').fill(name); await page.locator('#password').fill(f.password);

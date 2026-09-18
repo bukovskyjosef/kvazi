@@ -5,8 +5,8 @@ export async function workflowFixtures(options = {}) {
   const f = await fixtures(options);
   const originalCleanup = f.cleanup;
   const foreignName = f.tag + 'foreign';
-  const foreignUser = Number(db(`INSERT INTO kvazi.user_account(username,email,password_hash,role)
-    SELECT ${pg(foreignName)},${pg(foreignName+'@kvazi.int')},password_hash,'USER' FROM kvazi.user_account WHERE id=${f.admin} RETURNING id`));
+  const foreignUser = Number(db(`INSERT INTO kvazi.user_account(username,email,password_hash,role,email_verified_at)
+    SELECT ${pg(foreignName)},${pg(foreignName+'@kvazi.int')},password_hash,'USER',now() FROM kvazi.user_account WHERE id=${f.admin} RETURNING id`));
   f.sessions.foreign = await login(foreignName,f.password);
   const catalogBackups = new Map();
   function context(revisionId) {

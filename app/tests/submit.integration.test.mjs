@@ -96,8 +96,8 @@ function phpHash(password) {
 
 function createTestUser(username, email, password, role = 'USER') {
   const hash = phpHash(password);
-  dbExec(`INSERT INTO kvazi.user_account (username, email, password_hash, role)
-           VALUES (:u, :e, :h, :r)
+  dbExec(`INSERT INTO kvazi.user_account (username, email, password_hash, role, email_verified_at)
+           VALUES (:u, :e, :h, :r, now())
            ON CONFLICT (username) DO NOTHING`, { u: username, e: email, h: hash, r: role });
 }
 
@@ -611,7 +611,7 @@ integrationTest('registration email normalization, DB case-insensitive uniquenes
   try {
     const page=await fetch(`${BASE}/register.php`);const html=await page.text();const cookie=extractCookies(page);
     const r=await fetch(`${BASE}/register.php`,{method:'POST',redirect:'manual',headers:{'Content-Type':'application/x-www-form-urlencoded',Cookie:cookie},body:new URLSearchParams({csrf:extractCsrfFromForm(html),username:regUser,email:`  ${regEmail.toUpperCase()}  `,password:USR_PASS,password2:USR_PASS})});
-    assert.equal(r.status,302,await r.text());
+    assert.equal(r.status,200,await r.text());
     assert.equal(dbQuery('SELECT email FROM kvazi.user_account WHERE username=:u',{u:regUser}),regEmail);
     assert.throws(()=>createTestUser(`${USR}_dup`,regEmail.toUpperCase(),USR_PASS));
     const attack='<img src=x onerror="window.pwned=1">';

@@ -167,7 +167,7 @@ function auth_login(string $identifier, string $password): array|string {
         $limit->execute([':remote' => $remote]);
         if ((int)$limit->fetchColumn() > 10) return 'Příliš mnoho pokusů. Zkuste přihlášení později.';
         $stmt = $pdo->prepare(
-            'SELECT id, username, email, password_hash, role
+            'SELECT id, username, email, password_hash, role, email_verified_at
                FROM kvazi.user_account
               WHERE lower(email) = lower(:id) OR lower(username) = lower(:id)
               LIMIT 1'
@@ -184,6 +184,10 @@ function auth_login(string $identifier, string $password): array|string {
     $passwordOk = password_verify($password, $hash);
     if ($row === false || !$passwordOk) {
         return 'Nesprávný e-mail/uživatelské jméno nebo heslo.';
+    }
+
+    if ($row['email_verified_at'] === null) {
+        return 'E-mail nebyl ověřen. Zkontrolujte svou e-mailovou schránku nebo použijte opětovné zaslání.';
     }
 
     auth_session_start();
@@ -265,5 +269,112 @@ function auth_register(string $username, string $email, string $password, string
         return true;
     } catch (Throwable) {
         return 'Chyba databáze. Zkuste to znovu.';
+    }
+}
+
+/**
+ * Generate a verification token for a user.
+ * Invalidates prior unused tokens for same user+purpose.
+ * Returns the raw hex token (64 chars) for inclusion in the URL.
+ */
+function auth_generate_verification_token(int $userId): string {
+    $raw  = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $raw);
+    $pdo  = kvazi_db();
+    // Invalidate prior unused tokens for same user+purpose.
+    $pdo->prepare(
+        "UPDATE kvazi.auth_token SET used_at = now()
+          WHERE user_id = :uid AND purpose = 'email_verification' AND used_at IS NULL"
+    )->execute([':uid' => $userId]);
+    $pdo->prepare(
+        "INSERT INTO kvazi.auth_token (user_id, purpose, token_hash, expires_at)
+         VALUES (:uid, 'email_verification', :hash, now() + interval '24 hours')"
+    )->execute([':uid' => $userId, ':hash' => $hash]);
+    return $raw;
+}
+
+/**
+ * Verify an email token.
+ * Returns true on success, or a Czech error string on failure.
+ */
+function auth_verify_email_token(string $rawToken): true|string {
+    if (!preg_match('/^[a-f0-9]{64}$/', $rawToken)) {
+        return 'Neplatný ověřovací odkaz.';
+    }
+    $hash = hash('sha256', $rawToken);
+    try {
+        $pdo = kvazi_db();
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare(
+            "SELECT t.id, t.user_id FROM kvazi.auth_token t
+              WHERE t.token_hash = :hash AND t.purpose = 'email_verification'
+                AND t.used_at IS NULL AND t.expires_at > now()
+              FOR UPDATE"
+        );
+        $stmt->execute([':hash' => $hash]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            $pdo->rollBack();
+            return 'Ověřovací odkaz je neplatný nebo vypršel. Požádejte o nové zaslání.';
+        }
+        $pdo->prepare('UPDATE kvazi.auth_token SET used_at = now() WHERE id = :id')
+            ->execute([':id' => $row['id']]);
+        $pdo->prepare('UPDATE kvazi.user_account SET email_verified_at = now() WHERE id = :uid AND email_verified_at IS NULL')
+            ->execute([':uid' => $row['user_id']]);
+        $pdo->commit();
+        return true;
+    } catch (Throwable) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        return 'Chyba databáze. Zkuste to znovu.';
+    }
+}
+
+/**
+ * Atomically check resend throttle and generate a verification token.
+ *
+ * Uses SELECT ... FOR UPDATE on the user row to serialize concurrent
+ * resend requests for the same account, then counts recent tokens
+ * inside the same transaction before inserting. This prevents two
+ * parallel requests from both passing the throttle check.
+ *
+ * Returns the raw hex token on success, or null if throttled.
+ */
+function auth_try_resend_verification_token(int $userId): ?string {
+    $pdo = kvazi_db();
+    $pdo->beginTransaction();
+    try {
+        // Lock the user row to serialize concurrent resend requests.
+        $pdo->prepare('SELECT id FROM kvazi.user_account WHERE id = :uid FOR UPDATE')
+            ->execute([':uid' => $userId]);
+
+        // Count recent tokens while holding the lock.
+        $stmt = $pdo->prepare(
+            "SELECT count(*) FROM kvazi.auth_token
+              WHERE user_id = :uid AND purpose = 'email_verification'
+                AND created_at > now() - interval '1 hour'"
+        );
+        $stmt->execute([':uid' => $userId]);
+        if ((int)$stmt->fetchColumn() >= 3) {
+            $pdo->rollBack();
+            return null;
+        }
+
+        // Invalidate prior unused tokens and insert the new one, still under lock.
+        $raw  = bin2hex(random_bytes(32));
+        $hash = hash('sha256', $raw);
+        $pdo->prepare(
+            "UPDATE kvazi.auth_token SET used_at = now()
+              WHERE user_id = :uid AND purpose = 'email_verification' AND used_at IS NULL"
+        )->execute([':uid' => $userId]);
+        $pdo->prepare(
+            "INSERT INTO kvazi.auth_token (user_id, purpose, token_hash, expires_at)
+             VALUES (:uid, 'email_verification', :hash, now() + interval '24 hours')"
+        )->execute([':uid' => $userId, ':hash' => $hash]);
+
+        $pdo->commit();
+        return $raw;
+    } catch (Throwable) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        return null;
     }
 }
