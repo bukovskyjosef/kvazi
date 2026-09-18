@@ -45,4 +45,12 @@ Pokud změna sahá do konfigurátoru, validátoru nebo testovací matice:
 
 ## Testy / ověření
 
+- [ ] relevantní lokální testy/validace pro změněnou oblast jsou PASS
+- [ ] finální diff a scope byly zkontrolovány
+- [ ] všechny změny určené k review jsou commitnuté a pushnuté
+- Review target HEAD SHA: `<exact SHA>`
+- Required GitHub PR gate: [ ] PASS  [ ] pending
+- Lokální test evidence:
+- [ ] pokud konkrétní issue / technická dokumentace vyžaduje plný lokální gate, byl spuštěn a je PASS
+
 ## Poznámky pro review
