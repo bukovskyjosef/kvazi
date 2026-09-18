@@ -67,7 +67,7 @@ Jeden required job **`CI / PR gate`** v `ci.yml`:
 - **Aplikační / runtime / DB / auth / Docker / workflow / test změny** (cokoliv mimo explicitně safe cesty): plný integrační stack přes `run-integration.sh`.
 - **Fail-safe**: neznámá cesta → plný gate. Routing je regresně testovaný (`ci-risk.test.mjs`).
 
-`release-gate.yml` zůstává jako reusable gate pro ruční/auditní spuštění. `Published release integrity` (`releases.yml`) běží nezávisle při každém PR.
+Release integrity (`check-releases.mjs`) běží uvnitř `PR gate` — žádný samostatný `releases.yml` workflow. Autoritativní ruční/auditní runner je `bash app/tests/run-integration.sh`.
 
 ### 3.3 Production Environment a production trigger — implementovaný stav
 
@@ -75,7 +75,7 @@ Po cutoveru **není GitHub `production` Environment používán jako approval ga
 
 Produkční deployment spouští nativní **Coolify GitHub App Auto Deploy** pro branch `main`. GitHub Actions neposílá deploy request a nepřepisuje `git_commit_sha`.
 
-Starý custom deploy helper (`deploy-production.mjs`) a jeho testy (`production-deploy.test.mjs`) jsou odstraněné. `production.yml` je nahrazen lehkým **`Production smoke`** workflow, který po pushi do `main` pouze ověří veřejné read-only endpointy (healthz, homepage, normative API) bez API tokenů.
+Starý custom deploy helper (`deploy-production.mjs`) a jeho testy (`production-deploy.test.mjs`) jsou odstraněné. `production.yml` je nahrazen lehkým **`Production smoke`** workflow, který po pushi do `main` deterministicky ověří nasazení přesného commitu (`github.sha`) přes `/api/version.php` a poté provede read-only smoke bez API tokenů.
 
 Po ověřeném cutoveru lze odstranit production deployment secrets/tokeny:
 
@@ -127,7 +127,15 @@ Požadavky:
 - normative API → 200 + očekávaná aktivní rules verze,
 - smoke nesmí vytvářet/mazat produkční uživatelská data.
 
-Post-deploy smoke je implementovaný jako `app/tools/production-smoke.mjs` — jednoduchý bounded polling veřejných endpointů bez API tokenů. Lze spustit i ručně: `node app/tools/production-smoke.mjs`.
+Post-deploy smoke je implementovaný jako `app/tools/production-smoke.mjs` — tříkrokový:
+
+1. **Deployment identity:** polluje `GET /api/version.php` dokud SHA odpovídá `github.sha`. Stale healthy produkce se starým SHA neuspěje.
+2. **Readiness:** ověří `GET /healthz` → HTTP 200, `{"status":"ok"}`.
+3. **Read-only smoke:** homepage, normative API.
+
+Build arg `SOURCE_COMMIT` předává git SHA do Docker image → `/var/www/.build-sha` → `/api/version.php`. Coolify jej při Auto Deploy předává automaticky.
+
+Lze spustit i ručně: `EXPECTED_SHA=<sha> node app/tools/production-smoke.mjs`.
 
 ## 6. Co je odstraněno v PR #125 a co čeká na cutover
 
@@ -147,8 +155,8 @@ Odstraněno v implementačním PR:
 Zachováno se samostatnou hodnotou mimo starý deploy mechanismus:
 
 - `deployment.acceptance.mjs` — packaging gate (Docker image, healthcheck, PG18),
-- `release-gate.yml` — reusable full gate pro audit/ruční spuštění,
-- `releases.yml` — immutable release integrity.
+- `run-integration.sh` — autoritativní ruční/auditní full runner,
+- `check-releases.mjs` — immutable release integrity (součást PR gate).
 
 ## 7. Cutover pořadí
 

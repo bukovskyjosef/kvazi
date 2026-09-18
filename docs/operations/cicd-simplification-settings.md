@@ -7,7 +7,7 @@
 ### `main`
 
 - změny přes pull request,
-- required CI check: **`CI / PR gate`** a **`releases`**,
+- required CI check: **`CI / PR gate`**,
 - force push zakázat,
 - delete branch zakázat,
 - zachovat review/conversation ochrany podle repository governance.
@@ -69,19 +69,13 @@ Dále zachovat:
 
 ## Health / smoke
 
-Po novém deploymentu ověřit minimálně:
+Po novém deploymentu `Production smoke` workflow deterministicky ověří:
 
-```text
-GET https://kvazi.cz/healthz
-GET https://kvazi.cz/
-GET https://kvazi.cz/api/normative.php
-```
-
-Očekávání:
-
-- `/healthz` → HTTP 200 a bezpečný `status: ok`,
-- homepage → HTTP 200 bez neočekávaného redirectu,
-- normative API → HTTP 200 a aktivní očekávaná rules verze.
+1. **Deployment identity:** `GET /api/version.php` — polluje dokud SHA odpovídá `github.sha`. Stale healthy produkce se starým SHA neuspěje.
+2. **Readiness:** `GET /healthz` → HTTP 200 a bezpečný `{"status":"ok"}`.
+3. **Read-only smoke:**
+   - `GET https://kvazi.cz/` → HTML/200 bez neočekávaného redirectu,
+   - `GET https://kvazi.cz/api/normative.php` → JSON/200 a aktivní očekávaná rules verze.
 
 Smoke je read-only a nesmí měnit produkční uživatelská data.
 
@@ -89,7 +83,7 @@ Smoke je read-only a nesmí měnit produkční uživatelská data.
 
 1. Zaznamenat poslední známý zdravý production SHA.
 2. Implementační PR #121/#123 nechat projít současným gate.
-3. Přepnout required check z `Full release gate / Mandatory stack` na **`CI / PR gate`** (zachovat `releases`).
+3. Přepnout required check na **`CI / PR gate`** (jediný required check).
 4. V Coolify potvrdit GitHub App source `bukovskyjosef/kvazi`, branch `main`.
 5. Odstranit manual `git_commit_sha` pin.
 6. Zapnout `Auto Deploy`.

@@ -24,22 +24,21 @@ Merge do `main` je záměr nasadit do produkce (rozhodnutí #122). Žádný samo
 
 ## GitHub CI
 
-- `ci.yml` spouští job **`PR gate`** při PR do `main`/`develop`.
+- `ci.yml` spouští jediný required job **`PR gate`** při PR do `main`/`develop`.
   - Vždy: release integrity (`check-releases.mjs`).
   - Docs-only / low-risk změny: pouze rychlé kontroly.
   - Aplikační / runtime / DB / auth / Docker / workflow / test změny: plný integrační stack (Node 22, PHP 8.3, Chromium, Docker Compose PG18, `run-integration.sh`).
   - Fail-safe: neznámá cesta → plný gate. Routing je testovaný regresním testem (`ci-risk.test.mjs`).
-- `releases.yml` (`Published release integrity`) kontroluje immutable runtime releases při PR.
-- `production.yml` (`Production smoke`) po pushi do `main` ověří veřejné read-only endpointy (healthz, homepage, normative API). Nespouští integrační gate ani deployment.
-- `release-gate.yml` zůstává dostupný jako reusable full gate pro ruční/auditní použití.
+- `production.yml` (`Production smoke`) po pushi do `main` deterministicky ověří nasazení přesného commitu (`github.sha`) přes `/api/version.php` a poté provede read-only smoke. Stale healthy produkce neuspěje.
 - Explicitní `shell: bash` zapíná `pipefail`, aby `tee` nezměnilo selhání runneru na zelený job.
 - PR nemá Environment, secrets, `pull_request_target` ani deployment. Token má pouze `contents: read`.
 - Log plného runneru je artifact na 14 dní. CI `down --volumes` uklízí jen disposable GitHub-hosted stack.
+- Authoritative full runner pro ruční/auditní použití: `bash app/tests/run-integration.sh`.
 
 ### `main` ruleset
 
 1. Target `main`, enforcement Active; changes through PR, alespoň jedno nezávislé approval, dismiss stale approvals, resolve conversations, require approval of most recent push.
-2. Require status checks a up-to-date branch: **`CI / PR gate`** a **`releases`**. Po prvním CI běhu vyberte skutečné check names v UI.
+2. Require status checks a up-to-date branch: **`CI / PR gate`**. Po prvním CI běhu vyberte skutečný check name v UI.
 3. Zakažte force push a delete branch; žádný bypass pro běžné releases.
 4. `.github/workflows/`, `.github/ci/` a test runner potřebují nezávislé review jako ostatní release změny.
 
@@ -62,7 +61,9 @@ Docker provádí existující příkaz `php /usr/local/bin/kvazi-healthcheck.php
 
 Povinný packaging gate (`deployment.acceptance.mjs`) kontroluje přesný Dockerfile kontrakt, healthcheck konfiguraci postaveného image i běžícího kontejneru, skutečný Docker stav `healthy` a probe exit0/exit1 při dostupné/nedostupné DB.
 
-Runtime env pouze v Coolify, ne build args:
+Build arg `SOURCE_COMMIT` předává git SHA do image pro veřejnou identitu nasazené verze (`/api/version.php`). Coolify jej při Auto Deploy předává automaticky.
+
+Runtime env pouze v Coolify, ne build args (kromě `SOURCE_COMMIT`):
 
 ```text
 APP_ENV=production
@@ -86,15 +87,19 @@ Po cutoveru #124 a ověření nové cesty odstranit obsolete secrets:
 
 DB/Cloudflare/S3 credentials patří do runtime/infra secret storage, nejsou součástí CI.
 
-## Production smoke
+## Production verification a smoke
 
-Po deployi `production-smoke.yml` automaticky ověří veřejné read-only endpointy:
+Po pushi do `main` workflow `Production smoke` deterministicky ověří nasazení:
 
-- `GET https://kvazi.cz/healthz` → HTTP 200, přesný JSON `{"status":"ok"}`,
-- `GET https://kvazi.cz/` → HTML/200, bez neočekávaného redirectu,
-- `GET https://kvazi.cz/api/normative.php` → JSON/200, očekávaná aktivní rules verze.
+1. **Deployment identity:** polluje `GET /api/version.php` dokud SHA odpovídá `github.sha`. Stale healthy produkce se starým SHA neuspěje — workflow čeká na aktuální deployment nebo dosáhne timeout a FAIL.
+2. **Readiness:** ověří `GET /healthz` → HTTP 200, přesný JSON `{"status":"ok"}`.
+3. **Read-only smoke:**
+   - `GET https://kvazi.cz/` → HTML/200, bez neočekávaného redirectu,
+   - `GET https://kvazi.cz/api/normative.php` → JSON/200, očekávaná aktivní rules verze.
 
-Smoke nesmí vytvářet ani mazat produkční uživatelská data. Neúspěšný smoke znamená FAIL. Smoke lze spustit i ručně: `node app/tools/production-smoke.mjs`.
+Smoke nesmí vytvářet ani mazat produkční uživatelská data. Neúspěšný deployment/health/smoke znamená FAIL.
+
+Smoke lze spustit i ručně: `EXPECTED_SHA=<sha> node app/tools/production-smoke.mjs`.
 
 ## Cloudflare / HTTPS
 

@@ -25,3 +25,5 @@ jobs:
           node-version: 22
       - name: Wait for deployment and verify production
         run: node app/tools/production-smoke.mjs
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
