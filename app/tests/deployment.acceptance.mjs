@@ -122,7 +122,7 @@ test('SOURCE_COMMIT build arg embeds SHA in image and version endpoint returns i
 
 test('external PG18 explicit ordered bootstrap: normal public pages and private data layout, runtime env only',async () => {
   const files=readdirSync('docker/db/init').filter(f=>f.endsWith('.sql')).sort();
-  assert.deepEqual(files.map(f=>f.slice(0,2)),['01','02','03','04','05','06','07']);
+  assert.deepEqual(files.map(f=>f.slice(0,2)),['01','02','03','04','05','06','07','08']);
   for (const file of files) docker(['exec','-i',database,'psql','-p',dbPort,'-U',dbUser,'-d',dbName,'-v','ON_ERROR_STOP=1'],
     {input:readFileSync('docker/db/init/'+file),timeout:30000});
   assert.equal(sql('SELECT count(*) FROM kvazi.user_account'),'0');
@@ -131,8 +131,8 @@ test('external PG18 explicit ordered bootstrap: normal public pages and private 
   const home=await fetch(base+'/'); assert.equal(home.status,200); assert.match(await home.text(),/Nejdelší kvazivěta/);
   assert.match(home.headers.get('set-cookie'),/; secure/i);
   const list=await fetch(base+'/vety.php'); assert.equal(list.status,200); assert.match(await list.text(),/Zatím nejsou žádné schválené věty/);
-  const normative=await fetch(base+'/api/normative.php'); assert.equal(normative.status,200); assert.equal((await normative.json()).version,'public-1.3');
-  for (const path of ['/data/active-release.json','/data/rules/public-1.3/normative.json','/.env','/.git/config']) {
+  const normative=await fetch(base+'/api/normative.php'); assert.equal(normative.status,200); assert.equal((await normative.json()).version,JSON.parse(readFileSync('app/data/active-release.json')).version);
+  for (const path of ['/data/active-release.json',`/data/rules/${JSON.parse(readFileSync('app/data/active-release.json')).version}/normative.json`,'/.env','/.git/config']) {
     assert.equal((await fetch(base+path)).status,404,path);
   }
   const post=await fetch(base+'/healthz',{method:'POST'}); assert.equal(post.status,405); assert.equal(post.headers.get('allow'),'GET');

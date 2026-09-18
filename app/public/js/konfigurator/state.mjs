@@ -59,6 +59,29 @@ export function mutateDraft(current, action, schema = publicSchema) {
       for (const key of Object.keys(t.relations)) if (t.relations[key] === w.id) delete t.relations[key];
     }
   } else if (action.type === 'field') {
+    if (action.path === 'surface') {
+      const fresh = createToken(w.id, action.value);
+      if (fresh.surface === w.surface) return current;
+      // Same declaration category: retain player metadata, never old inference.
+      // Leaving functional words or entering a different inferred POS starts afresh.
+      const compatible = isFunctional(w) ? fresh.pos === w.pos : !fresh.pos || fresh.pos === w.pos;
+      if (compatible) {
+        for (const key of ['pos', 'lemma', 'model', 'identity', 'form', 'lexicalStatus', 'role', 'relations', 'valency', 'evidence']) fresh[key] = w[key];
+        if (isFunctional(w)) fresh.lemma = fresh.surface;
+        if (w.kvaziPrefix !== fresh.kvaziPrefix) {
+          // Prefix changes the lemma identity; do not guess the player's new lemma.
+          fresh.lemma = '';
+          fresh.evidence = { ...fresh.evidence, source: '', reference: '', morphology: '' };
+        }
+      } else {
+        // References to a changed declaration category need explicit confirmation.
+        for (const token of draft.tokens) {
+          for (const key of Object.keys(token.relations)) if (token.relations[key] === w.id) delete token.relations[key];
+        }
+      }
+      draft.tokens[draft.tokens.indexOf(w)] = fresh;
+      return draft;
+    }
     if (action.path === 'pos' && (isFunctional(createToken(w.id, w.surface)) || inferKvaziPrefix(w.surface))) return current;
     const previous = getPath(w, action.path);
     const normalized = typeof action.value === 'string' ? nfc(action.value) : action.value;

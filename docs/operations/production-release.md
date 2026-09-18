@@ -108,9 +108,11 @@ Pouze Cloudflare ingress smí dojít k origin Coolify proxy; firewall/origin mec
 
 ## První DB a forward upgrades
 
-Po review/merge, před prvním deplojem, operátor připraví PG18 resource a bootstrapuje **jen prázdnou produkční DB** z přesného schváleného checkoutu. Sedm souborů **01 → 07 s `ON_ERROR_STOP=1`** je v [kanonickém packaging postupu](../../app/README.md#production-image-a-samostatná-postgresql-18-db). SQL není součást app image; workflow nesmí automaticky aplikovat init SQL.
+Po review/merge, před prvním deplojem, operátor připraví PG18 resource a bootstrapuje **jen prázdnou produkční DB** z přesného schváleného checkoutu. Osm souborů **01 → 08 s `ON_ERROR_STOP=1`** je v [kanonickém packaging postupu](../../app/README.md#production-image-a-samostatná-postgresql-18-db). SQL není součást app image; workflow nesmí automaticky aplikovat init SQL.
 
-Po bootstrapu ověřte `server_version_num / 10000 = 18`, schema `kvazi`, revision/validation/admin/morphology/catalog tabulky, čtyři runtime releases a aktivní dataset `public-1.3` v application. Žádné default admin credentials.
+Po bootstrapu ověřte `server_version_num / 10000 = 18`, schema `kvazi`, revision/validation/admin/morphology/catalog tabulky, pět runtime releases a aktivní dataset `public-1.3.1` v application. Žádné default admin credentials.
+
+Při nasazení opravného konfigurátoru nad existující M3 DB předem aplikujte `docker/db/init/08-configurator-release.sql` přes `psql -v ON_ERROR_STOP=1`. Registruje `public-1.3.1` / validator `1.3.1` bez změny schématu, pravidlové mechaniky nebo historických výsledků.
 
 Budoucí DB release: backup, review explicitního forward SQL pro skutečný stav DB, `ON_ERROR_STOP=1`, verifikace, kompatibilní app deploy. Release bez DB změny nemá migration step. Nikdy replay bootstrapu/reset volume/automatický schema downgrade/revalidace historických výsledků.
 

@@ -66,9 +66,10 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema, ca
   })() : '';
   container.innerHTML = `<h2 class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Deklarace slova ${esc(w.surface)}</span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><small style="font-size:10px;font-weight:400;opacity:.55;letter-spacing:.02em">Odborné termíny se přeloží do hovorových</small><button id="termToggle" type="button" style="font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:inherit;font-family:inherit">${esc(buttonLabel())}</button></span></h2><div class="card-body">
     <fieldset><legend>Identita a použitý tvar</legend><div class="config-grid">
+      ${field('surface', 'Použitý tvar slova (bez mezer)', w.surface)}
       ${field('pos', 'Slovní druh', w.pos, functional ? posLabels : Object.fromEntries(Object.entries(posLabels).filter(([k]) => !functionalPos().includes(k))), 'word', functional || inferKvaziPrefix(w.surface))}
       ${!functional ? field('lemma', w.pos === 'verb' ? 'Neurčitek / základní tvar' : 'Základní tvar', w.lemma) + field('lexicalStatus', 'Deklarovaná identita', w.lexicalStatus, w.pos === 'pronoun' ? { real: 'Skutečné slovo' } : enumOptions('lexicalStatus', { real: 'Skutečné slovo', quasi: 'Kvazislovo' })) + field('model', w.pos === 'verb' ? 'Soutěžní časovací typ' : 'Soutěžní vzor', w.model, models, 'word', !Object.keys(models).length) : '<p>Slovní druh a role jsou určeny pravidlem jednopísmenné výjimky.</p>'}
-      ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? translateOptions(f.options) : null, 'word', false, f.multiline)).join('')}
+      ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? (['form.pronoun.person', 'form.pronoun.case'].includes(f.path) ? f.options : translateOptions(f.options)) : null, 'word', false, f.multiline)).join('')}
     </div>${w.pos === 'noun' && model ? `<p>Rod: ${esc({ masculine: 'mužský', feminine: 'ženský', neuter: 'střední' }[w.identity.gender])}${w.identity.animacy ? `, ${w.identity.animacy === 'animate' ? 'životný' : 'neživotný'}` : ''} (určeno zvoleným vzorem).</p>` : ''}
     ${formCheckHtml}
     ${catalogState ? `<div><button id="catalogCheck" type="button" ${catalogState.pending ? 'disabled' : ''}>Ověřit v katalogu</button><p id="catalogResult" role="status">${esc(catalogState.message ?? '')}</p></div>` : ''}
@@ -81,7 +82,7 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema, ca
       ${w.evidence.needsAnalogy ? field('evidence.explanation', 'Krátká obhajoba vztahu', w.evidence.explanation) + field('evidence.analogy', 'Běžná česká analogie stejné konstrukce', w.evidence.analogy) : ''}
     </fieldset>
     ${!functional ? `<fieldset><legend>Podklady pro posouzení</legend>
-      ${field('evidence.morphology', 'Morfologická obhajoba a odkaz na model', w.evidence.morphology)}
+      ${field('evidence.morphology', 'Morfologická obhajoba a odkaz na model (nepovinné)', w.evidence.morphology)}
       ${w.lexicalStatus === 'real' && w.role !== 'auxiliary' ? field('evidence.source', 'Zdroj dokládající existenci (nepovinné)', w.evidence.source, { '': '— nevybráno —', IJP: 'Slovníková část IJP', 'ASSČ': 'Zveřejněné heslo ASSČ' }) + field('evidence.reference', 'Konkrétní heslo / odkaz a doklad použitého tvaru', w.evidence.reference) : ''}
     </fieldset>` : ''}
     <h3>Co zbývá u tohoto slova</h3>${list([...status.issues, ...status.missing, ...(status.formCheck && !status.formCheck.ok && status.formCheck.message ? [status.formCheck.message] : [])])}
