@@ -117,6 +117,22 @@ Nesmí autonomně rozhodnout otevřený produktový nebo pravidlový problém.
 
 Musí před implementací přečíst relevantní normativní pravidla, architekturu a otevřená issues.
 
+#### Předání Developer → Reviewer
+
+Před předáním implementace k nezávislému review musí vývojový agent:
+
+1. dokončit scope příslušného issue,
+2. spustit repository-authoritative Definition of Done gate relevantní pro daný typ změny a odstranit všechny známé blokující výsledky,
+3. ověřit finální diff a jeho scope,
+4. commitnout a pushnout všechny změny, které mají být reviewovány,
+5. ověřit, že Pull Request ukazuje na tentýž publikovaný HEAD,
+6. durable zaznamenat exact HEAD SHA a testovací/gate evidence do PR nebo souvisejícího issue,
+7. teprve potom předat práci Reviewerovi.
+
+Finálním review targetem je vždy **publikovaný exact SHA** dostupný v Pull Requestu. Lokální necommitnutý nebo nepushnutý stav není finální review target a nesmí být vydáván za stav PR.
+
+Každá corrective změna po review, která změní HEAD SHA, vytváří nový review target. Před jeho předáním k re-review musí vývojový agent znovu splnit odpovídající repository-authoritative DoD pro změněný stav a publikovat nový exact SHA. Konkrétní technický příkaz authoritative gate určuje relevantní technická/provozní dokumentace; tento obecný kontrakt jej neduplikuje.
+
 Nesmí:
 - měnit význam pravidel kvůli jednodušší implementaci,
 - považovat DB schéma, UI nebo existující kód za vyšší autoritu než pravidla,
