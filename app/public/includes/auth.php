@@ -329,6 +329,160 @@ function auth_verify_email_token(string $rawToken): true|string {
     }
 }
 
+// ─────────────────────────────────────────────────────────
+// Password recovery (#105)
+// ─────────────────────────────────────────────────────────
+
+/**
+ * Validate the two-word surface challenge for password recovery.
+ *
+ * Reuses the canonical KvaziValidator Phase 1 surface validation:
+ * NFC, charset, length/single-token exceptions, motif/token boundary, prefix.
+ * No morphology, syntax, catalog or deep validation.
+ *
+ * Input: raw user text. Must contain exactly two word tokens and one
+ * terminal punctuation mark (. ? !).
+ *
+ * Returns true on success, or a Czech error string on failure.
+ */
+function auth_validate_recovery_challenge(string $input): true|string {
+    $input = trim($input);
+    if ($input === '') {
+        return 'Zadejte dvouslovnou kvazivětu.';
+    }
+
+    // Terminal punctuation is required and determines sentence type.
+    $lastChar = mb_substr($input, -1, 1, 'UTF-8');
+    $punctuation = ['.' => 'declarative', '?' => 'interrogative', '!' => 'imperative'];
+    if (!isset($punctuation[$lastChar])) {
+        return 'Dvouslovná věta musí končit tečkou, otazníkem nebo vykřičníkem.';
+    }
+
+    // Strip terminal punctuation to get the word content.
+    $words = mb_substr($input, 0, mb_strlen($input, 'UTF-8') - 1, 'UTF-8');
+    $words = trim($words);
+    if ($words === '') {
+        return 'Zadejte dvouslovnou kvazivětu.';
+    }
+
+    // Split on whitespace into tokens.
+    $tokens = preg_split('/\s+/u', $words);
+    if (count($tokens) !== 2) {
+        return 'Challenge musí obsahovat právě dvě slova a závěrečnou interpunkci.';
+    }
+
+    // Build token array for the canonical validator.
+    $tokenArray = [];
+    foreach ($tokens as $i => $surface) {
+        $tokenArray[] = [
+            'id'      => 't' . ($i + 1),
+            'surface' => $surface,
+        ];
+    }
+
+    // Load the canonical validator and run Phase 1 surface validation.
+    $validator = kvazi_load_validator(dirname(__DIR__, 2));
+    $result = $validator->validateTokenSequencePublic($tokenArray);
+
+    if (!$result['ok']) {
+        return 'Dvouslovná věta neprošla povrchovou kontrolou.';
+    }
+
+    return true;
+}
+
+/**
+ * Atomically check recovery throttle and generate a recovery token.
+ *
+ * Uses SELECT ... FOR UPDATE on the user row to serialize concurrent
+ * recovery requests. Throttle: max 3 tokens per hour per user.
+ *
+ * Returns the raw hex token on success, or null if throttled.
+ */
+function auth_try_recovery_request(int $userId): ?string {
+    $pdo = kvazi_db();
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare('SELECT id FROM kvazi.user_account WHERE id = :uid FOR UPDATE')
+            ->execute([':uid' => $userId]);
+
+        $stmt = $pdo->prepare(
+            "SELECT count(*) FROM kvazi.auth_token
+              WHERE user_id = :uid AND purpose = 'password_recovery'
+                AND created_at > now() - interval '1 hour'"
+        );
+        $stmt->execute([':uid' => $userId]);
+        if ((int)$stmt->fetchColumn() >= 3) {
+            $pdo->rollBack();
+            return null;
+        }
+
+        $raw  = bin2hex(random_bytes(32));
+        $hash = hash('sha256', $raw);
+        // Invalidate prior unused recovery tokens.
+        $pdo->prepare(
+            "UPDATE kvazi.auth_token SET used_at = now()
+              WHERE user_id = :uid AND purpose = 'password_recovery' AND used_at IS NULL"
+        )->execute([':uid' => $userId]);
+        $pdo->prepare(
+            "INSERT INTO kvazi.auth_token (user_id, purpose, token_hash, expires_at)
+             VALUES (:uid, 'password_recovery', :hash, now() + interval '24 hours')"
+        )->execute([':uid' => $userId, ':hash' => $hash]);
+
+        $pdo->commit();
+        return $raw;
+    } catch (Throwable) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        return null;
+    }
+}
+
+/**
+ * Atomically consume a password recovery token and reset the password.
+ *
+ * Returns true on success, or a Czech error string on failure.
+ * Does NOT change email_verified_at.
+ */
+function auth_reset_password_with_token(string $rawToken, string $newPassword, string $newPassword2): true|string {
+    if (!preg_match('/^[a-f0-9]{64}$/', $rawToken)) {
+        return 'Neplatný odkaz pro obnovu hesla.';
+    }
+    if (mb_strlen($newPassword) < 8) {
+        return 'Heslo musí mít alespoň 8 znaků.';
+    }
+    if ($newPassword !== $newPassword2) {
+        return 'Hesla se neshodují.';
+    }
+
+    $hash = hash('sha256', $rawToken);
+    try {
+        $pdo = kvazi_db();
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare(
+            "SELECT t.id, t.user_id FROM kvazi.auth_token t
+              WHERE t.token_hash = :hash AND t.purpose = 'password_recovery'
+                AND t.used_at IS NULL AND t.expires_at > now()
+              FOR UPDATE"
+        );
+        $stmt->execute([':hash' => $hash]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            $pdo->rollBack();
+            return 'Odkaz pro obnovu hesla je neplatný nebo vypršel.';
+        }
+        $pdo->prepare('UPDATE kvazi.auth_token SET used_at = now() WHERE id = :id')
+            ->execute([':id' => $row['id']]);
+        $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+        $pdo->prepare('UPDATE kvazi.user_account SET password_hash = :h WHERE id = :uid')
+            ->execute([':h' => $passwordHash, ':uid' => $row['user_id']]);
+        $pdo->commit();
+        return true;
+    } catch (Throwable) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        return 'Chyba databáze. Zkuste to znovu.';
+    }
+}
+
 /**
  * Atomically check resend throttle and generate a verification token.
  *
