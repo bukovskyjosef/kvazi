@@ -1,13 +1,13 @@
 # Nastavení CI/CD po zjednodušení
 
-> Tento dokument je checklist pro budoucí cutover. Dokud není cutover dokončený a ověřený, platí současný `production-release.md`.
+> Tento dokument zachycuje výsledné nastavení po CI/CD cutoveru #124. Živá evidence, konkrétní SHA a provozní ověření zůstávají v GitHub Issue #124.
 
 ## GitHub
 
 ### `main`
 
 - změny přes pull request,
-- required CI check: **`CI / PR gate`**,
+- required CI check: **`PR gate`**,
 - force push zakázat,
 - delete branch zakázat,
 - zachovat review/conversation ochrany podle repository governance.
@@ -16,7 +16,7 @@
 
 Rozhodnutí #122 je finální: **merge do `main` = automatický production deploy**.
 
-Po cutoveru:
+Aktuální stav:
 
 - GitHub `production` Environment se nepoužívá jako ruční approval gate,
 - GitHub Actions nespouští Coolify deployment přes custom API helper,
@@ -24,18 +24,16 @@ Po cutoveru:
 - produkční deployment spouští Coolify GitHub App Auto Deploy po pushi do `main`,
 - post-deploy GitHub část, pokud zůstane, je pouze lehké ověření deploymentu/health/smoke a nesmí znovu spouštět celý release gate.
 
-### Secrets
+### Secrets a Environment
 
-Do úspěšného cutoveru ponechat současné production secrets. Po ověření nové cesty odstranit pouze ty, které už nic nepoužívá.
+Po úspěšném cutoveru byly odstraněny obsolete GitHub deployment secrets:
 
-Kandidáti na odstranění po cutoveru:
+- `COOLIFY_TOKEN`,
+- `COOLIFY_READ_TOKEN`,
+- `COOLIFY_APP_UUID`,
+- `COOLIFY_URL`.
 
-- `COOLIFY_TOKEN`, pokud slouží pouze starému deploy triggeru,
-- `COOLIFY_READ_TOKEN`, pokud nebude potřeba ani pro lehké ověření,
-- `COOLIFY_APP_UUID`, pokud nebude potřeba ani pro lehké ověření,
-- `COOLIFY_URL`, pokud nebude potřeba ani pro lehké ověření.
-
-Žádný secret nemažte před úspěšným novým release a kontrolou závislostí.
+Byl odstraněn i nepoužívaný GitHub Environment `production` a staré Coolify API tokeny určené pouze pro supersedovaný custom deploy helper. Nový flow používá GitHub App Auto Deploy a žádný z těchto tokenů nepotřebuje.
 
 ## Coolify
 
@@ -45,10 +43,11 @@ Produkční Application:
 source: GitHub App
 repository: bukovskyjosef/kvazi
 branch: main
-Auto Deploy: ON
+Auto deploy: Deploy on push (webhooks)
+Source commit availability: Available during build
 ```
 
-Při cutoveru odstranit permanentní ruční `git_commit_sha` pin. Běžný release nesmí vyžadovat editaci SHA v dashboardu.
+Permanentní ruční `git_commit_sha` pin je odstraněný. Běžný release nevyžaduje editaci SHA v dashboardu.
 
 Zachovat:
 
@@ -81,18 +80,20 @@ Smoke je read-only a nesmí měnit produkční uživatelská data.
 
 ## Cutover checklist
 
+Checklist byl proveden v #124; konkrétní evidence a SHA jsou v issue.
+
 1. Zaznamenat poslední známý zdravý production SHA.
 2. Implementační PR #121/#123 nechat projít současným gate.
-3. Přepnout required check na **`CI / PR gate`** (jediný required check).
+3. Přepnout required check na **`PR gate`** (jediný required check).
 4. V Coolify potvrdit GitHub App source `bukovskyjosef/kvazi`, branch `main`.
 5. Odstranit manual `git_commit_sha` pin.
-6. Zapnout `Auto Deploy`.
-7. V Application → Configuration → Advanced zapnout **Include Source Commit in Build = ON** (předá `SOURCE_COMMIT` build arg do Docker buildu pro `/api/version.php`).
+6. Zapnout `Auto deploy = Deploy on push (webhooks)`.
+7. V Application → Configuration → Advanced nastavit **Source commit availability = Available during build** (v dřívějším UI/docs označeno jako `Include Source Commit in Build = ON`); tím je `SOURCE_COMMIT` dostupný při Docker buildu pro `/api/version.php`.
 8. Aktivovat nový workflow stav a provést kontrolovaný merge do `main`.
 9. Ověřit, že Coolify deployment spustil GitHub App push event bez ručního triggeru.
 10. Ověřit Docker `running:healthy` a minimální production smoke.
 11. Ověřit další běžnou změnu / bezpečný test nového flow.
-12. Teprve poté odstranit obsolete production workflow/helper/secrets/tokeny.
+12. Teprve poté odstranit obsolete production workflow/helper/secrets/tokeny a nepoužívaný GitHub Environment.
 13. Aktualizovat `production-release.md` na nový skutečný stav.
 
 ## Rollback
