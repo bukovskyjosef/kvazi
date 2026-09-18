@@ -45,4 +45,11 @@ Pokud změna sahá do konfigurátoru, validátoru nebo testovací matice:
 
 ## Testy / ověření
 
+- [ ] repository-authoritative local DoD gate relevantní pro tuto změnu je PASS
+- [ ] finální diff a scope byly zkontrolovány
+- [ ] všechny změny určené k review jsou commitnuté a pushnuté
+- Review target HEAD SHA: `<exact SHA>`
+- Required GitHub PR gate: [ ] PASS  [ ] pending / not applicable
+- Test/gate evidence:
+
 ## Poznámky pro review
