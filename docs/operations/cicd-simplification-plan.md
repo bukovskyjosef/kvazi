@@ -1,8 +1,8 @@
 # Plán zjednodušení CI/CD pro hobby provoz
 
-> **Status tohoto dokumentu:** implementovaný migrační handoff. Kód/workflow/dokumentace jsou připravené v PR #125. Dokud neproběhne skutečný #124 cutover (GitHub ruleset + Coolify Auto Deploy ON), platí předchozí M5 `production-release.md` a aktuální stav se ověřuje v GitHub Issues.
+> **Status tohoto dokumentu:** implementovaný návrh a historický cutover plán. PR #125 je nasazený a funkční cutover #124 proběhl; aktuální provozní kontrakt je v `production-release.md`.
 >
-> Živý backlog a rozhodnutí zůstávají v GitHub Issues. Tento dokument popisuje cílovou topologii, nastavení a cutover kroky; neudržuje stav jednotlivých úkolů.
+> Živý backlog, konkrétní SHA a provozní evidence zůstávají v GitHub Issues. Tento dokument uchovává návrhový kontext a pořadí cutoveru, ne aktuální backlog.
 
 ## 1. Cílový princip
 
@@ -47,7 +47,7 @@ I po zjednodušení musí platit:
 
 ### 3.1 `main` ruleset / branch protection
 
-Po cutoveru zachovat minimálně:
+Aktuální `main` ruleset zachovává minimálně:
 
 - změny do `main` přes pull request,
 - required status check pro stabilní PR CI job,
@@ -60,7 +60,7 @@ Pokud se při #121 přejmenuje required CI job, ruleset se musí přepnout atomi
 
 ### 3.2 PR CI — implementovaný stav
 
-Jeden required job **`CI / PR gate`** v `ci.yml`:
+Jeden required job **`PR gate`** ve workflow `CI` (`ci.yml`):
 
 - **Vždy** (docs-only i aplikační PR): release integrity (`check-releases.mjs`).
 - **Docs-only / low-risk** (pouze soubory v `docs/`, `*.md`, `LICENSE`, issue/PR templates): jen rychlé kontroly. Žádný Docker/PG18/Playwright.
@@ -71,17 +71,13 @@ Release integrity (`check-releases.mjs`) běží uvnitř `PR gate` — žádný 
 
 ### 3.3 Production Environment a production trigger — implementovaný stav
 
-Po cutoveru **není GitHub `production` Environment používán jako approval gate**.
+GitHub `production` Environment byl po úspěšném cutoveru odstraněn; release flow nepoužívá samostatný environment approval gate.
 
 Produkční deployment spouští nativní **Coolify GitHub App Auto Deploy** pro branch `main`. GitHub Actions neposílá deploy request a nepřepisuje `git_commit_sha`.
 
 Starý custom deploy helper (`deploy-production.mjs`) a jeho testy (`production-deploy.test.mjs`) jsou odstraněné. `production.yml` je nahrazen lehkým **`Production smoke`** workflow, který po pushi do `main` deterministicky ověří nasazení přesného commitu (`github.sha`) přes `/api/version.php` a poté provede read-only smoke bez API tokenů.
 
-Po ověřeném cutoveru lze odstranit production deployment secrets/tokeny:
-
-- `COOLIFY_TOKEN`, `COOLIFY_READ_TOKEN`, `COOLIFY_APP_UUID`, `COOLIFY_URL` — sloužily pouze starému custom deploy helperu; nový flow je nepotřebuje.
-
-Odstranění probíhá až po úspěšném cutoveru.
+Po ověřeném cutoveru byly odstraněny obsolete GitHub deployment secrets `COOLIFY_TOKEN`, `COOLIFY_READ_TOKEN`, `COOLIFY_APP_UUID`, `COOLIFY_URL` a revokovány staré Coolify API tokeny určené pouze pro původní custom deploy helper.
 
 ## 4. Coolify — cílové nastavení
 
@@ -96,7 +92,7 @@ Při cutoveru:
 
 - odstranit permanentní `git_commit_sha` pin,
 - zapnout **Auto Deploy**,
-- v Application → Configuration → Advanced zapnout **Include Source Commit in Build = ON**,
+- v Application → Configuration → Advanced nastavit **Source commit availability = Available during build** (dřívější označení `Include Source Commit in Build = ON`),
 - ponechat GitHub App source integraci,
 - nezavádět custom webhook ani vlastní deployment controller,
 - zachovat build pack Dockerfile, build context `/`, Dockerfile `docker/php/Dockerfile`, interní port `80`,
@@ -134,11 +130,11 @@ Post-deploy smoke je implementovaný jako `app/tools/production-smoke.mjs` — t
 2. **Readiness:** ověří `GET /healthz` → HTTP 200, `{"status":"ok"}`.
 3. **Read-only smoke:** homepage, normative API.
 
-Build arg `SOURCE_COMMIT` předává git SHA do Docker image → `/var/www/.build-sha` → `/api/version.php`. Coolify tento build arg **nepředává defaultně** — při #124 cutoveru je nutné zapnout **Include Source Commit in Build = ON** v Application → Configuration → Advanced.
+Build arg `SOURCE_COMMIT` předává git SHA do Docker image → `/var/www/.build-sha` → `/api/version.php`. V Coolify je proto nastaveno **Source commit availability = Available during build** v Application → Configuration → Advanced.
 
 Lze spustit i ručně: `EXPECTED_SHA=<sha> node app/tools/production-smoke.mjs`.
 
-## 6. Co je odstraněno v PR #125 a co čeká na cutover
+## 6. Implementovaný a uklizený stav po cutoveru
 
 Odstraněno v implementačním PR:
 
@@ -146,12 +142,12 @@ Odstraněno v implementačním PR:
 - custom production deploy helper `deploy-production.mjs` a jeho testy `production-deploy.test.mjs`,
 - SHA pin requirement v deploy workflow.
 
-Čeká na #124 cutover (živé nastavení):
+Dokončeno v živém nastavení #124:
 
-- GitHub Environment approval, production secrets/tokeny,
-- Coolify: odstranění SHA pinu, zapnutí Auto Deploy,
-- GitHub: přepnutí required checku na `CI / PR gate`,
-- přechodné M5 instrukce v dokumentaci.
+- GitHub required check je `PR gate`,
+- Coolify nemá permanentní SHA pin a používá GitHub App Auto Deploy,
+- `SOURCE_COMMIT` je dostupný při buildu,
+- obsolete GitHub Environment/secrets a staré Coolify API tokeny byly odstraněny.
 
 Zachováno se samostatnou hodnotou mimo starý deploy mechanismus:
 
@@ -159,7 +155,7 @@ Zachováno se samostatnou hodnotou mimo starý deploy mechanismus:
 - `run-integration.sh` — autoritativní ruční/auditní full runner,
 - `check-releases.mjs` — immutable release integrity (součást PR gate).
 
-## 7. Cutover pořadí
+## 7. Historické cutover pořadí
 
 1. Znát poslední známý zdravý production SHA jako rollback point.
 2. Implementovat #121 a #123 běžným PR, který ještě projde současným ověřeným gate.
@@ -171,7 +167,7 @@ Zachováno se samostatnou hodnotou mimo starý deploy mechanismus:
 8. Ověřit ještě jednu běžnou změnu nebo jiný bezpečný důkaz, že starý production flow už není potřeba.
 9. Teprve potom odstranit obsolete workflow/helpery/secrets/tokeny a přepsat `production-release.md` na nový skutečný stav.
 
-Tento seznam je provozní pořadí, nikoli backlog ani evidence dokončení. Stav práce se zjišťuje z GitHub Issues.
+Tento seznam zachovává provedené pořadí cutoveru; není backlogem ani evidence ledgerem. Konkrétní evidence je v GitHub Issues.
 
 ## 8. Rollback
 
@@ -199,6 +195,6 @@ Tato optimalizace sama o sobě nemění:
 
 ## 10. Autorita
 
-Aktuální provozní kontrakt zůstává v `production-release.md` do skutečného cutoveru. Tento dokument je přípravný technický handoff.
+Aktuální provozní kontrakt je v `production-release.md`. Tento dokument je návrhový a historický záznam zjednodušení a cutoveru.
 
 Živý backlog a rozhodnutí jsou v GitHub Issues. Rozhodnutí #122 o Auto Deploy je finální a tento dokument jej nepředkládá jako otevřenou variantu.
