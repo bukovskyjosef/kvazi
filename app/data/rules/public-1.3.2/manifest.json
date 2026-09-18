@@ -1,0 +1,8 @@
+{
+  "version": "public-1.3.2",
+  "normative_hash": "c07b03fff5504eda35c00a24c5035bf431ad693c4770d5c79fd04a801bf076fb",
+  "normative_file": "normative.json",
+  "validator_version": "1.3.2",
+  "activated_at": "2026-09-18T00:00:00Z",
+  "description": "Add public surface validation accessor for password recovery challenge (#105); normative mechanics unchanged."
+}
