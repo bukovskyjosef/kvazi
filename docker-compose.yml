@@ -39,6 +39,15 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-kvazi}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-0}
       TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-outbox}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_TLS_MODE: ${SMTP_TLS_MODE:-starttls}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-}
+      MAIL_OUTBOX_PATH: ${MAIL_OUTBOX_PATH:-/tmp/kvazi-mail-outbox.jsonl}
     volumes:
       - ./app/public:/var/www/html:ro
       - ./app/data:/var/www/data:ro

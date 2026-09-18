@@ -332,18 +332,20 @@ test('env contract: real env files ignored, example safe/versionable, Compose de
   }
   assert.throws(()=>execFileSync('git',['check-ignore','--no-index','.env.example'],{stdio:'pipe'}),e=>e.status===1);
   const example = readFileSync('.env.example','utf8');
-  assert.doesNotMatch(example,/BEGIN .*PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{30,}|SMTP|ADMIN_PASSWORD/i);
+  assert.doesNotMatch(example,/BEGIN .*PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{30,}|ADMIN_PASSWORD/i);
   const values = Object.fromEntries(example.split('\n').filter(v=>v && !v.startsWith('#')).map(v=>v.split('=')));
-  assert.deepEqual(Object.keys(values).sort(),['APP_ENV','DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD','AUTH_COOKIE_SECURE','TRUSTED_PROXY_CIDRS'].sort());
+  assert.deepEqual(Object.keys(values).sort(),['APP_ENV','AUTH_COOKIE_SECURE','DB_HOST','DB_NAME','DB_PASSWORD','DB_PORT','DB_USER','MAIL_FROM_ADDRESS','MAIL_FROM_NAME','MAIL_OUTBOX_PATH','MAIL_TRANSPORT','SMTP_HOST','SMTP_PASSWORD','SMTP_PORT','SMTP_TLS_MODE','SMTP_USERNAME','TRUSTED_PROXY_CIDRS'].sort());
   assert.equal(values.DB_PASSWORD,'change-me'); assert.equal(values.TRUSTED_PROXY_CIDRS,'');
-  const defaults = {APP_ENV:'development',DB_HOST:'db',DB_PORT:'5432',DB_NAME:'kvazi',DB_USER:'kvazi',DB_PASSWORD:'kvazi',AUTH_COOKIE_SECURE:'0',TRUSTED_PROXY_CIDRS:''};
+  assert.equal(values.SMTP_PASSWORD,''); assert.equal(values.SMTP_USERNAME,'');
+  const defaults = {APP_ENV:'development',DB_HOST:'db',DB_PORT:'5432',DB_NAME:'kvazi',DB_USER:'kvazi',DB_PASSWORD:'kvazi',AUTH_COOKIE_SECURE:'0',TRUSTED_PROXY_CIDRS:'',MAIL_TRANSPORT:'outbox',SMTP_HOST:'',SMTP_PORT:'587',SMTP_TLS_MODE:'starttls',SMTP_USERNAME:'',SMTP_PASSWORD:'',MAIL_FROM_ADDRESS:'',MAIL_FROM_NAME:'',MAIL_OUTBOX_PATH:'/tmp/kvazi-mail-outbox.jsonl'};
   const render = overrides => JSON.parse(execFileSync('docker',['compose','--env-file','/dev/null','config','--format','json'],
     {env:{...process.env,...overrides},encoding:'utf8',stdio:'pipe',timeout:15000}));
   // Empty values exercise Compose's documented local fallback substitutions.
   const local = render(Object.fromEntries(Object.keys(defaults).map(k=>[k,''])));
   assert.deepEqual(local.services.php.environment,defaults);
   const override = {...defaults,APP_ENV:'production',DB_HOST:'testdb',DB_PORT:'5444',DB_NAME:'testname',DB_USER:'testuser',
-    DB_PASSWORD:'testpassword',AUTH_COOKIE_SECURE:'1',TRUSTED_PROXY_CIDRS:'192.0.2.7/32'};
+    DB_PASSWORD:'testpassword',AUTH_COOKIE_SECURE:'1',TRUSTED_PROXY_CIDRS:'192.0.2.7/32',
+    MAIL_TRANSPORT:'smtp',SMTP_HOST:'mail.smtp2go.com',SMTP_PORT:'2525',SMTP_USERNAME:'testsmtp',SMTP_PASSWORD:'testsmtppass',MAIL_FROM_ADDRESS:'test@kvazi.cz',MAIL_FROM_NAME:'Kvazi Test'};
   const rendered = render(override);
   assert.deepEqual(rendered.services.php.environment,override);
   assert.deepEqual(rendered.services.db.environment,{POSTGRES_DB:'testname',POSTGRES_USER:'testuser',POSTGRES_PASSWORD:'testpassword'});
