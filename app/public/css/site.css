@@ -23,6 +23,7 @@
   --radius-sm:    12px;
   --nav-h:        64px;
   --nav-h-sm:     48px;
+  --site-footer-height: 0px;
 }
 
 html { scroll-behavior: smooth; }
@@ -33,6 +34,7 @@ body {
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
+  padding-bottom: var(--site-footer-height);
 }
 
 /* Inline links in content — nav/btn/card links override as needed */
@@ -251,12 +253,37 @@ a:focus-visible {
    FOOTER
    ═══════════════════════════════════════════════════════════ */
 .site-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
   background: rgba(0,0,0,.25);
   border-top: 1px solid rgba(255,255,255,.07);
-  padding: 20px 0;
-  margin-top: 80px;
+  padding: 16px 0 max(12px, env(safe-area-inset-bottom));
   font-size: 13px;
   color: var(--text-dim);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+.footer-inner,
+.footer-theme,
+.footer-user,
+.site-footer a,
+.site-footer button,
+.site-footer form {
+  pointer-events: auto;
+}
+.footer-inner {
+  pointer-events: none;
+}
+.site-footer a,
+.site-footer button,
+.site-footer form,
+.footer-theme,
+.footer-user {
+  pointer-events: auto;
 }
 .footer-inner {
   max-width: 1200px;
@@ -266,7 +293,8 @@ a:focus-visible {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px;
+  row-gap: 8px;
+  column-gap: 12px;
 }
 .site-footer a { color: var(--text-dim); text-decoration: none; }
 .site-footer a:hover { color: var(--text-muted); }
@@ -282,6 +310,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .footer-user-name {
   display: flex;
@@ -290,6 +319,19 @@ a:focus-visible {
   color: var(--text-muted);
 }
 .footer-sep { color: var(--text-dim); }
+
+@media (max-width: 640px) {
+  .footer-inner {
+    justify-content: center;
+    text-align: center;
+    padding: 0 16px;
+  }
+  .footer-user,
+  .footer-theme {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
 
 /* ═══════════════════════════════════════════════════════════
    ADMIN LAYOUT (moje.php)

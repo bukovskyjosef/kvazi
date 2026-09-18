@@ -63,11 +63,26 @@ $_ftCsrf = function_exists('auth_csrf_token') ? auth_csrf_token() : '';
     if (b2) b2.classList.toggle('active', id === '2');
     if (persist) localStorage.setItem('kvazi-theme', id);
   }
+
+  function syncFooterInset() {
+    var footer = document.querySelector('.site-footer');
+    if (!footer) return;
+    var height = Math.max(0, Math.ceil(footer.getBoundingClientRect().height || 0));
+    document.documentElement.style.setProperty('--site-footer-height', height + 'px');
+  }
+
   var saved = localStorage.getItem('kvazi-theme') || '2';
   applyTheme(saved, false);
+  syncFooterInset();
+
   var b1 = document.getElementById('footerThemeBtn1');
   var b2 = document.getElementById('footerThemeBtn2');
-  if (b1) b1.addEventListener('click', function () { applyTheme('1', true); });
-  if (b2) b2.addEventListener('click', function () { applyTheme('2', true); });
+  if (b1) b1.addEventListener('click', function () { applyTheme('1', true); syncFooterInset(); });
+  if (b2) b2.addEventListener('click', function () { applyTheme('2', true); syncFooterInset(); });
+
+  var observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(syncFooterInset) : null;
+  if (observer) observer.observe(document.querySelector('.site-footer'));
+  window.addEventListener('resize', syncFooterInset, { passive: true });
+  window.addEventListener('load', syncFooterInset, { once: true });
 })();
 </script>
