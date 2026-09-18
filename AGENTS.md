@@ -145,6 +145,22 @@ Nesmí:
 
 Pokud lze technický základ vytvořit parametricky bez předjímání otevřené otázky, je to přípustné; jinak platí vývojový gate z governance workflow.
 
+### Reviewer
+
+Reviewer provádí nezávislé review pouze nad publikovaným exact SHA v Pull Requestu se zeleným required GitHub `PR gate`.
+
+Musí:
+- ověřit, že reviewovaný exact SHA odpovídá aktuálnímu PR HEAD,
+- zkontrolovat diff, scope, relevantní specifikaci/governance a evidence z required GitHub gate,
+- podle potřeby spustit **cílené lokální testy nebo reprodukci konkrétního nálezu**,
+- durable zapsat PASS/APPROVE nebo konkrétní blocker proti přesnému reviewed SHA.
+
+Reviewer **standardně znovu nespouští celý repository-authoritative integrační/release gate lokálně**, pokud tentýž required gate již pro exact SHA úspěšně proběhl na GitHubu. Required GitHub `PR gate` je pro tento účel sdílená autoritativní testovací evidence a nemá se bez konkrétního důvodu duplikovat lokálním full runem.
+
+Plný lokální gate Reviewer spouští pouze tehdy, když je to nutné k vyšetření konkrétní nesrovnalosti nebo CI chyby, když required GitHub gate pro daný typ změny neposkytuje potřebnou evidenci, nebo když to výslovně vyžaduje konkrétní issue či relevantní technický kontrakt. Samotná potřeba „ještě jednou vše ověřit“ není důvodem k opakování full gate.
+
+Po corrective změně s novým HEAD SHA Reviewer nepřenáší svůj předchozí finální verdikt automaticky. Počká na nový zelený required GitHub `PR gate` a provede delta re-review nového exact SHA; celý lokální integrační gate znovu nespouští bez některého z výše uvedených důvodů.
+
 ## 6. Historické artefakty
 
 `docs/history/`, datované soubory v `docs/audit/` a `docs/governance/decisions.md` mohou obsahovat historický kontext, dřívější názvy issues nebo snapshot tehdejšího stavu.
