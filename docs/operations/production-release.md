@@ -48,6 +48,7 @@ Produkční Application je připojená přes **GitHub App**:
 
 - Git source `bukovskyjosef/kvazi`, branch **`main`**.
 - **Auto Deploy ON** — Coolify automaticky nasadí po pushi do `main` přes GitHub App webhook.
+- **Include Source Commit in Build = ON** (Application → Configuration → Advanced) — předá `SOURCE_COMMIT` build arg pro deployment identity `/api/version.php`.
 - Build pack Dockerfile, base/build context **`/`**, Dockerfile **`docker/php/Dockerfile`**, exposed internal port **`80`**.
 - Žádný veřejný direct port mapping PHP, source bind mount ani startup/pre/post-deployment DB command.
 - Application má baked-in image, DB je samostatný persistentní PG18 resource na kompatibilní interní síti.
@@ -61,7 +62,7 @@ Docker provádí existující příkaz `php /usr/local/bin/kvazi-healthcheck.php
 
 Povinný packaging gate (`deployment.acceptance.mjs`) kontroluje přesný Dockerfile kontrakt, healthcheck konfiguraci postaveného image i běžícího kontejneru, skutečný Docker stav `healthy` a probe exit0/exit1 při dostupné/nedostupné DB.
 
-Build arg `SOURCE_COMMIT` předává git SHA do image pro veřejnou identitu nasazené verze (`/api/version.php`). Coolify jej při Auto Deploy předává automaticky.
+Build arg `SOURCE_COMMIT` předává git SHA do image pro veřejnou identitu nasazené verze (`/api/version.php`). Coolify tento build arg **nepředává defaultně** — vyžaduje explicitní nastavení **Include Source Commit in Build = ON** v Application → Configuration → Advanced (viz cutover checklist).
 
 Runtime env pouze v Coolify, ne build args (kromě `SOURCE_COMMIT`):
 

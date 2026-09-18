@@ -87,12 +87,13 @@ Smoke je read-only a nesmí měnit produkční uživatelská data.
 4. V Coolify potvrdit GitHub App source `bukovskyjosef/kvazi`, branch `main`.
 5. Odstranit manual `git_commit_sha` pin.
 6. Zapnout `Auto Deploy`.
-7. Aktivovat nový workflow stav a provést kontrolovaný merge do `main`.
-8. Ověřit, že Coolify deployment spustil GitHub App push event bez ručního triggeru.
-9. Ověřit Docker `running:healthy` a minimální production smoke.
-10. Ověřit další běžnou změnu / bezpečný test nového flow.
-11. Teprve poté odstranit obsolete production workflow/helper/secrets/tokeny.
-12. Aktualizovat `production-release.md` na nový skutečný stav.
+7. V Application → Configuration → Advanced zapnout **Include Source Commit in Build = ON** (předá `SOURCE_COMMIT` build arg do Docker buildu pro `/api/version.php`).
+8. Aktivovat nový workflow stav a provést kontrolovaný merge do `main`.
+9. Ověřit, že Coolify deployment spustil GitHub App push event bez ručního triggeru.
+10. Ověřit Docker `running:healthy` a minimální production smoke.
+11. Ověřit další běžnou změnu / bezpečný test nového flow.
+12. Teprve poté odstranit obsolete production workflow/helper/secrets/tokeny.
+13. Aktualizovat `production-release.md` na nový skutečný stav.
 
 ## Rollback
 

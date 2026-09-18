@@ -96,6 +96,7 @@ Při cutoveru:
 
 - odstranit permanentní `git_commit_sha` pin,
 - zapnout **Auto Deploy**,
+- v Application → Configuration → Advanced zapnout **Include Source Commit in Build = ON**,
 - ponechat GitHub App source integraci,
 - nezavádět custom webhook ani vlastní deployment controller,
 - zachovat build pack Dockerfile, build context `/`, Dockerfile `docker/php/Dockerfile`, interní port `80`,
@@ -133,7 +134,7 @@ Post-deploy smoke je implementovaný jako `app/tools/production-smoke.mjs` — t
 2. **Readiness:** ověří `GET /healthz` → HTTP 200, `{"status":"ok"}`.
 3. **Read-only smoke:** homepage, normative API.
 
-Build arg `SOURCE_COMMIT` předává git SHA do Docker image → `/var/www/.build-sha` → `/api/version.php`. Coolify jej při Auto Deploy předává automaticky.
+Build arg `SOURCE_COMMIT` předává git SHA do Docker image → `/var/www/.build-sha` → `/api/version.php`. Coolify tento build arg **nepředává defaultně** — při #124 cutoveru je nutné zapnout **Include Source Commit in Build = ON** v Application → Configuration → Advanced.
 
 Lze spustit i ručně: `EXPECTED_SHA=<sha> node app/tools/production-smoke.mjs`.
 

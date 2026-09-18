@@ -12,6 +12,7 @@ const image = 'kvazi-m45-test:' + tag;
 const network = tag + '_net', volume = tag + '_data', database = tag + '_db', application = tag + '_app';
 const password = randomBytes(24).toString('hex');
 const dbHost = 'external-pg-resource', dbName = 'external_m45', dbUser = 'm45user', dbPort = '5544';
+const testSha = 'a1b2c3d4e5f6'.repeat(4).slice(0, 40);
 let base, built = false, marker;
 const docker = (args, options = {}) => execFileSync('docker',args,{encoding:'utf8',stdio:'pipe',timeout:30000,...options}).trim();
 const sql = statement => docker(['exec',database,'psql','-p',dbPort,'-U',dbUser,'-d',dbName,'-v','ON_ERROR_STOP=1','-t','-A','-c',statement]);
@@ -53,7 +54,7 @@ const snapshot = () => sql("SELECT md5(row_to_json(u)::text) FROM kvazi.user_acc
   + '|' + sql("SELECT md5(string_agg(row_to_json(r)::text,'|' ORDER BY version)) FROM kvazi.rules_release r");
 before(async () => {
   docker(['compose','config','--quiet']);
-  docker(['build','-f','docker/php/Dockerfile','-t',image,'.'],{timeout:600000}); built=true;
+  docker(['build','-f','docker/php/Dockerfile','--build-arg',`SOURCE_COMMIT=${testSha}`,'-t',image,'.'],{timeout:600000}); built=true;
   docker(['network','create',network]); docker(['volume','create',volume]);
   docker(['run','-d','--name',database,'--network',network,'--network-alias',dbHost,
     '--mount',`type=volume,source=${volume},target=/var/lib/postgresql`,
@@ -98,6 +99,25 @@ test('production root build: PHP8.3/extensions/layout/port, no DB/secrets/source
   assert.equal(sql("SELECT count(*) FROM information_schema.tables WHERE table_schema='kvazi'"),'0');
   await health(200);
   assert.equal(sql("SELECT count(*) FROM information_schema.tables WHERE table_schema='kvazi'"),'0');
+});
+
+test('SOURCE_COMMIT build arg embeds SHA in image and version endpoint returns it',async () => {
+  // Verify the file inside the image contains the exact build arg value.
+  const fileSha = docker(['exec',application,'cat','/var/www/.build-sha']).trim();
+  assert.equal(fileSha, testSha, '.build-sha file content must match SOURCE_COMMIT build arg');
+  // Verify GET /api/version.php returns the same SHA over HTTP.
+  const response = await fetch(base+'/api/version.php', {signal: AbortSignal.timeout(5000)});
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /^application\/json/);
+  const body = await response.json();
+  assert.equal(body.sha, testSha, '/api/version.php must return the embedded SOURCE_COMMIT');
+  assert.deepEqual(Object.keys(body), ['sha'], 'version endpoint must return only sha');
+  // Verify Cache-Control prevents caching stale identity.
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  // Verify non-GET methods are rejected.
+  const post = await fetch(base+'/api/version.php', {method:'POST', signal: AbortSignal.timeout(5000)});
+  assert.equal(post.status, 405);
+  assert.equal(post.headers.get('allow'), 'GET');
 });
 
 test('external PG18 explicit ordered bootstrap: normal public pages and private data layout, runtime env only',async () => {
