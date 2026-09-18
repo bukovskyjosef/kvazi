@@ -1,6 +1,6 @@
 # Produkční release
 
-> **Stav tohoto dokumentu:** popisuje cílový release flow po cutoveru #124. Dokud neproběhne skutečný cutover, platí předchozí M5 kontrakt a aktuální stav se ověřuje v GitHub Issues.
+> **Stav tohoto dokumentu:** aktuální provozní kontrakt po dokončeném CI/CD cutoveru #124. Konkrétní release evidence a SHA se evidují v GitHub Issues.
 
 Technický kontrakt pro PR → Coolify Auto Deploy → PostgreSQL 18. Nemění soutěžní pravidla ani domain workflow. Autoritu dokumentace určuje [centrální mapa](../README.md); skutečný stav nasazení a evidence patří do GitHub Issues.
 
@@ -37,10 +37,11 @@ Merge do `main` je záměr nasadit do produkce (rozhodnutí #122). Žádný samo
 
 ### `main` ruleset
 
-1. Target `main`, enforcement Active; changes through PR, alespoň jedno nezávislé approval, dismiss stale approvals, resolve conversations, require approval of most recent push.
-2. Require status checks a up-to-date branch: **`CI / PR gate`**. Po prvním CI běhu vyberte skutečný check name v UI.
-3. Zakažte force push a delete branch; žádný bypass pro běžné releases.
-4. `.github/workflows/`, `.github/ci/` a test runner potřebují nezávislé review jako ostatní release změny.
+1. Target default branch / `main`, enforcement Active; změny jdou přes pull request a review conversations musí být vyřešené.
+2. Mechanický ruleset aktuálně nevyžaduje číselný počet approving reviews (`required_approving_review_count = 0`); případné nezávislé review požadavky vycházejí z repository governance, ne z tohoto branch gate.
+3. Require status checks + up-to-date branch: jediný required check context je **`PR gate`** z GitHub Actions.
+4. Force push a delete branch jsou zakázané a ruleset nemá běžný bypass.
+5. `.github/workflows/`, `.github/ci/` a test runner podléhají stejnému repository review/governance procesu jako ostatní release změny.
 
 ## Coolify Application
 
@@ -48,7 +49,7 @@ Produkční Application je připojená přes **GitHub App**:
 
 - Git source `bukovskyjosef/kvazi`, branch **`main`**.
 - **Auto Deploy ON** — Coolify automaticky nasadí po pushi do `main` přes GitHub App webhook.
-- **Include Source Commit in Build = ON** (Application → Configuration → Advanced) — předá `SOURCE_COMMIT` build arg pro deployment identity `/api/version.php`.
+- **Source commit availability = Available during build** (Application → Configuration → Advanced; dřívější label `Include Source Commit in Build = ON`) — zpřístupní `SOURCE_COMMIT` při buildu pro deployment identity `/api/version.php`.
 - Build pack Dockerfile, base/build context **`/`**, Dockerfile **`docker/php/Dockerfile`**, exposed internal port **`80`**.
 - Žádný veřejný direct port mapping PHP, source bind mount ani startup/pre/post-deployment DB command.
 - Application má baked-in image, DB je samostatný persistentní PG18 resource na kompatibilní interní síti.
@@ -62,7 +63,7 @@ Docker provádí existující příkaz `php /usr/local/bin/kvazi-healthcheck.php
 
 Povinný packaging gate (`deployment.acceptance.mjs`) kontroluje přesný Dockerfile kontrakt, healthcheck konfiguraci postaveného image i běžícího kontejneru, skutečný Docker stav `healthy` a probe exit0/exit1 při dostupné/nedostupné DB.
 
-Build arg `SOURCE_COMMIT` předává git SHA do image pro veřejnou identitu nasazené verze (`/api/version.php`). Coolify tento build arg **nepředává defaultně** — vyžaduje explicitní nastavení **Include Source Commit in Build = ON** v Application → Configuration → Advanced (viz cutover checklist).
+Build arg `SOURCE_COMMIT` předává git SHA do image pro veřejnou identitu nasazené verze (`/api/version.php`). V Coolify je proto explicitně nastaveno **Source commit availability = Available during build**.
 
 Runtime env pouze v Coolify, ne build args (kromě `SOURCE_COMMIT`):
 
@@ -81,12 +82,9 @@ Použijte přesně interní connection údaje samostatného **PostgreSQL 18** re
 
 ## Environment a secrets
 
-GitHub `production` Environment se v běžném release flow nepoužívá jako approval gate.
+GitHub Environment `production` byl po úspěšném cutoveru odstraněn. Stejně tak byly odstraněny obsolete GitHub secrets `COOLIFY_TOKEN`, `COOLIFY_READ_TOKEN`, `COOLIFY_APP_UUID`, `COOLIFY_URL` a revokovány Coolify API tokeny, které sloužily pouze starému custom deploy helperu.
 
-Po cutoveru #124 a ověření nové cesty odstranit obsolete secrets:
-- `COOLIFY_TOKEN`, `COOLIFY_READ_TOKEN`, `COOLIFY_APP_UUID`, `COOLIFY_URL` — sloužily pouze starému custom deploy helperu.
-
-DB/Cloudflare/S3 credentials patří do runtime/infra secret storage, nejsou součástí CI.
+Nový release flow používá GitHub App Auto Deploy a tyto deploy secrets/tokeny nepotřebuje. DB/Cloudflare/S3 credentials patří do runtime/infra secret storage, nejsou součástí CI.
 
 ## Production verification a smoke
 
@@ -118,7 +116,7 @@ Budoucí DB release: backup, review explicitního forward SQL pro skutečný sta
 
 ## Rollback
 
-Před cutoverem zaznamenat poslední známý zdravý app SHA jako rollback point.
+Pro každý release musí být dohledatelný poslední známý zdravý app SHA; původní cutover rollback point a evidence jsou v #124.
 
 Po neúspěšném deployi:
 - v Coolify znovu nasadit poslední známý zdravý aplikační commit podporovaným mechanismem (dashboard rollback),
