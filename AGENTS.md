@@ -122,16 +122,19 @@ Musí před implementací přečíst relevantní normativní pravidla, architekt
 Před předáním implementace k nezávislému review musí vývojový agent:
 
 1. dokončit scope příslušného issue,
-2. spustit repository-authoritative Definition of Done gate relevantní pro daný typ změny a odstranit všechny známé blokující výsledky,
+2. spustit **relevantní lokální testy/validace podle změněné oblasti** a odstranit známé blokující výsledky,
 3. ověřit finální diff a jeho scope,
 4. commitnout a pushnout všechny změny, které mají být reviewovány,
 5. ověřit, že Pull Request ukazuje na tentýž publikovaný HEAD,
-6. durable zaznamenat exact HEAD SHA a testovací/gate evidence do PR nebo souvisejícího issue,
-7. teprve potom předat práci Reviewerovi.
+6. durable zaznamenat exact HEAD SHA a lokální testovací evidence do PR nebo souvisejícího issue,
+7. počkat na výsledek required GitHub `PR gate`,
+8. teprve po zeleném required gate předat exact SHA Reviewerovi k finálnímu review.
 
-Finálním review targetem je vždy **publikovaný exact SHA** dostupný v Pull Requestu. Lokální necommitnutý nebo nepushnutý stav není finální review target a nesmí být vydáván za stav PR.
+Finálním review targetem je vždy **publikovaný exact SHA** dostupný v Pull Requestu se zeleným required GitHub `PR gate`. Lokální necommitnutý nebo nepushnutý stav není finální review target a nesmí být vydáván za stav PR.
 
-Každá corrective změna po review, která změní HEAD SHA, vytváří nový review target. Před jeho předáním k re-review musí vývojový agent znovu splnit odpovídající repository-authoritative DoD pro změněný stav a publikovat nový exact SHA. Konkrétní technický příkaz authoritative gate určuje relevantní technická/provozní dokumentace; tento obecný kontrakt jej neduplikuje.
+Required GitHub `PR gate` je autoritativní technický merge gate. Lokální spuštění celého repository-authoritative integračního/release gate není obecně povinné před každým pushem, pokud postačují cílené lokální testy pro změněnou oblast. Plný lokální gate se používá zejména u rozsáhlejších DB/release/runtime/CI/deployment změn, při reprodukci CI chyby nebo když jej relevantní technická dokumentace či konkrétní issue výslovně vyžaduje.
+
+Každá corrective změna po review, která změní HEAD SHA, vytváří nový review target. Developer musí pro nový stav znovu spustit odpovídající lokální testy, změnu pushnout, získat zelený required GitHub `PR gate` a teprve potom ji vrátit Reviewerovi k re-review.
 
 Nesmí:
 - měnit význam pravidel kvůli jednodušší implementaci,
