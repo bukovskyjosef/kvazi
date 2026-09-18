@@ -7,7 +7,7 @@
 ### `main`
 
 - změny přes pull request,
-- required CI check podle finální implementace #121,
+- required CI check: **`CI / PR gate`** a **`releases`**,
 - force push zakázat,
 - delete branch zakázat,
 - zachovat review/conversation ochrany podle repository governance.
@@ -89,7 +89,7 @@ Smoke je read-only a nesmí měnit produkční uživatelská data.
 
 1. Zaznamenat poslední známý zdravý production SHA.
 2. Implementační PR #121/#123 nechat projít současným gate.
-3. Ověřit finální required check name pro `main` a připravit ruleset změnu.
+3. Přepnout required check z `Full release gate / Mandatory stack` na **`CI / PR gate`** (zachovat `releases`).
 4. V Coolify potvrdit GitHub App source `bukovskyjosef/kvazi`, branch `main`.
 5. Odstranit manual `git_commit_sha` pin.
 6. Zapnout `Auto Deploy`.

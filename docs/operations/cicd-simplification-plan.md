@@ -1,6 +1,6 @@
 # Plán zjednodušení CI/CD pro hobby provoz
 
-> **Status tohoto dokumentu:** budoucí migrační handoff. Není to popis aktuálně aktivního production flow. Dokud není zjednodušený flow skutečně implementovaný a ověřený, platí `production-release.md` a aktuální stav/evidence se ověřují v GitHub Issues.
+> **Status tohoto dokumentu:** implementovaný migrační handoff. Kód/workflow/dokumentace jsou připravené v PR #125. Dokud neproběhne skutečný #124 cutover (GitHub ruleset + Coolify Auto Deploy ON), platí předchozí M5 `production-release.md` a aktuální stav se ověřuje v GitHub Issues.
 >
 > Živý backlog a rozhodnutí zůstávají v GitHub Issues. Tento dokument popisuje cílovou topologii, nastavení a cutover kroky; neudržuje stav jednotlivých úkolů.
 
@@ -58,23 +58,28 @@ Po cutoveru zachovat minimálně:
 
 Pokud se při #121 přejmenuje required CI job, ruleset se musí přepnout atomicky tak, aby nevznikl mezistav bez required checku.
 
-### 3.2 PR CI
+### 3.2 PR CI — implementovaný stav
 
-Cílem je jeden srozumitelný required výsledek. Levné deterministic checks běží vždy. Drahé browser/DB/image acceptance lze omezit podle skutečného rizika změny pouze tehdy, pokud routing zůstane jednoduchý, testovatelný a nesníží ochranu rizikových oblastí.
+Jeden required job **`CI / PR gate`** v `ci.yml`:
 
-Není cílem stavět obecný risk engine. Pokud by path/risk routing přinesl větší složitost než úsporu, je přijatelné ponechat plný gate pro všechny aplikační změny a optimalizovat jen jednoznačné low-risk případy, například docs-only změny.
+- **Vždy** (docs-only i aplikační PR): release integrity (`check-releases.mjs`).
+- **Docs-only / low-risk** (pouze soubory v `docs/`, `*.md`, `LICENSE`, issue/PR templates): jen rychlé kontroly. Žádný Docker/PG18/Playwright.
+- **Aplikační / runtime / DB / auth / Docker / workflow / test změny** (cokoliv mimo explicitně safe cesty): plný integrační stack přes `run-integration.sh`.
+- **Fail-safe**: neznámá cesta → plný gate. Routing je regresně testovaný (`ci-risk.test.mjs`).
 
-### 3.3 Production Environment a production trigger
+`release-gate.yml` zůstává jako reusable gate pro ruční/auditní spuštění. `Published release integrity` (`releases.yml`) běží nezávisle při každém PR.
+
+### 3.3 Production Environment a production trigger — implementovaný stav
 
 Po cutoveru **není GitHub `production` Environment používán jako approval gate**.
 
 Produkční deployment spouští nativní **Coolify GitHub App Auto Deploy** pro branch `main`. GitHub Actions neposílá deploy request a nepřepisuje `git_commit_sha`.
 
-Po ověřeném cutoveru lze odstranit production deployment secrets/tokeny, pokud je už žádný jiný workflow nepotřebuje, zejména:
+Starý custom deploy helper (`deploy-production.mjs`) a jeho testy (`production-deploy.test.mjs`) jsou odstraněné. `production.yml` je nahrazen lehkým **`Production smoke`** workflow, který po pushi do `main` pouze ověří veřejné read-only endpointy (healthz, homepage, normative API) bez API tokenů.
 
-- `COOLIFY_TOKEN`,
-- případný `COOLIFY_READ_TOKEN`, pokud nebude zachován pro lehké post-deploy ověření,
-- další hodnoty existující pouze kvůli starému custom deploy helperu.
+Po ověřeném cutoveru lze odstranit production deployment secrets/tokeny:
+
+- `COOLIFY_TOKEN`, `COOLIFY_READ_TOKEN`, `COOLIFY_APP_UUID`, `COOLIFY_URL` — sloužily pouze starému custom deploy helperu; nový flow je nepotřebuje.
 
 Odstranění probíhá až po úspěšném cutoveru.
 
@@ -122,20 +127,28 @@ Požadavky:
 - normative API → 200 + očekávaná aktivní rules verze,
 - smoke nesmí vytvářet/mazat produkční uživatelská data.
 
-Konkrétní mechanismus post-deploy smoke v #123 má zůstat co nejjednodušší. Pokud lze použít lehké bounded polling/ověření nad Coolify a veřejnými endpointy, nepřidávat nový orchestration framework.
+Post-deploy smoke je implementovaný jako `app/tools/production-smoke.mjs` — jednoduchý bounded polling veřejných endpointů bez API tokenů. Lze spustit i ručně: `node app/tools/production-smoke.mjs`.
 
-## 6. Co se po úspěšném cutoveru odstraní
+## 6. Co je odstraněno v PR #125 a co čeká na cutover
 
-Až po prakticky ověřeném release novou cestou lze odstranit:
+Odstraněno v implementačním PR:
 
-- duplicitní plný post-merge production gate,
-- GitHub Environment approval pro běžný release,
-- ruční Commit SHA pin jako release krok,
-- custom production deploy helper a jeho testy, pokud nemají jinou samostatnou hodnotu,
-- obsolete GitHub/Coolify API secrets a tokeny,
-- přechodné M5 instrukce, které už neodpovídají skutečnému provozu.
+- duplicitní plný post-merge production gate → nahrazen lehkým `Production smoke`,
+- custom production deploy helper `deploy-production.mjs` a jeho testy `production-deploy.test.mjs`,
+- SHA pin requirement v deploy workflow.
 
-Neodstraňovat diagnostické nebo security testy se samostatnou hodnotou mimo starý deployment mechanismus.
+Čeká na #124 cutover (živé nastavení):
+
+- GitHub Environment approval, production secrets/tokeny,
+- Coolify: odstranění SHA pinu, zapnutí Auto Deploy,
+- GitHub: přepnutí required checku na `CI / PR gate`,
+- přechodné M5 instrukce v dokumentaci.
+
+Zachováno se samostatnou hodnotou mimo starý deploy mechanismus:
+
+- `deployment.acceptance.mjs` — packaging gate (Docker image, healthcheck, PG18),
+- `release-gate.yml` — reusable full gate pro audit/ruční spuštění,
+- `releases.yml` — immutable release integrity.
 
 ## 7. Cutover pořadí
 

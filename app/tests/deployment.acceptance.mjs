@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {randomBytes, createHash} from 'node:crypto';
 import {readFileSync, readdirSync} from 'node:fs';
-import {HEALTHCHECK_COMMAND} from '../tools/deploy-production.mjs';
+// Image-owned readiness contract, verified by the mandatory production packaging gate.
+const HEALTHCHECK_COMMAND = 'php /usr/local/bin/kvazi-healthcheck.php';
 
 const tag = 'kvazi_m45_' + randomBytes(8).toString('hex');
 const image = 'kvazi-m45-test:' + tag;
