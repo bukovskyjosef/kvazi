@@ -48,6 +48,7 @@ try {
   // 2. Identity and form changes and token deletion invalidate; edits never trigger a lookup.
   for (const [selector, value, restore] of [
     ['#word-lemma', token.lemma + 'z', token.lemma],
+    ['#word-surface', 'qázi', token.surface],
     ['#word-form-pronoun-gender', 'feminine', 'notApplicable'],
   ]) {
     const before = lookups.length;
@@ -83,7 +84,8 @@ try {
   let timer;
   try { await Promise.race([entered, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Delayed lookup did not reach route')), 5000); })]); }
   finally { clearTimeout(timer); }
-  await page.locator('#word-lemma').fill(token.lemma + 'stalez');
+  await page.locator('#word-surface').fill('qázi');
+  await page.locator('#word-surface').fill(token.surface);
   const received = page.waitForResponse(r => r.url().endsWith('/api/real-word-catalog.php'));
   releaseResponse(); await received;
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -128,7 +130,7 @@ try {
   await page.locator('#token-t1').click(); assert.equal(await check.count(), 0);
   assert.equal(lookups.length, beforeModel);
   assert.deepEqual(errors, []);
-  console.log('Catalog browser checks passed: 6 scenarios; complete-pronoun-positive, exact-field-invalidation, stale-response, not-found-submit, model-invalidation, normative-exception; no automatic lookup or metadata leak.');
+  console.log('Catalog browser checks passed: 6 scenarios; complete-pronoun-positive, exact-field-surface-invalidation, stale-response-after-surface-change-back, not-found-submit, model-invalidation, normative-exception; no automatic lookup or metadata leak.');
 } finally {
   await browser?.close(); f.cleanup();
 }

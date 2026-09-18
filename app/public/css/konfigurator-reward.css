@@ -1,0 +1,15 @@
+.surface-reward {
+  padding: 12px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+}
+.surface-reward.celebrate {
+  animation: surface-celebration 900ms ease-out;
+}
+@keyframes surface-celebration {
+  0% { box-shadow: 0 0 0 0 currentColor; }
+  100% { box-shadow: 0 0 0 12px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .surface-reward.celebrate { animation: none; }
+}

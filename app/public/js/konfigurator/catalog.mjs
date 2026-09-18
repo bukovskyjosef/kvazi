@@ -61,5 +61,6 @@ export function pronounFields() {
   const values = { number: { singular: 'Jednotné', plural: 'Množné' }, gender: {
     masculineAnimate: 'Mužský životný', masculineInanimate: 'Mužský neživotný', feminine: 'Ženský', neuter: 'Střední' } };
   return Object.entries(labels).map(([name, label]) => ({ path: `form.pronoun.${name}`, label,
-    options: Object.fromEntries(pronounSignature()[name].map(v => [v, v === 'notApplicable' ? 'Nevztahuje se' : values[name]?.[v] ?? `${v}.`])) }));
+    options: Object.fromEntries(pronounSignature()[name].map(v => [v, v === 'notApplicable' ? 'Nevztahuje se'
+      : name === 'person' ? `${v}. osoba` : name === 'case' ? `${v}. pád` : values[name]?.[v] ?? v])) }));
 }

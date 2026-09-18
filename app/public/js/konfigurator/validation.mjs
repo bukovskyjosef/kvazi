@@ -265,7 +265,6 @@ export function deriveValidationState(draft, schema = publicSchema) {
           const value = getPath(w, f.path);
           if (f.options ? typeof value !== 'string' || !Object.hasOwn(f.options, value) : typeof value !== 'string' || !value.trim()) missing.push(f.label + '.');
         }
-        if (!w.evidence.morphology.trim()) missing.push('Morfologická obhajoba a odkaz na použitý model.');
         if (['noun', 'adjective'].includes(w.pos) && w.lemma.trim() && model) {
           const identity = JSON.stringify([w.pos, folded(w.lemma), w.model, ...(w.pos === 'noun' ? [w.identity.gender, w.identity.animacy] : [])]);
           if (identities.has(identity)) { missing.push('Soutěžní identita už je ve větě použita.'); tokens[identities.get(identity)].missing.push('Soutěžní identita už je ve větě použita.'); }

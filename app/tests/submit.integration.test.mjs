@@ -270,6 +270,27 @@ integrationTest('valid submit: HTTP 200 and DB rows created', async () => {
 
 // ── Test 2: Invalid draft → 422, no revision created ─────────────────────────
 
+integrationTest('optional morphology evidence: accepted HTTP submit; mandatory valency/analogy still reject without persistence', async () => {
+  const {cookie, apiCsrf} = await loginSession(USR, USR_PASS);
+  const draft = structuredClone(VALID_DRAFT);
+  for (const word of draft.tokens) delete word.evidence.morphology;
+  const send = async () => fetch(`${BASE}/api/submit.php`, {
+    method:'POST', headers:{'Content-Type':'application/json', Cookie:cookie}, body:JSON.stringify({csrf:apiCsrf, draft}),
+  });
+  const accepted = await send();
+  assert.equal(accepted.status, 200, await accepted.text());
+  const before = dbCount('kvazi.sentence_revision', 'submitted_by = (SELECT id FROM kvazi.user_account WHERE username = :u)', {u:USR});
+  const valency = draft.tokens[1].valency.declaration;
+  draft.tokens[1].valency.declaration = '';
+  assert.equal((await send()).status, 422);
+  draft.tokens[1].valency.declaration = valency;
+  Object.assign(draft.tokens[0].evidence, {needsAnalogy:true, explanation:'Obhajoba.', analogy:''});
+  assert.equal((await send()).status, 422);
+  Object.assign(draft.tokens[0].evidence, {explanation:'', analogy:'Dítě spí.'});
+  assert.equal((await send()).status, 422);
+  assert.equal(dbCount('kvazi.sentence_revision', 'submitted_by = (SELECT id FROM kvazi.user_account WHERE username = :u)', {u:USR}), before);
+});
+
 integrationTest('invalid draft: HTTP 422 and no DB revision created', async () => {
   const { cookie, apiCsrf } = await loginSession(USR, USR_PASS);
 
@@ -541,7 +562,7 @@ integrationTest('review persistence: exact keys, version isolation, immutable co
 });
 
 function phpRuntime(code) {
-  return execFileSync('docker',['exec','kvazi_php','php','-r',`require '/var/www/html/includes/auth.php'; ${code}`],{encoding:'utf8',timeout:15000}).trim();
+  return execFileSync('docker',['exec',process.env.KVAZI_PHP_CONTAINER || 'kvazi_php','php','-r',`require '/var/www/html/includes/auth.php'; ${code}`],{encoding:'utf8',timeout:15000}).trim();
 }
 integrationTest('ADMIN gate denies anonymous/USER and rechecks persisted ADMIN role', () => {
   const aid=Number(dbQuery('SELECT id FROM kvazi.user_account WHERE username=:u',{u:ADM}));

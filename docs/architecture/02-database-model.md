@@ -62,6 +62,8 @@ M2 služby podle `06-review-services.md` poskytují serverovou kontrolu úplnost
 
 ## Bootstrap a upgrade
 
-Čistá DB se vytváří přímo v cílovém stavu ze všech `docker/db/init/01–07`. Existující pre-M1 DB nejprve aplikuje `05-m1-release.sql` a atomické `06-m1-core.sql`; M3 přidává pouze `07-m3-release.sql` pro registraci nového release. Žádné M3 tabulky, sloupce ani indexy nepřibývají. Registrace je atomická a idempotentní; conflicting release hash/validator selže. Staré release a výsledky zůstávají zachovány. Konfliktní legacy data se autonomně nepřepisují. Nepoužívat reset volume jako migraci.
+Čistá DB se vytváří přímo v cílovém stavu ze všech `docker/db/init/01–08`. Existující pre-M1 DB nejprve aplikuje `05-m1-release.sql` a atomické `06-m1-core.sql`; M3 přidává pouze `07-m3-release.sql` pro registraci nového release. Žádné M3 tabulky, sloupce ani indexy nepřibývají. Registrace je atomická a idempotentní; conflicting release hash/validator selže. Staré release a výsledky zůstávají zachovány. Konfliktní legacy data se autonomně nepřepisují. Nepoužívat reset volume jako migraci.
 
 Povinné testy ověřují čistý bootstrap, HTTP/DB lifecycle, odmítnuté zápisy, neměnnost, versioning, oddělení katalogu/cache a skutečný browser submit. Privilegované mazání pouze vlastních disposable test fixtures je vyhrazené testům; aplikace nemá cestu k obcházení historie.
+
+Opravný runtime `public-1.3.1` / validator `1.3.1` registruje `08-configurator-release.sql` (nad M3 DB pouze tato registrace, bez změny schématu či historických dat). Pravidlová mechanika datasetu zůstává shodná s `public-1.3`.

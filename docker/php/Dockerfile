@@ -11,6 +11,9 @@ RUN a2enconf kvazi-healthz
 COPY app/public/ /var/www/html/
 COPY app/data/ /var/www/data/
 
+ARG SOURCE_COMMIT=unknown
+RUN echo "$SOURCE_COMMIT" > /var/www/.build-sha
+
 EXPOSE 80
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=12 CMD ["php", "/usr/local/bin/kvazi-healthcheck.php"]
