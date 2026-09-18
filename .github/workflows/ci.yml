@@ -28,6 +28,10 @@ jobs:
       DB_PASSWORD: kvazi
       AUTH_COOKIE_SECURE: '0'
       TRUSTED_PROXY_CIDRS: ''
+      MAIL_TRANSPORT: outbox
+      MAIL_FROM_ADDRESS: noreply@kvazi.test
+      MAIL_FROM_NAME: Nejdelší kvazivěta
+      MAIL_OUTBOX_PATH: /tmp/kvazi-mail-outbox.jsonl
       KVAZI_TEST_BASE_URL: http://127.0.0.1:8080
       PLAYWRIGHT_MODULE: ${{ github.workspace }}/.github/ci/node_modules/playwright/index.mjs
       KVAZI_RELEASE_BASE: ${{ github.event.pull_request.base.sha || 'origin/main' }}
