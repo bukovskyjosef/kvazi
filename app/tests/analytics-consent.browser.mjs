@@ -12,6 +12,9 @@ try {
   await banner.waitFor();
   assert.ok(await banner.isVisible(), 'Banner should be visible before a decision is stored.');
 
+  const bannerText = await banner.textContent();
+  assert.equal(bannerText.includes('Upravit nastavení'), false, 'Initial consent banner should not include the redundant settings action.');
+
   const initialConsent = await page.evaluate(() => ({
     localStorage: localStorage.getItem('kvazi_analytics_consent'),
     cookie: document.cookie.includes('kvazi_analytics_consent='),

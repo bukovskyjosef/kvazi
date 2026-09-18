@@ -15,7 +15,6 @@ $_ftCfBeaconToken = getenv('CLOUDFLARE_WEB_ANALYTICS_TOKEN') ?: '';
     <div class="analytics-consent-actions">
       <button type="button" class="analytics-consent-btn analytics-consent-btn-primary" data-analytics-consent="granted">Povolit analytiku</button>
       <button type="button" class="analytics-consent-btn" data-analytics-consent="denied">Nepovolit</button>
-      <button type="button" class="analytics-consent-link" data-analytics-settings="open">Upravit nastavení</button>
     </div>
   </div>
 
