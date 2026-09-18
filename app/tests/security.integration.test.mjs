@@ -155,7 +155,7 @@ test('mutation methods: GET/PUT/PATCH/DELETE cannot change business data or log 
 test('registration canonical email, username uniqueness and concurrent requests rely on DB without SQL disclosure', async () => {
   const name = f.tag+'reg'; createdUsers.push(name);
   const email = name+'@example.com';
-  assert.equal((await form('/register.php',{username:name,email:'  '+email.toUpperCase()+'  ',password:f.password,password2:f.password})).response.status,302);
+  assert.equal((await form('/register.php',{username:name,email:'  '+email.toUpperCase()+'  ',password:f.password,password2:f.password})).response.status,200);
   assert.equal(db(`SELECT email || '|' || role FROM kvazi.user_account WHERE username=${pg(name)}`),email+'|USER');
   for (const values of [{username:f.tag+'dup',email},{username:name.toUpperCase(),email:f.tag+'other@example.com'},
     {username:f.tag+'badmail',email:'not-email'}]) {
@@ -165,7 +165,7 @@ test('registration canonical email, username uniqueness and concurrent requests 
   const concurrentEmail = f.tag+'race@example.com';
   const names = [f.tag+'racea',f.tag+'raceb']; createdUsers.push(...names);
   const results = await Promise.all(names.map(username => form('/register.php',{username,email:concurrentEmail,password:f.password,password2:f.password})));
-  assert.deepEqual(results.map(r=>r.response.status).sort(),[200,302]);
+  assert.deepEqual(results.map(r=>r.response.status).sort(),[200,200]);
   for (const r of results) privateResponse(r.html);
   assert.equal(db(`SELECT count(*) FROM kvazi.user_account WHERE lower(btrim(email))=${pg(concurrentEmail)}`),'1');
 });
@@ -209,7 +209,7 @@ test('safe errors and exact player contract: malformed structures and unsupporte
 });
 
 test('HTTP minimum headers apply consistently to pages, JSON and denied responses', async () => {
-  for (const path of ['/','/login.php','/register.php','/konfigurator.php','/vety.php','/veta.php?revisionId=0',
+  for (const path of ['/','/login.php','/register.php','/verify-email.php','/resend-verification.php','/konfigurator.php','/vety.php','/veta.php?revisionId=0',
     '/moje-vety.php','/admin/vety.php','/api/normative.php','/api/submit.php','/api/admin/review-status.php']) {
     const r = await fetch(BASE+path,{redirect:'manual'});
     assert.equal(r.headers.get('x-content-type-options'),'nosniff',path);

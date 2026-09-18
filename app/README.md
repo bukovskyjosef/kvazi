@@ -63,7 +63,8 @@ for sql in docker/db/init/01-init.sql \
            docker/db/init/05-m1-release.sql \
            docker/db/init/06-m1-core.sql \
            docker/db/init/07-m3-release.sql \
-           docker/db/init/08-configurator-release.sql; do
+           docker/db/init/08-configurator-release.sql \
+           docker/db/init/09-email-verification.sql; do
   psql -v ON_ERROR_STOP=1 -f "$sql"
 done
 ```
@@ -140,6 +141,8 @@ Nový verdict používá explicitní `data/active-release.json`, společný data
 Nad hotovou M1/M2 DB se M3 nasazuje pouze aplikací `docker/db/init/07-m3-release.sql` přes `psql -v ON_ERROR_STOP=1` a novým aplikačním/runtime balíkem. Migrace registruje immutable release, nepřidává tabulky/sloupce/indexy a nespouští revalidaci. Produktové stránky a jejich privacy/decision kontrakt popisuje [07-product-workflow.md](../docs/architecture/07-product-workflow.md).
 
 Oprava konfigurátoru používá `public-1.3.1` / validator `1.3.1` bez změny pravidlové mechaniky. Před nasazením nad M3 DB aplikujte atomickou, idempotentní registraci `docker/db/init/08-configurator-release.sql` přes `psql -v ON_ERROR_STOP=1`. Existující releases a výsledky zůstávají beze změny; automatická revalidace se nespouští.
+
+Ověření e-mailu při registraci (#104) používá `docker/db/init/09-email-verification.sql` přes `psql -v ON_ERROR_STOP=1`. Migrace přidává `email_verified_at` sloupec do `user_account` (existující účty automaticky dědí `created_at`) a tabulku `auth_token` pro verifikační a budoucí recovery tokeny (#105). Registrace již neprovádí auto-login; uživatel musí ověřit e-mail před prvním přihlášením.
 
 Povinný runner ověří browser launch před testy, PHP syntax, celý Node/parity/HTTP/DB stack, čistý bootstrap a upgrade v samostatné disposable databázi a všechny browser scénáře. Cleanup test fixtures používá privilegovaný bypass immutable triggerů pouze pro vlastní testová data.
 

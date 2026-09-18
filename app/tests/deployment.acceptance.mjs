@@ -122,11 +122,11 @@ test('SOURCE_COMMIT build arg embeds SHA in image and version endpoint returns i
 
 test('external PG18 explicit ordered bootstrap: normal public pages and private data layout, runtime env only',async () => {
   const files=readdirSync('docker/db/init').filter(f=>f.endsWith('.sql')).sort();
-  assert.deepEqual(files.map(f=>f.slice(0,2)),['01','02','03','04','05','06','07','08']);
+  assert.deepEqual(files.map(f=>f.slice(0,2)),['01','02','03','04','05','06','07','08','09']);
   for (const file of files) docker(['exec','-i',database,'psql','-p',dbPort,'-U',dbUser,'-d',dbName,'-v','ON_ERROR_STOP=1'],
     {input:readFileSync('docker/db/init/'+file),timeout:30000});
   assert.equal(sql('SELECT count(*) FROM kvazi.user_account'),'0');
-  sql("INSERT INTO kvazi.user_account(username,email,password_hash) VALUES ('m45_marker','m45_marker@kvazi.test','not-a-login-credential')");
+  sql("INSERT INTO kvazi.user_account(username,email,password_hash,email_verified_at) VALUES ('m45_marker','m45_marker@kvazi.test','not-a-login-credential',now())");
   marker=snapshot();
   const home=await fetch(base+'/'); assert.equal(home.status,200); assert.match(await home.text(),/Nejdelší kvazivěta/);
   assert.match(home.headers.get('set-cookie'),/; secure/i);

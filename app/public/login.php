@@ -50,6 +50,9 @@ $csrf = auth_csrf_token();
 
     <?php if ($error): ?>
       <div class="alert alert-warning" style="margin-bottom:20px"><?= htmlspecialchars($error) ?></div>
+      <?php if (str_contains($error, 'ověřen')): ?>
+        <p style="margin-bottom:20px"><a href="/resend-verification.php">Znovu zaslat ověřovací e-mail</a></p>
+      <?php endif; ?>
     <?php endif; ?>
 
     <form method="post" novalidate>
