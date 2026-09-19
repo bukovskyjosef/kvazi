@@ -23,45 +23,17 @@ function getCharsetRe() {
   return _charsetRe ??= new RegExp(surfaceCharset(), 'iu');
 }
 
-export function validateTokenSequence(tokens) {
-  const issues = [];
-  const add = (id, message) => issues.push({ id, message });
-  if (!tokens.length) add(null, 'Věta zatím neobsahuje slova.');
-  const singles = singleTokens();
-  const minChars = tokenMinChars();
-  const maxChars = tokenMaxChars();
-  const pfxLen   = prefixLen();
-  const used = new Map();
-  for (const w of tokens) {
-    const s = nfc(w.surface), length = [...s].length;
-    if (!getCharsetRe().test(s)) add(w.id, 'Použijte pouze znaky K V Q A Á Z I Í Y Ý, bez mezer a znamének.');
-    const hasPrefix = inferKvaziPrefix(s);
-    if (!singles.includes(folded(s))) {
-      if (hasPrefix) {
-        const baseLen = length - pfxLen;
-        if (baseLen < minChars || baseLen > maxChars) add(w.id, `Základ za prefixem kvazi- musí mít ${minChars}–${maxChars} znaků.`);
-      } else if (length < minChars || length > maxChars) {
-        add(w.id, `Běžné slovo musí mít ${minChars}–${maxChars} znaků; výjimky jsou pouze ${singles.join('/')}.`);
-      }
-    }
-    if (singles.includes(folded(s))) {
-      if (used.has(folded(s))) { add(w.id, 'Jednopísmennou výjimku lze použít jen jednou.'); add(used.get(folded(s)), 'Jednopísmenná výjimka je ve větě opakovaná.'); }
-      used.set(folded(s), w.id);
-    }
+function surfaceSegments(surface) {
+  const upper = nfc(surface).toUpperCase();
+  if (inferKvaziPrefix(surface)) {
+    const length = prefixLen();
+    return [[...upper.slice(0, length)], [...upper.slice(length)]];
   }
-  // For the DFA, a prefixed token is split into the KVAZI motif and its base,
-  // so each part independently satisfies the word-boundary constraint.
-  const segments = [];
-  for (const w of tokens) {
-    const upper = nfc(w.surface).toUpperCase();
-    if (inferKvaziPrefix(w.surface)) {
-      segments.push([...upper.slice(0, pfxLen)]);
-      segments.push([...upper.slice(pfxLen)]);
-    } else {
-      segments.push([...upper]);
-    }
-  }
-  const fits = tokens.length > 0 && motifTransitions().map((_, i) => i).some(start => {
+  return [[...upper]];
+}
+
+function fitsMotifSequence(segments) {
+  return motifTransitions().map((_, i) => i).some(start => {
     let state = start;
     for (const seg of segments) {
       for (let i = 0; i < seg.length; i++) {
@@ -71,6 +43,46 @@ export function validateTokenSequence(tokens) {
     }
     return true;
   });
+}
+
+// A token's own spelling can be valid even when its position in the sentence
+// makes the complete sequence invalid. Keep these verdicts separate.
+export function validateTokenSurface(surface) {
+  const s = nfc(surface), length = [...s].length;
+  const issues = [];
+  if (!getCharsetRe().test(s)) issues.push('Použijte pouze znaky K V Q A Á Z I Í Y Ý, bez mezer a znamének.');
+  if (!singleTokens().includes(folded(s))) {
+    if (inferKvaziPrefix(s)) {
+      const baseLen = length - prefixLen();
+      if (baseLen < tokenMinChars() || baseLen > tokenMaxChars()) issues.push(`Základ za prefixem kvazi- musí mít ${tokenMinChars()}–${tokenMaxChars()} znaků.`);
+    } else if (length < tokenMinChars() || length > tokenMaxChars()) {
+      issues.push(`Běžné slovo musí mít ${tokenMinChars()}–${tokenMaxChars()} znaků; výjimky jsou pouze ${singleTokens().join('/')}.`);
+    }
+  }
+  if (!issues.length && !fitsMotifSequence(surfaceSegments(s))) {
+    issues.push('Slovo nemůže ležet uvnitř jediného motivu; zkontrolujte tokenovou/prefixovou strukturu.');
+  }
+  return { ok: issues.length === 0, issues };
+}
+
+export function validateTokenSequence(tokens) {
+  const issues = [];
+  const add = (id, message) => issues.push({ id, message });
+  if (!tokens.length) add(null, 'Věta zatím neobsahuje slova.');
+  const singles = singleTokens();
+  const used = new Map();
+  for (const w of tokens) {
+    const s = nfc(w.surface);
+    for (const message of validateTokenSurface(s).issues) add(w.id, message);
+    if (singles.includes(folded(s))) {
+      if (used.has(folded(s))) { add(w.id, 'Jednopísmennou výjimku lze použít jen jednou.'); add(used.get(folded(s)), 'Jednopísmenná výjimka je ve větě opakovaná.'); }
+      used.set(folded(s), w.id);
+    }
+  }
+  // For the DFA, a prefixed token is split into the KVAZI motif and its base,
+  // so each part independently satisfies the word-boundary constraint.
+  const segments = tokens.flatMap(w => surfaceSegments(w.surface));
+  const fits = tokens.length > 0 && fitsMotifSequence(segments);
   if (tokens.length && !fits) add(null, 'Slova netvoří souvislou posloupnost motivů, v níž každé slovo leží uvnitř jediného motivu.');
   return { ok: issues.length === 0, issues };
 }
@@ -145,6 +157,7 @@ export function deriveValidationState(draft, schema = publicSchema) {
   // ── Phase 1: surface gate ──────────────────────────────────
   const sequence = validateTokenSequence(draft.tokens);
   const surfaceOk = sequence.ok;
+  const tokenSurfaces = Object.fromEntries(draft.tokens.map(w => [w.id, validateTokenSurface(w.surface)]));
 
   // Preview text and basic scoring are always computed (surface-level info).
   const punct = ndPunctuation();
@@ -169,14 +182,15 @@ export function deriveValidationState(draft, schema = publicSchema) {
     const tokens = {};
     for (const w of draft.tokens) {
       tokens[w.id] = {
+        surfaceOk: tokenSurfaces[w.id].ok, surfaceIssues: tokenSurfaces[w.id].issues,
         missing: [], formCheck: NOT_EVALUATED,
-        issues: sequence.issues.filter(i => i.id === null || i.id === w.id).map(i => i.message),
+        issues: [],
         complete: false,
       };
     }
     return { sequence, syntax: { ok: false, issues: [] }, sentenceIssues: [], tokens,
       structureOk: false, morphologyOk: false, sentenceOk: false, fullVerbOk: false,
-      submitReady: false, text: previewSurfaces.join(' ') + termPunct,
+      submitReady: false, sentenceStatus: 'err', text: previewSurfaces.join(' ') + termPunct,
       wordCount: draft.tokens.length, charScore };
   }
 
@@ -274,7 +288,7 @@ export function deriveValidationState(draft, schema = publicSchema) {
     }
     if (w.evidence.needsAnalogy && (!w.evidence.explanation.trim() || !w.evidence.analogy.trim())) missing.push('Obhajoba nejasného/fiktivního vztahu a běžná česká analogie.');
     const formCheck = validateForm(w);
-    tokens[w.id] = { missing, formCheck };
+    tokens[w.id] = { surfaceOk: tokenSurfaces[w.id].ok, surfaceIssues: tokenSurfaces[w.id].issues, missing, formCheck };
   }
   const idsOk = new Set(draft.tokens.map(w => w.id)).size === draft.tokens.length && draft.tokens.every(w => typeof w.id === 'string' && !!w.id);
   if (!idsOk) sentenceIssues.push('Interní ID slov musejí být neprázdná a jedinečná.');
@@ -283,11 +297,12 @@ export function deriveValidationState(draft, schema = publicSchema) {
   const sentenceOk = !sentenceIssues.length;
   for (const w of draft.tokens) {
     const t = tokens[w.id];
-    t.issues = [...sequence.issues.filter(i => i.id === null || i.id === w.id), ...syntax.issues.filter(i => i.id === w.id)].map(i => i.message);
-    t.complete = !t.missing.length && !t.issues.length && t.formCheck.ok === true;
+    t.issues = syntax.issues.filter(i => i.id === w.id).map(i => i.message);
+    t.complete = t.surfaceOk && !t.missing.length && !t.issues.length && t.formCheck.ok === true;
   }
+  const submitReady = syntax.ok && sentenceOk && structureOk && morphologyOk;
   return { sequence, syntax, sentenceIssues, tokens, structureOk, morphologyOk, sentenceOk, fullVerbOk,
-    submitReady: syntax.ok && sentenceOk && structureOk && morphologyOk,
+    submitReady, sentenceStatus: submitReady ? 'ok' : 'warn',
     text: previewSurfaces.join(' ') + termPunct,
     wordCount: draft.tokens.length, charScore };
 }

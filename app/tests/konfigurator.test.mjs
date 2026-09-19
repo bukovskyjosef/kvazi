@@ -7,7 +7,7 @@ import { publicSchema, getModel } from '../public/js/konfigurator/schema.mjs';
 import { createDraft, createToken, mutateDraft, inferKvaziPrefix } from '../public/js/konfigurator/state.mjs';
 import { validateTokenSequence, validateSyntax, deriveValidationState, previewDraft } from '../public/js/konfigurator/validation.mjs';
 import { validateForm } from '../public/js/konfigurator/morpho.mjs';
-import { renderEditor } from '../public/js/konfigurator/view.mjs';
+import { renderEditor, renderTokens } from '../public/js/konfigurator/view.mjs';
 import { toggleMode } from '../public/js/konfigurator/terms.mjs';
 
 // Initialise normative data from the active rules release before any morpho calls.
@@ -37,6 +37,38 @@ function fixture() {
   return draft;
 }
 
+function completeDraft() {
+  const draft = createDraft();
+  const subject = createToken('t1', 'kvazi');
+  Object.assign(subject, {
+    pos: 'noun', lemma: 'kvaz', model: 'pán', lexicalStatus: 'quasi',
+    identity: { gender: 'masculine', animacy: 'animate' },
+    form: { case: '1', number: 'plural' },
+    role: 'subject', relations: { head: 't2' },
+  });
+  const predicate = createToken('t2', 'kvazí');
+  Object.assign(predicate, {
+    pos: 'verb', lemma: 'kvazit', model: 'V-IT', lexicalStatus: 'quasi',
+    form: { verbFormType: 'present', verbPerson: '3', number: 'plural', aspect: 'imperfective' },
+    role: 'predicate', valency: { modelVerb: '', declaration: 'Opírá se o sloveso dělat; bez doplnění.' },
+  });
+  draft.tokens = [subject, predicate];
+  return draft;
+}
+
+function chipStatuses(draft, state, selectedId = null) {
+  const tokens = { innerHTML: '' }, entry = { dataset: {} };
+  global.document = {
+    getElementById: id => id === 'tokens' ? tokens : null,
+    querySelector: selector => selector === '.sentence-entry' ? entry : null,
+  };
+  renderTokens(draft, state, selectedId);
+  return {
+    chips: [...tokens.innerHTML.matchAll(/class="chip (ok|warn|err) ([^"]*)"/g)].map(match => ({ status: match[1], selected: match[2].includes('active') })),
+    sentence: entry.dataset.status,
+  };
+}
+
 test('player-facing options respect field context: verbPerson and degree are not case labels', () => {
   const verb = createToken('v1', 'kvazi');
   Object.assign(verb, {
@@ -60,7 +92,7 @@ test('player-facing options respect field context: verbPerson and degree are not
   });
   const draft = createDraft();
   draft.tokens = [verb, adj];
-  const state = { tokens: { [verb.id]: { complete: true, issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } }, [adj.id]: { complete: true, issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } } } };
+  const state = { tokens: { [verb.id]: { complete: true, surfaceIssues: [], issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } }, [adj.id]: { complete: true, surfaceIssues: [], issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } } } };
   const editor = { innerHTML: '', hidden: false };
   global.document = { getElementById: id => id === 'editor' ? editor : { querySelector: () => ({ open: false }), classList: { toggle() {} } } };
 
@@ -87,7 +119,7 @@ test('player-facing options respect field context: verbPerson and degree are not
     relations: { head: 'n1' },
   });
   draft.tokens = [noun];
-  renderEditor(draft, { tokens: { [noun.id]: { complete: true, issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } } } }, noun.id, publicSchema);
+  renderEditor(draft, { tokens: { [noun.id]: { complete: true, surfaceIssues: [], issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } } } }, noun.id, publicSchema);
   assert.match(caseSelect.innerHTML, /1\. pád/);
 });
 
@@ -390,6 +422,60 @@ test('delete and replace derives fresh functional or prefix declarations and cle
 });
 
 // ── Staged validation: surface gate → deep short-circuit (#91) ──
+test('single undeclared kvazi is orange although its sentence is incomplete', () => {
+  const draft = mutateDraft(createDraft(), { type: 'insert', surface: 'kvazi' });
+  const state = deriveValidationState(draft);
+  assert.equal(state.tokens.t1.surfaceOk, true);
+  assert.equal(state.tokens.t1.complete, false);
+  assert.deepEqual(chipStatuses(draft, state), { chips: [{ status: 'warn', selected: false }], sentence: 'warn' });
+});
+
+test('adding undeclared kvazi tokens keeps every earlier chip orange', () => {
+  let draft = createDraft();
+  for (let count = 1; count <= 3; count++) {
+    draft = mutateDraft(draft, { type: 'insert', surface: 'kvazi' });
+    const state = deriveValidationState(draft);
+    assert.equal(state.sequence.ok, true);
+    assert.ok(Object.values(state.tokens).every(token => token.surfaceOk && !token.complete));
+    assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), Array(count).fill('warn'));
+  }
+});
+
+test('only a token with invalid local surface is red, including when the sequence fails', () => {
+  const draft = createDraft();
+  draft.tokens = [createToken('t1', 'kvazi'), createToken('t2', 'xyz')];
+  let state = deriveValidationState(draft);
+  assert.equal(state.tokens.t1.surfaceOk, true);
+  assert.equal(state.tokens.t2.surfaceOk, false);
+  assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), ['warn', 'err']);
+  assert.equal(state.sentenceStatus, 'err');
+
+  draft.tokens[1] = createToken('t2', 'azi');
+  state = deriveValidationState(draft);
+  assert.equal(state.sequence.ok, false, 'both words fit a motif locally but not together');
+  assert.ok(Object.values(state.tokens).every(token => token.surfaceOk));
+  assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), ['warn', 'warn']);
+  assert.equal(state.sentenceStatus, 'err');
+});
+
+test('fully declared token is green; another incomplete token leaves the sentence orange', () => {
+  const draft = completeDraft();
+  let state = deriveValidationState(draft);
+  assert.equal(state.submitReady, true);
+  assert.ok(Object.values(state.tokens).every(token => token.surfaceOk && token.complete && token.formCheck.ok));
+  assert.deepEqual(chipStatuses(draft, state, 't1'), {
+    chips: [{ status: 'ok', selected: true }, { status: 'ok', selected: false }], sentence: 'ok',
+  });
+
+  draft.tokens[1].lemma = '';
+  state = deriveValidationState(draft);
+  assert.equal(state.tokens.t1.complete, true);
+  assert.equal(state.tokens.t2.complete, false);
+  assert.deepEqual(chipStatuses(draft, state), {
+    chips: [{ status: 'ok', selected: false }, { status: 'warn', selected: false }], sentence: 'warn',
+  });
+});
+
 test('surface-invalid draft: formCheck is notEvaluated, not false success', () => {
   // Single surface-invalid token (bad charset)
   const d = createDraft();

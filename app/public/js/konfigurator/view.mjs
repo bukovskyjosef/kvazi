@@ -36,10 +36,11 @@ export function renderSentence(draft, state) {
   if (detailsOpen) document.getElementById('sentenceFields').querySelector('details').open = true;
 }
 export function renderTokens(draft, state, selectedId) {
+  document.querySelector('.sentence-entry').dataset.status = state.sentenceStatus;
   const wordChips = draft.tokens.map((w, i) => {
     const disp = i === 0 && w.surface.length > 0 ? w.surface[0].toUpperCase() + w.surface.slice(1) : w.surface;
     const tokenState = state.tokens[w.id];
-    const chipClass = tokenState.complete ? 'ok' : tokenState.issues.length ? 'err' : 'warn';
+    const chipClass = !tokenState.surfaceOk ? 'err' : tokenState.complete ? 'ok' : 'warn';
     return `<span class="token-chip"><button type="button" id="token-${esc(w.id)}" class="chip ${chipClass} ${selectedId === w.id ? 'active' : ''}${w.pos ? ' pos-' + w.pos : ''}" data-action="select" data-id="${esc(w.id)}" aria-pressed="${selectedId === w.id}"><span class="chip-text">${esc(disp)}</span></button><button type="button" class="chip-remove" data-action="delete-chip" data-id="${esc(w.id)}" aria-label="Smazat ${esc(w.surface)}">×</button></span>`;
   }).join('');
   const punctChip = draft.closingPunct
@@ -92,7 +93,7 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema, ca
       ${field('evidence.morphology', 'Morfologická obhajoba a odkaz na model (nepovinné)', w.evidence.morphology)}
       ${w.lexicalStatus === 'real' && w.role !== 'auxiliary' ? field('evidence.source', 'Zdroj dokládající existenci (nepovinné)', w.evidence.source, { '': '— nevybráno —', IJP: 'Slovníková část IJP', 'ASSČ': 'Zveřejněné heslo ASSČ' }) + field('evidence.reference', 'Konkrétní heslo / odkaz a doklad použitého tvaru', w.evidence.reference) : ''}
     </fieldset>` : ''}
-    <h3>Co zbývá u tohoto slova</h3>${list([...status.issues, ...status.missing, ...(status.formCheck && !status.formCheck.ok && status.formCheck.message ? [status.formCheck.message] : [])])}
+    <h3>Co zbývá u tohoto slova</h3>${list([...status.surfaceIssues, ...status.issues, ...status.missing, ...(status.formCheck && !status.formCheck.ok && status.formCheck.message ? [status.formCheck.message] : [])])}
     </div>`;
 }
 export function renderValidation(draft, state) {
