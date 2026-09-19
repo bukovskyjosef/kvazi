@@ -15,6 +15,49 @@ try {
   const bannerText = await banner.textContent();
   assert.equal(bannerText.includes('Upravit nastavení'), false, 'Initial consent banner should not include the redundant settings action.');
 
+  const themeStyles = () => page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.cssText = 'background:var(--glass);border:1px solid var(--border-hi);box-shadow:var(--shadow);color:var(--text)';
+    document.body.append(probe);
+    const actual = getComputedStyle(document.getElementById('analyticsConsentBanner'));
+    const expected = getComputedStyle(probe);
+    const expectedHeading = expected.color;
+    probe.style.color = 'var(--accent)';
+    const result = {
+      theme: document.documentElement.dataset.theme,
+      background: actual.backgroundColor, expectedBackground: expected.backgroundColor,
+      border: actual.borderTopColor, expectedBorder: expected.borderTopColor,
+      shadow: actual.boxShadow, expectedShadow: expected.boxShadow,
+      heading: getComputedStyle(document.getElementById('analyticsConsentTitle')).color,
+      expectedHeading,
+      button: getComputedStyle(document.querySelector('.analytics-consent-btn-primary')).color,
+      expectedButton: getComputedStyle(probe).color,
+    };
+    probe.remove();
+    return result;
+  });
+  const checkTheme = styles => {
+    assert.equal(styles.background, styles.expectedBackground);
+    assert.equal(styles.border, styles.expectedBorder);
+    assert.equal(styles.shadow, styles.expectedShadow);
+    assert.equal(styles.heading, styles.expectedHeading);
+    assert.equal(styles.button, styles.expectedButton);
+  };
+  const dark = await themeStyles();
+  assert.equal(dark.theme, '2');
+  checkTheme(dark);
+  await page.locator('#footerThemeBtn1').evaluate(button => button.click());
+  const light = await themeStyles();
+  assert.equal(light.theme, '1');
+  checkTheme(light);
+  assert.notEqual(light.background, dark.background, 'Visible consent banner must adopt light theme');
+  assert.notEqual(light.heading, dark.heading, 'Banner text must adopt light theme');
+  await page.locator('#footerThemeBtn2').evaluate(button => button.click());
+  const darkAgain = await themeStyles();
+  assert.equal(darkAgain.theme, '2');
+  checkTheme(darkAgain);
+  assert.equal(darkAgain.background, dark.background);
+
   const initialConsent = await page.evaluate(() => ({
     localStorage: localStorage.getItem('kvazi_analytics_consent'),
     cookie: document.cookie.includes('kvazi_analytics_consent='),

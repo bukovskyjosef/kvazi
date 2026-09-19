@@ -136,17 +136,6 @@ try {
   await page.keyboard.press('Enter');
   assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'q', 'kvazi', 'k', 'm']);
 
-  await page.goto(`${baseUrl}/konfigurator.php`);
-  const punctEntry = page.getByLabel('Nové slovo (bez mezer)');
-  await punctEntry.pressSequentially('vazi kvazi.');
-  await page.locator('#token-t2').click();
-  await page.getByRole('button', { name: 'Vložit slovo za' }).click();
-  await page.locator('#newSurface').fill('z');
-  await page.keyboard.press('Enter');
-  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'kvazi', 'z', '.']);
-  const punctText = await page.locator('#tokens .closing-punct .chip-text').textContent();
-  assert.equal(punctText, '.');
-
   // Click the new preposition token ('k') — its id is t3 (nextId increments).
   await page.locator('#token-t3').click();
   assert.equal(await page.getByLabel('Slovní druh', { exact: true }).inputValue(), 'preposition');
@@ -160,10 +149,10 @@ try {
   // ── Scene 4: NFC normalisation — surface should be stored as NFC ─────────
   await entry.fill('VA\u0301ZI');
   await entry.press('Enter');
-  await page.locator('#token-t4').click();
+  await page.locator('#token-t6').click();
   assert.equal(await page.getByLabel('Základní tvar', { exact: true }).inputValue(), '');
   assert.equal(await page.locator('#word-surface').inputValue(), 'vázi');
-  assert.equal(await page.locator('#token-t4').evaluate(el => el === document.activeElement), true);
+  assert.equal(await page.locator('#token-t6').evaluate(el => el === document.activeElement), true);
 
   // ── Scene 5: JSON preview action is intentionally removed in this hotfix ──
   assert.equal(await page.getByRole('button', { name: /Zobrazit náhled JSON/ }).count(), 0);
@@ -289,7 +278,7 @@ try {
   await page.getByLabel('Krátká obhajoba vztahu').fill('Obhajoba.');
   assert.equal(await page.locator('#submitButton').isDisabled(), true, 'missing analogy');
   await page.getByLabel('Běžná česká analogie stejné konstrukce').fill('Děti spí.');
-  assert.equal(await page.locator('#submitButton').isDisabled(), false);
+  assert.equal(await page.locator('#submitButton').isDisabled(), true, 'unfinished sentence cannot be submitted after restoring the word surface');
   await page.getByLabel('Krátká obhajoba vztahu').fill('');
   assert.equal(await page.locator('#submitButton').isDisabled(), true, 'missing explanation');
   await page.locator('#word-evidence-needsAnalogy').uncheck();
@@ -600,6 +589,52 @@ try {
         }
       }
     }
+  }
+
+  await page.goto(`${baseUrl}/konfigurator.php`);
+  const punctEntry = page.getByLabel('Nové slovo (bez mezer)');
+  await punctEntry.pressSequentially('vazi kvazi.');
+  await page.locator('#token-t2').click();
+  await page.getByRole('button', { name: 'Vložit slovo za' }).click();
+  await page.locator('#newSurface').fill('z');
+  await page.keyboard.press('Enter');
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'kvazi', 'z', '.']);
+  const punctText = await page.locator('#tokens .closing-punct .chip-text').textContent();
+  assert.equal(punctText, '.');
+
+  // Explicit insertion supports the first token and both sides of an interior token.
+  await page.goto(`${baseUrl}/konfigurator.php`);
+  await page.locator('#newSurface').pressSequentially('kvazi kvazí ');
+  await page.locator('#token-t1').click();
+  await page.getByRole('button', { name: 'Vložit slovo před' }).click();
+  await page.locator('#newSurface').fill('qazi');
+  await page.keyboard.press('Enter');
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Qazi', 'kvazi', 'kvazí']);
+  assert.equal(await page.locator('#newSurface').getAttribute('aria-label'), 'Nové slovo (bez mezer)');
+  await page.locator('#token-t2').click();
+  await page.getByRole('button', { name: 'Vložit slovo před' }).click();
+  await page.locator('#newSurface').fill('qázi');
+  await page.keyboard.press('Enter');
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Qazi', 'kvazi', 'qázi', 'kvazí']);
+  await page.locator('#token-t1').click();
+  await page.getByRole('button', { name: 'Vložit slovo za' }).click();
+  await page.locator('#newSurface').fill('qazí');
+  await page.keyboard.press('Enter');
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Qazi', 'kvazi', 'qazí', 'qázi', 'kvazí']);
+
+  for (const punct of ['.', '?', '!']) {
+    await page.goto(`${baseUrl}/konfigurator.php`);
+    await page.locator('#newSurface').pressSequentially(`kvazi kvazí${punct}`);
+    assert.equal(await page.locator('#newSurface').isHidden(), true);
+    await page.locator('#token-t2').click();
+    await page.getByRole('button', { name: 'Vložit slovo za' }).click();
+    assert.equal(await page.locator('#newSurface').isVisible(), true);
+    assert.equal(await page.locator('#newSurface').getAttribute('aria-label'), 'Vložit slovo za vybraný token');
+    await page.locator('#newSurface').fill('qazi');
+    await page.keyboard.press('Enter');
+    assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Kvazi', 'kvazí', 'qazi', punct]);
+    assert.equal(await page.locator('#newSurface').isHidden(), true, `insertion mode must end immediately after ${punct}`);
+    assert.equal(await page.locator('#newSurface').getAttribute('aria-label'), 'Nové slovo (bez mezer)');
   }
 
   assert.deepEqual(errors, []);

@@ -7,7 +7,7 @@ import { publicSchema, getModel } from '../public/js/konfigurator/schema.mjs';
 import { createDraft, createToken, mutateDraft, inferKvaziPrefix } from '../public/js/konfigurator/state.mjs';
 import { validateTokenSequence, validateSyntax, deriveValidationState, previewDraft } from '../public/js/konfigurator/validation.mjs';
 import { validateForm } from '../public/js/konfigurator/morpho.mjs';
-import { renderEditor, renderTokens, renderValidation } from '../public/js/konfigurator/view.mjs';
+import { renderEditor, renderTokens, renderValidation, tokenSurfaceState } from '../public/js/konfigurator/view.mjs';
 import { toggleMode } from '../public/js/konfigurator/terms.mjs';
 
 // Initialise normative data from the active rules release before any morpho calls.
@@ -433,9 +433,17 @@ test('delete and replace derives fresh functional or prefix declarations and cle
 test('single undeclared kvazi is orange although its sentence is incomplete', () => {
   const draft = mutateDraft(createDraft(), { type: 'insert', surface: 'kvazi' });
   const state = deriveValidationState(draft);
-  assert.equal(state.tokens.t1.surfaceOk, true);
+  assert.equal(tokenSurfaceState(draft.tokens[0]).ok, true);
   assert.equal(state.tokens.t1.complete, false);
   assert.deepEqual(chipStatuses(draft, state), { chips: [{ status: 'warn', selected: false }], sentence: 'warn' });
+});
+
+test('empty sentence entry is neutral without changing the validator verdict', () => {
+  const draft = createDraft();
+  const state = deriveValidationState(draft);
+  assert.equal(state.sequence.ok, false);
+  assert.equal(state.submitReady, false);
+  assert.deepEqual(chipStatuses(draft, state), { chips: [], sentence: 'neutral' });
 });
 
 test('adding undeclared kvazi tokens keeps every earlier chip orange', () => {
@@ -444,7 +452,7 @@ test('adding undeclared kvazi tokens keeps every earlier chip orange', () => {
     draft = mutateDraft(draft, { type: 'insert', surface: 'kvazi' });
     const state = deriveValidationState(draft);
     assert.equal(state.sequence.ok, true);
-    assert.ok(Object.values(state.tokens).every(token => token.surfaceOk && !token.complete));
+    assert.ok(draft.tokens.every(word => tokenSurfaceState(word).ok && !state.tokens[word.id].complete));
     assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), Array(count).fill('warn'));
   }
 });
@@ -453,24 +461,24 @@ test('only a token with invalid local surface is red, including when the sequenc
   const draft = createDraft();
   draft.tokens = [createToken('t1', 'kvazi'), createToken('t2', 'xyz')];
   let state = deriveValidationState(draft);
-  assert.equal(state.tokens.t1.surfaceOk, true);
-  assert.equal(state.tokens.t2.surfaceOk, false);
+  assert.equal(tokenSurfaceState(draft.tokens[0]).ok, true);
+  assert.equal(tokenSurfaceState(draft.tokens[1]).ok, false);
   assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), ['warn', 'err']);
-  assert.equal(state.sentenceStatus, 'err');
+  assert.equal(chipStatuses(draft, state).sentence, 'err');
 
   draft.tokens[1] = createToken('t2', 'azi');
   state = deriveValidationState(draft);
   assert.equal(state.sequence.ok, false, 'both words fit a motif locally but not together');
-  assert.ok(Object.values(state.tokens).every(token => token.surfaceOk));
+  assert.ok(draft.tokens.every(word => tokenSurfaceState(word).ok));
   assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), ['warn', 'warn']);
-  assert.equal(state.sentenceStatus, 'err');
+  assert.equal(chipStatuses(draft, state).sentence, 'err');
 });
 
 test('fully declared token is green; another incomplete token leaves the sentence orange', () => {
   const draft = completeDraft();
   let state = deriveValidationState(draft);
   assert.equal(state.submitReady, true);
-  assert.ok(Object.values(state.tokens).every(token => token.surfaceOk && token.complete && token.formCheck.ok));
+  assert.ok(draft.tokens.every(word => tokenSurfaceState(word).ok && state.tokens[word.id].complete && state.tokens[word.id].formCheck.ok));
   assert.deepEqual(chipStatuses(draft, state, 't1'), {
     chips: [{ status: 'ok', selected: true }, { status: 'ok', selected: false }], sentence: 'ok',
   });
@@ -504,7 +512,7 @@ test('subject shows its invalid head in both diagnostics, then turns green when 
   assert.equal(state.tokens.t1.complete, true);
   assert.equal(state.tokens.t2.complete, false);
   assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), ['ok', 'warn']);
-  assert.equal(state.sentenceStatus, 'warn');
+  assert.equal(chipStatuses(draft, state).sentence, 'warn');
   diagnostics = tokenDiagnostics(draft, state);
   assert.match(diagnostics.validation, /<summary>1\. kvazi – úplné<\/summary>/);
   assert.doesNotMatch(diagnostics.editor, /Řídícím slovem musí být přísudek\./);
@@ -523,7 +531,7 @@ test('every supported incomplete token has a visible reason, including a skipped
 
   const inconsistent = structuredClone(state);
   Object.assign(inconsistent.tokens.t1, {
-    complete: false, surfaceIssues: [], missing: [], issues: [], formCheck: { ok: true, message: null },
+    complete: false, missing: [], issues: [], formCheck: { ok: true, message: null },
   });
   assert.throws(() => tokenDiagnostics(draft, inconsistent), /Neúplný token nemá vysvětlitelný validační stav/);
 });
@@ -533,7 +541,7 @@ test('token diagnostic deduplicates the same reason across validation layers', (
   const state = deriveValidationState(draft);
   const reason = 'Stejný důvod.';
   Object.assign(state.tokens.t1, {
-    complete: false, surfaceIssues: [reason], missing: [reason], issues: [reason],
+    complete: false, missing: [reason], issues: [reason],
     formCheck: { ok: false, message: reason },
   });
   const { editor, validation } = tokenDiagnostics(draft, state);

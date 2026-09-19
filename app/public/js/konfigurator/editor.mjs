@@ -98,8 +98,8 @@ function insertWord(surface, index = null) {
     if (offset >= 0) targetIndex = insertionMode === 'before' ? offset : offset + 1;
   }
   selectedId = `t${draft.nextId}`;
-  dispatch({ type: 'insert', surface: nfc(surface), index: targetIndex });
   insertionMode = null;
+  dispatch({ type: 'insert', surface: nfc(surface), index: targetIndex });
 }
 function consumeInput(commitLast = false) {
   const input = element('newSurface');

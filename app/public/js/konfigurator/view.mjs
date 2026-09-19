@@ -1,4 +1,5 @@
 import { inferKvaziPrefix } from './state.mjs';
+import { validateTokenSequence } from './validation.mjs';
 import { enumOptions, functionalPos } from './rules-data.mjs';
 import { sentenceTypes, relationShapes, getModel, wordFields, getPath, isFunctional, publicSchema } from './schema.mjs';
 import { partsOfSpeechLabels, functionsLabels, translateOptions, buttonLabel } from './terms.mjs';
@@ -15,12 +16,23 @@ function check(path, label, value, scope = 'word') {
   return `<div class="fld"><label class="check-label"><input type="checkbox" id="${id}" data-scope="${scope}" data-path="${esc(path)}"${value ? ' checked' : ''}> ${esc(label)}</label></div>`;
 }
 const list = items => `<ul class="status-list">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
-function tokenBlockers(token, state) {
+export function tokenSurfaceState(word) {
+  const result = validateTokenSequence([{ id: word.id, surface: word.surface }]);
+  return { ok: result.ok, issues: [...new Set(result.issues.map(issue => issue.message))] };
+}
+export function sentenceUiStatus(draft, state) {
+  if (!draft.tokens.length) return 'neutral';
+  if (!state.sequence.ok) return 'err';
+  return state.submitReady ? 'ok' : 'warn';
+}
+function tokenBlockers(word, state) {
+  const token = state.tokens[word.id];
+  const globalIssues = new Set((state.sequence?.issues ?? []).filter(issue => issue.id === null).map(issue => issue.message));
   const items = [...new Set([
-    ...token.surfaceIssues, ...token.missing, ...token.issues,
+    ...tokenSurfaceState(word).issues, ...token.missing, ...token.issues.filter(issue => !globalIssues.has(issue)),
     ...(token.formCheck?.ok === false && token.formCheck.message ? [token.formCheck.message] : []),
   ])];
-  if (!token.complete && !items.length && token.formCheck?.status === 'notEvaluated' && !state.sequence.ok) {
+  if (!token.complete && !items.length && token.formCheck?.status === 'notEvaluated' && !state.sequence?.ok) {
     items.push('Deklarace zatím nebyla vyhodnocena kvůli povrchové chybě celé věty.');
   }
   if (!token.complete && !items.length) throw new Error('Neúplný token nemá vysvětlitelný validační stav.');
@@ -47,11 +59,11 @@ export function renderSentence(draft, state) {
   if (detailsOpen) document.getElementById('sentenceFields').querySelector('details').open = true;
 }
 export function renderTokens(draft, state, selectedId) {
-  document.querySelector('.sentence-entry').dataset.status = state.sentenceStatus;
+  document.querySelector('.sentence-entry').dataset.status = sentenceUiStatus(draft, state);
   const wordChips = draft.tokens.map((w, i) => {
     const disp = i === 0 && w.surface.length > 0 ? w.surface[0].toUpperCase() + w.surface.slice(1) : w.surface;
     const tokenState = state.tokens[w.id];
-    const chipClass = !tokenState.surfaceOk ? 'err' : tokenState.complete ? 'ok' : 'warn';
+    const chipClass = !tokenSurfaceState(w).ok ? 'err' : tokenState.complete ? 'ok' : 'warn';
     return `<span class="token-chip"><button type="button" id="token-${esc(w.id)}" class="chip ${chipClass} ${selectedId === w.id ? 'active' : ''}${w.pos ? ' pos-' + w.pos : ''}" data-action="select" data-id="${esc(w.id)}" aria-pressed="${selectedId === w.id}"><span class="chip-text">${esc(disp)}</span></button><button type="button" class="chip-remove" data-action="delete-chip" data-id="${esc(w.id)}" aria-label="Smazat ${esc(w.surface)}">×</button></span>`;
   }).join('');
   const punctChip = draft.closingPunct
@@ -104,7 +116,7 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema, ca
       ${field('evidence.morphology', 'Morfologická obhajoba a odkaz na model (nepovinné)', w.evidence.morphology)}
       ${w.lexicalStatus === 'real' && w.role !== 'auxiliary' ? field('evidence.source', 'Zdroj dokládající existenci (nepovinné)', w.evidence.source, { '': '— nevybráno —', IJP: 'Slovníková část IJP', 'ASSČ': 'Zveřejněné heslo ASSČ' }) + field('evidence.reference', 'Konkrétní heslo / odkaz a doklad použitého tvaru', w.evidence.reference) : ''}
     </fieldset>` : ''}
-    <h3>Co zbývá u tohoto slova</h3>${list(tokenBlockers(status, state))}
+    <h3>Co zbývá u tohoto slova</h3>${list(tokenBlockers(w, state))}
     </div>`;
 }
 export function renderValidation(draft, state) {
@@ -129,7 +141,7 @@ export function renderValidation(draft, state) {
     + list([...state.sentenceIssues, ...state.sequence.issues.map(i => i.message), ...state.syntax.issues.map(i => `${draft.tokens.find(w => w.id === i.id)?.surface || ''}: ${i.message}`)])
     + draft.tokens.map((w, i) => {
       const t = state.tokens[w.id];
-      const items = tokenBlockers(t, state);
+      const items = tokenBlockers(w, state);
       return `<details><summary>${i + 1}. ${esc(w.surface)} – ${t.complete ? 'úplné' : 'zbývá vyřešit'}</summary>${list(items)}</details>`;
     }).join('');
 }
