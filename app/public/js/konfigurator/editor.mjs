@@ -6,6 +6,7 @@ import { catalogCandidate, catalogFingerprint } from './catalog.mjs';
 import { createSurfaceRewardTracker } from './reward.mjs';
 
 let draft = window.__resubmit?.draft ?? createDraft(), selectedId = null;
+let insertionMode = null;
 const resubmitSentenceId = window.__resubmit?.sentenceId ?? null;
 let composing = false;
 const catalogResults = new Map();
@@ -45,7 +46,18 @@ function render() {
   }
   const termBtn = element('termToggle');
   if (termBtn) termBtn.textContent = buttonLabel();
-  element('newSurface').hidden = !!draft.closingPunct;
+  const explicitInsert = !!selectedId && !!insertionMode;
+  element('newSurface').hidden = !!draft.closingPunct && !explicitInsert;
+  if (explicitInsert) {
+    const input = element('newSurface');
+    input.placeholder = insertionMode === 'before'
+      ? 'Vložte slovo před vybraný token…'
+      : 'Vložte slovo za vybraný token…';
+    input.setAttribute('aria-label', insertionMode === 'before' ? 'Vložit slovo před vybraný token' : 'Vložit slovo za vybraný token');
+  } else {
+    element('newSurface').removeAttribute('aria-label');
+    element('newSurface').setAttribute('aria-label', 'Nové slovo (bez mezer)');
+  }
   updateInputPlaceholder();
   const submitBtn = element('submitButton');
   if (submitBtn) submitBtn.disabled = !state.submitReady;
@@ -59,8 +71,8 @@ function dispatch(action) {
   const next = mutateDraft(draft, action);
   if (next !== draft && action.type === 'field' && action.path === 'surface') catalogResults.delete(action.id);
   draft = next;
-  // A displayed preview must never silently outlive its draft snapshot.
-  element('payload').replaceChildren();
+  const payload = element('payload');
+  if (payload) payload.replaceChildren();
   render();
 }
 function updateField(target) {
@@ -77,14 +89,21 @@ document.addEventListener('input', e => {
 document.addEventListener('change', e => {
   if (e.target.type === 'checkbox' || e.target.type === 'radio' || e.target.tagName === 'SELECT') updateField(e.target);
 });
-function insertWord(surface) {
+function insertWord(surface, index = null) {
   if (!surface) return;
+  let targetIndex = draft.tokens.length;
+  if (typeof index === 'number') targetIndex = index;
+  else if (selectedId && insertionMode) {
+    const offset = draft.tokens.findIndex(w => w.id === selectedId);
+    if (offset >= 0) targetIndex = insertionMode === 'before' ? offset : offset + 1;
+  }
   selectedId = `t${draft.nextId}`;
-  dispatch({ type: 'insert', surface: nfc(surface) });
+  insertionMode = null;
+  dispatch({ type: 'insert', surface: nfc(surface), index: targetIndex });
 }
 function consumeInput(commitLast = false) {
   const input = element('newSurface');
-  if (draft.closingPunct) { input.value = ''; updateInputPlaceholder(); return; }
+  if (draft.closingPunct && !insertionMode) { input.value = ''; updateInputPlaceholder(); return; }
   const raw = nfc(input.value);
   // Detect closing punctuation anywhere in the current input value.
   const punctIdx = raw.search(/[.?!]/);
@@ -134,8 +153,18 @@ document.addEventListener('click', e => {
   const button = e.target.closest('button[data-action]');
   if (!button) return;
   const action = button.dataset.action;
-  if (action === 'select') { selectedId = button.dataset.id; render(); element(`token-${selectedId}`).focus(); }
-  else if (action === 'delete-punct') {
+  if (action === 'select') {
+    insertionMode = null;
+    selectedId = button.dataset.id;
+    render();
+    element(`token-${selectedId}`).focus();
+  } else if (action === 'insert-before' || action === 'insert-after') {
+    insertionMode = action === 'insert-before' ? 'before' : 'after';
+    const input = element('newSurface');
+    input.hidden = false;
+    input.focus();
+    render();
+  } else if (action === 'delete-punct') {
     dispatch({ type: 'open' });
     element('newSurface').focus();
   } else if (action === 'delete' || action === 'delete-chip') {
@@ -177,17 +206,6 @@ document.addEventListener('click', async e => {
     if (catalogResults.get(tokenId) === result && catalogFingerprint(draft.tokens.find(w => w.id === tokenId)) === result.fingerprint) render();
   }
 });
-element('previewButton').addEventListener('click', () => {
-  // Synchronous fresh derivation, even if a caller bypassed the normal render.
-  const preview = previewDraft(draft);
-  render();
-  const heading = document.createElement('h3');
-  heading.textContent = 'Místní náhled – nic nebylo odesláno';
-  const pre = document.createElement('pre');
-  pre.textContent = JSON.stringify(preview, null, 2);
-  element('payload').replaceChildren(heading, pre);
-  element('liveStatus').textContent = 'Zobrazen aktuální místní náhled draftu. Nic nebylo odesláno.';
-});
 element('submitButton').addEventListener('click', async () => {
   const preview = previewDraft(draft);
   if (!preview.validation.submitReady) return;
@@ -215,7 +233,7 @@ element('submitButton').addEventListener('click', async () => {
   } catch {
     resultEl.innerHTML = '<div class="alert alert-warning" style="margin-top:0">Síťová chyba, zkuste znovu.</div>';
   } finally {
-    btn.textContent = 'Odeslat přihlášku';
+    btn.textContent = 'Odeslat kvazivětu';
     render();
   }
 });

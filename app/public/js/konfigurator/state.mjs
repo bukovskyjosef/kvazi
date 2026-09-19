@@ -38,8 +38,10 @@ export function mutateDraft(current, action, schema = publicSchema) {
   const draft = structuredClone(current);
   const w = draft.tokens.find(t => t.id === action.id);
   if (action.type === 'insert') {
-    if (draft.closingPunct) return current;
-    draft.tokens.push(createToken(`t${draft.nextId++}`, action.surface));
+    if (draft.closingPunct && !Number.isInteger(action.index)) return current;
+    const index = Number.isInteger(action.index) ? action.index : draft.tokens.length;
+    const insertAt = Math.max(0, Math.min(index, draft.tokens.length));
+    draft.tokens.splice(insertAt, 0, createToken(`t${draft.nextId++}`, action.surface));
   } else if (action.type === 'sentence') {
     if (!['sentenceType', 'implicitSubject', 'meaning', 'defense'].includes(action.path)) throw new Error('Neznámé pole věty.');
     draft[action.path] = typeof action.value === 'string' ? nfc(action.value) : action.value;
