@@ -131,7 +131,7 @@ test('corrective release: historical bytes unchanged and normative mechanics ide
     const old = execFileSync('git',['show',`26bf3affbafbbf70cf646d83012e4c3eba199df3:${path}`]);
     assert.ok(readFileSync(path).equals(old),`${version}/${file} immutable`);
   }
-  assert.equal(active,'public-1.3.2'); assert.equal(manifest.validator_version,'1.3.2');
+  assert.equal(active,'public-1.3.3'); assert.equal(manifest.validator_version,'1.3.3');
   for (const file of ['normative.json','manifest.json']) {
     const path = `app/data/rules/public-1.3/${file}`;
     assert.ok(readFileSync(path).equals(execFileSync('git',['show',`153ecb2:${path}`])));

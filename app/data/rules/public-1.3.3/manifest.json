@@ -1,0 +1,8 @@
+{
+  "version": "public-1.3.3",
+  "normative_hash": "9eb8d9956cb326ab95e10520dc94fbdaebc01e888e22a35c8b7111f56ba6e455",
+  "normative_file": "normative.json",
+  "validator_version": "1.3.3",
+  "activated_at": "2026-09-19T00:00:00Z",
+  "description": "Fix issue #151 hotfix insertion ordering and UI polish; normative mechanics unchanged."
+}

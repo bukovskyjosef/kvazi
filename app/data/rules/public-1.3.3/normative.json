@@ -1,0 +1,1003 @@
+{
+  "_comment": "Strojově čitelný normativní dataset rules verze public-1. Zdroj: docs/kvazitahak/02-substantiva.md, 03-adjektiva.md, 04-slovesa.md. Paralelně čten JS (morpho.mjs) i PHP (validator.php). Změna hodnoty schopná změnit verdict vyžaduje nový rules release.",
+  "version": "public-1.3.3",
+  "surface_charset": "^[KVQAÁZIÍYÝ]+$",
+  "single_tokens": [
+    "k",
+    "v",
+    "z",
+    "a",
+    "i"
+  ],
+  "single_prepositions": [
+    "k",
+    "v",
+    "z"
+  ],
+  "single_conjunctions": [
+    "a",
+    "i"
+  ],
+  "kvazi_prefix": "kvazi",
+  "kvazi_prefix_len": 5,
+  "token_min_chars": 3,
+  "token_max_chars": 5,
+  "aux_byt_forms": [
+    "jsem",
+    "jsi",
+    "jsme",
+    "jste",
+    "budu",
+    "budeš",
+    "bude",
+    "budeme",
+    "budete",
+    "budou",
+    "bych",
+    "bys",
+    "by",
+    "bychom",
+    "byste"
+  ],
+  "scoring": {
+    "q_weight": 1,
+    "kv_weight": 2,
+    "kvazi_prefix_score": 0,
+    "_note": "Q=1 per char, KV=2 per char (i.e. each of K and V counts as 1 individually; weight is per character). kvazi prefix 5 chars = 0 only when prefix is normatively valid."
+  },
+  "punctuation": {
+    "declarative": ".",
+    "interrogative": "?",
+    "imperative": "!"
+  },
+  "noun_models": {
+    "pán": {
+      "gender": "masculine",
+      "animacy": "animate",
+      "cond": "ends_consonant",
+      "cond_hint": "musí zakončit souhláskou",
+      "stem": "identity",
+      "endings": {
+        "singular-1": "",
+        "singular-2": "a",
+        "singular-3": "ovi",
+        "singular-4": "a",
+        "singular-5": "e",
+        "singular-6": "ovi",
+        "singular-7": "em",
+        "plural-1": "i",
+        "plural-2": "ů",
+        "plural-3": "ům",
+        "plural-4": "y",
+        "plural-5": "i",
+        "plural-6": "ech",
+        "plural-7": "y"
+      }
+    },
+    "muž": {
+      "gender": "masculine",
+      "animacy": "animate",
+      "cond": "ends_consonant",
+      "cond_hint": "musí zakončit souhláskou",
+      "stem": "identity",
+      "endings": {
+        "singular-1": "",
+        "singular-2": "e",
+        "singular-3": "i",
+        "singular-4": "e",
+        "singular-5": "i",
+        "singular-6": "i",
+        "singular-7": "em",
+        "plural-1": "i",
+        "plural-2": "ů",
+        "plural-3": "ům",
+        "plural-4": "e",
+        "plural-5": "i",
+        "plural-6": "ích",
+        "plural-7": "i"
+      }
+    },
+    "předseda": {
+      "gender": "masculine",
+      "animacy": "animate",
+      "cond": "ends_a",
+      "cond_hint": "musí zakončit na -a",
+      "stem": "drop_1",
+      "endings": {
+        "singular-1": "a",
+        "singular-2": "y",
+        "singular-3": "ovi",
+        "singular-4": "u",
+        "singular-5": "o",
+        "singular-6": "ovi",
+        "singular-7": "ou",
+        "plural-1": "ové",
+        "plural-2": "ů",
+        "plural-3": "ům",
+        "plural-4": "y",
+        "plural-5": "ové",
+        "plural-6": "ech",
+        "plural-7": "y"
+      }
+    },
+    "soudce": {
+      "gender": "masculine",
+      "animacy": "animate",
+      "cond": "ends_e",
+      "cond_hint": "musí zakončit na -e",
+      "stem": "drop_1",
+      "endings": {
+        "singular-1": "e",
+        "singular-2": "e",
+        "singular-3": "i",
+        "singular-4": "e",
+        "singular-5": "e",
+        "singular-6": "i",
+        "singular-7": "em",
+        "plural-1": "i",
+        "plural-2": "ů",
+        "plural-3": "ům",
+        "plural-4": "e",
+        "plural-5": "i",
+        "plural-6": "ích",
+        "plural-7": "i"
+      }
+    },
+    "hrad": {
+      "gender": "masculine",
+      "animacy": "inanimate",
+      "cond": "ends_consonant",
+      "cond_hint": "musí zakončit souhláskou",
+      "stem": "identity",
+      "endings": {
+        "singular-1": "",
+        "singular-2": "u",
+        "singular-3": "u",
+        "singular-4": "",
+        "singular-5": "e",
+        "singular-6": "u",
+        "singular-7": "em",
+        "plural-1": "y",
+        "plural-2": "ů",
+        "plural-3": "ům",
+        "plural-4": "y",
+        "plural-5": "y",
+        "plural-6": "ech",
+        "plural-7": "y"
+      }
+    },
+    "stroj": {
+      "gender": "masculine",
+      "animacy": "inanimate",
+      "cond": "ends_consonant",
+      "cond_hint": "musí zakončit souhláskou",
+      "stem": "identity",
+      "endings": {
+        "singular-1": "",
+        "singular-2": "e",
+        "singular-3": "i",
+        "singular-4": "",
+        "singular-5": "i",
+        "singular-6": "i",
+        "singular-7": "em",
+        "plural-1": "e",
+        "plural-2": "ů",
+        "plural-3": "ům",
+        "plural-4": "e",
+        "plural-5": "e",
+        "plural-6": "ích",
+        "plural-7": "i"
+      }
+    },
+    "žena": {
+      "gender": "feminine",
+      "animacy": "",
+      "cond": "ends_a",
+      "cond_hint": "musí zakončit na -a",
+      "stem": "drop_1",
+      "endings": {
+        "singular-1": "a",
+        "singular-2": "y",
+        "singular-3": "ě",
+        "singular-4": "u",
+        "singular-5": "o",
+        "singular-6": "ě",
+        "singular-7": "ou",
+        "plural-1": "y",
+        "plural-2": "",
+        "plural-3": "ám",
+        "plural-4": "y",
+        "plural-5": "y",
+        "plural-6": "ách",
+        "plural-7": "ami"
+      }
+    },
+    "růže": {
+      "gender": "feminine",
+      "animacy": "",
+      "cond": "ends_e",
+      "cond_hint": "musí zakončit na -e",
+      "stem": "drop_1",
+      "endings": {
+        "singular-1": "e",
+        "singular-2": "e",
+        "singular-3": "i",
+        "singular-4": "i",
+        "singular-5": "e",
+        "singular-6": "i",
+        "singular-7": "í",
+        "plural-1": "e",
+        "plural-2": "í",
+        "plural-3": "ím",
+        "plural-4": "e",
+        "plural-5": "e",
+        "plural-6": "ích",
+        "plural-7": "emi"
+      }
+    },
+    "píseň": {
+      "gender": "feminine",
+      "animacy": "",
+      "cond": "ends_consonant",
+      "cond_hint": "musí zakončit souhláskou",
+      "stem": "identity",
+      "endings": {
+        "singular-1": "",
+        "singular-2": "e",
+        "singular-3": "i",
+        "singular-4": "",
+        "singular-5": "i",
+        "singular-6": "i",
+        "singular-7": "í",
+        "plural-1": "e",
+        "plural-2": "í",
+        "plural-3": "ím",
+        "plural-4": "e",
+        "plural-5": "e",
+        "plural-6": "ích",
+        "plural-7": "emi"
+      }
+    },
+    "kost": {
+      "gender": "feminine",
+      "animacy": "",
+      "cond": "ends_consonant",
+      "cond_hint": "musí zakončit souhláskou",
+      "stem": "identity",
+      "endings": {
+        "singular-1": "",
+        "singular-2": "i",
+        "singular-3": "i",
+        "singular-4": "",
+        "singular-5": "i",
+        "singular-6": "i",
+        "singular-7": "í",
+        "plural-1": "i",
+        "plural-2": "í",
+        "plural-3": "em",
+        "plural-4": "i",
+        "plural-5": "i",
+        "plural-6": "ech",
+        "plural-7": "mi"
+      }
+    },
+    "město": {
+      "gender": "neuter",
+      "animacy": "",
+      "cond": "ends_o",
+      "cond_hint": "musí zakončit na -o",
+      "stem": "drop_1",
+      "endings": {
+        "singular-1": "o",
+        "singular-2": "a",
+        "singular-3": "u",
+        "singular-4": "o",
+        "singular-5": "o",
+        "singular-6": "ě",
+        "singular-7": "em",
+        "plural-1": "a",
+        "plural-2": "",
+        "plural-3": "ům",
+        "plural-4": "a",
+        "plural-5": "a",
+        "plural-6": "ech",
+        "plural-7": "y"
+      }
+    },
+    "moře": {
+      "gender": "neuter",
+      "animacy": "",
+      "cond": "ends_e",
+      "cond_hint": "musí zakončit na -e",
+      "stem": "drop_1",
+      "endings": {
+        "singular-1": "e",
+        "singular-2": "e",
+        "singular-3": "i",
+        "singular-4": "e",
+        "singular-5": "e",
+        "singular-6": "i",
+        "singular-7": "em",
+        "plural-1": "e",
+        "plural-2": "í",
+        "plural-3": "ím",
+        "plural-4": "e",
+        "plural-5": "e",
+        "plural-6": "ích",
+        "plural-7": "i"
+      }
+    },
+    "kuře": {
+      "gender": "neuter",
+      "animacy": "",
+      "cond": "ends_e",
+      "cond_hint": "musí zakončit na -e",
+      "stem": "drop_1",
+      "_note": "Explicitní výjimka: základ S, sg rozšíření S+et, pl rozšíření S+at",
+      "endings": {
+        "singular-1": "e",
+        "singular-2": "ete",
+        "singular-3": "eti",
+        "singular-4": "e",
+        "singular-5": "e",
+        "singular-6": "eti",
+        "singular-7": "etem",
+        "plural-1": "ata",
+        "plural-2": "at",
+        "plural-3": "atům",
+        "plural-4": "ata",
+        "plural-5": "ata",
+        "plural-6": "atech",
+        "plural-7": "aty"
+      }
+    },
+    "stavení": {
+      "gender": "neuter",
+      "animacy": "",
+      "cond": "ends_í",
+      "cond_hint": "musí zakončit na -í",
+      "stem": "drop_1",
+      "endings": {
+        "singular-1": "í",
+        "singular-2": "í",
+        "singular-3": "í",
+        "singular-4": "í",
+        "singular-5": "í",
+        "singular-6": "í",
+        "singular-7": "ím",
+        "plural-1": "í",
+        "plural-2": "í",
+        "plural-3": "ím",
+        "plural-4": "í",
+        "plural-5": "í",
+        "plural-6": "ích",
+        "plural-7": "ími"
+      }
+    }
+  },
+  "adj_models": {
+    "mladý": {
+      "cond_lemma": "ends_ý",
+      "stem": "drop_1",
+      "table": "ADJ_MLADY",
+      "degrees": [
+        "1",
+        "2",
+        "3"
+      ],
+      "lemma_suffix": "ý"
+    },
+    "jarní": {
+      "cond_lemma": "ends_í",
+      "stem": "drop_1",
+      "table": "ADJ_JARNI",
+      "degrees": [
+        "1",
+        "2",
+        "3"
+      ],
+      "lemma_suffix": "í"
+    },
+    "otcův": {
+      "type": "possessive_m",
+      "table": "ADJ_OTCUV",
+      "degrees": [
+        "1"
+      ],
+      "lemma_suffix": "ův",
+      "source_gender": "masculine"
+    },
+    "matčin": {
+      "type": "possessive_f",
+      "table": "ADJ_MATCIN",
+      "degrees": [
+        "1"
+      ],
+      "lemma_suffix": "in",
+      "source_gender": "feminine"
+    }
+  },
+  "adj_tables": {
+    "ADJ_MLADY": {
+      "masculineAnimate-singular-1": "ý",
+      "masculineAnimate-singular-2": "ého",
+      "masculineAnimate-singular-3": "ému",
+      "masculineAnimate-singular-4": "ého",
+      "masculineAnimate-singular-5": "ý",
+      "masculineAnimate-singular-6": "ém",
+      "masculineAnimate-singular-7": "ým",
+      "masculineInanimate-singular-1": "ý",
+      "masculineInanimate-singular-2": "ého",
+      "masculineInanimate-singular-3": "ému",
+      "masculineInanimate-singular-4": "ý",
+      "masculineInanimate-singular-5": "ý",
+      "masculineInanimate-singular-6": "ém",
+      "masculineInanimate-singular-7": "ým",
+      "feminine-singular-1": "á",
+      "feminine-singular-2": "é",
+      "feminine-singular-3": "é",
+      "feminine-singular-4": "ou",
+      "feminine-singular-5": "á",
+      "feminine-singular-6": "é",
+      "feminine-singular-7": "ou",
+      "neuter-singular-1": "é",
+      "neuter-singular-2": "ého",
+      "neuter-singular-3": "ému",
+      "neuter-singular-4": "é",
+      "neuter-singular-5": "é",
+      "neuter-singular-6": "ém",
+      "neuter-singular-7": "ým",
+      "masculineAnimate-plural-1": "í",
+      "masculineAnimate-plural-2": "ých",
+      "masculineAnimate-plural-3": "ým",
+      "masculineAnimate-plural-4": "é",
+      "masculineAnimate-plural-5": "í",
+      "masculineAnimate-plural-6": "ých",
+      "masculineAnimate-plural-7": "ými",
+      "masculineInanimate-plural-1": "é",
+      "masculineInanimate-plural-2": "ých",
+      "masculineInanimate-plural-3": "ým",
+      "masculineInanimate-plural-4": "é",
+      "masculineInanimate-plural-5": "é",
+      "masculineInanimate-plural-6": "ých",
+      "masculineInanimate-plural-7": "ými",
+      "feminine-plural-1": "é",
+      "feminine-plural-2": "ých",
+      "feminine-plural-3": "ým",
+      "feminine-plural-4": "é",
+      "feminine-plural-5": "é",
+      "feminine-plural-6": "ých",
+      "feminine-plural-7": "ými",
+      "neuter-plural-1": "á",
+      "neuter-plural-2": "ých",
+      "neuter-plural-3": "ým",
+      "neuter-plural-4": "á",
+      "neuter-plural-5": "á",
+      "neuter-plural-6": "ých",
+      "neuter-plural-7": "ými"
+    },
+    "ADJ_JARNI": {
+      "masculineAnimate-singular-1": "í",
+      "masculineAnimate-singular-2": "ího",
+      "masculineAnimate-singular-3": "ímu",
+      "masculineAnimate-singular-4": "ího",
+      "masculineAnimate-singular-5": "í",
+      "masculineAnimate-singular-6": "ím",
+      "masculineAnimate-singular-7": "ím",
+      "masculineInanimate-singular-1": "í",
+      "masculineInanimate-singular-2": "ího",
+      "masculineInanimate-singular-3": "ímu",
+      "masculineInanimate-singular-4": "í",
+      "masculineInanimate-singular-5": "í",
+      "masculineInanimate-singular-6": "ím",
+      "masculineInanimate-singular-7": "ím",
+      "feminine-singular-1": "í",
+      "feminine-singular-2": "í",
+      "feminine-singular-3": "í",
+      "feminine-singular-4": "í",
+      "feminine-singular-5": "í",
+      "feminine-singular-6": "í",
+      "feminine-singular-7": "í",
+      "neuter-singular-1": "í",
+      "neuter-singular-2": "ího",
+      "neuter-singular-3": "ímu",
+      "neuter-singular-4": "í",
+      "neuter-singular-5": "í",
+      "neuter-singular-6": "ím",
+      "neuter-singular-7": "ím",
+      "masculineAnimate-plural-1": "í",
+      "masculineAnimate-plural-2": "ích",
+      "masculineAnimate-plural-3": "ím",
+      "masculineAnimate-plural-4": "í",
+      "masculineAnimate-plural-5": "í",
+      "masculineAnimate-plural-6": "ích",
+      "masculineAnimate-plural-7": "ími",
+      "masculineInanimate-plural-1": "í",
+      "masculineInanimate-plural-2": "ích",
+      "masculineInanimate-plural-3": "ím",
+      "masculineInanimate-plural-4": "í",
+      "masculineInanimate-plural-5": "í",
+      "masculineInanimate-plural-6": "ích",
+      "masculineInanimate-plural-7": "ími",
+      "feminine-plural-1": "í",
+      "feminine-plural-2": "ích",
+      "feminine-plural-3": "ím",
+      "feminine-plural-4": "í",
+      "feminine-plural-5": "í",
+      "feminine-plural-6": "ích",
+      "feminine-plural-7": "ími",
+      "neuter-plural-1": "í",
+      "neuter-plural-2": "ích",
+      "neuter-plural-3": "ím",
+      "neuter-plural-4": "í",
+      "neuter-plural-5": "í",
+      "neuter-plural-6": "ích",
+      "neuter-plural-7": "ími"
+    },
+    "ADJ_OTCUV": {
+      "masculineAnimate-singular-1": "ův",
+      "masculineAnimate-singular-2": "ova",
+      "masculineAnimate-singular-3": "ovu",
+      "masculineAnimate-singular-4": "ova",
+      "masculineAnimate-singular-5": "ův",
+      "masculineAnimate-singular-6": "ově",
+      "masculineAnimate-singular-7": "ovým",
+      "masculineInanimate-singular-1": "ův",
+      "masculineInanimate-singular-2": "ova",
+      "masculineInanimate-singular-3": "ovu",
+      "masculineInanimate-singular-4": "ův",
+      "masculineInanimate-singular-5": "ův",
+      "masculineInanimate-singular-6": "ově",
+      "masculineInanimate-singular-7": "ovým",
+      "feminine-singular-1": "ova",
+      "feminine-singular-2": "ovy",
+      "feminine-singular-3": "ově",
+      "feminine-singular-4": "ovu",
+      "feminine-singular-5": "ova",
+      "feminine-singular-6": "ově",
+      "feminine-singular-7": "ovou",
+      "neuter-singular-1": "ovo",
+      "neuter-singular-2": "ova",
+      "neuter-singular-3": "ovu",
+      "neuter-singular-4": "ovo",
+      "neuter-singular-5": "ovo",
+      "neuter-singular-6": "ově",
+      "neuter-singular-7": "ovým",
+      "masculineAnimate-plural-1": "ovi",
+      "masculineAnimate-plural-2": "ových",
+      "masculineAnimate-plural-3": "ovým",
+      "masculineAnimate-plural-4": "ovy",
+      "masculineAnimate-plural-5": "ovi",
+      "masculineAnimate-plural-6": "ových",
+      "masculineAnimate-plural-7": "ovými",
+      "masculineInanimate-plural-1": "ovy",
+      "masculineInanimate-plural-2": "ových",
+      "masculineInanimate-plural-3": "ovým",
+      "masculineInanimate-plural-4": "ovy",
+      "masculineInanimate-plural-5": "ovy",
+      "masculineInanimate-plural-6": "ových",
+      "masculineInanimate-plural-7": "ovými",
+      "feminine-plural-1": "ovy",
+      "feminine-plural-2": "ových",
+      "feminine-plural-3": "ovým",
+      "feminine-plural-4": "ovy",
+      "feminine-plural-5": "ovy",
+      "feminine-plural-6": "ových",
+      "feminine-plural-7": "ovými",
+      "neuter-plural-1": "ova",
+      "neuter-plural-2": "ových",
+      "neuter-plural-3": "ovým",
+      "neuter-plural-4": "ova",
+      "neuter-plural-5": "ova",
+      "neuter-plural-6": "ových",
+      "neuter-plural-7": "ovými"
+    },
+    "ADJ_MATCIN": {
+      "masculineAnimate-singular-1": "in",
+      "masculineAnimate-singular-2": "ina",
+      "masculineAnimate-singular-3": "inu",
+      "masculineAnimate-singular-4": "ina",
+      "masculineAnimate-singular-5": "in",
+      "masculineAnimate-singular-6": "ině",
+      "masculineAnimate-singular-7": "iným",
+      "masculineInanimate-singular-1": "in",
+      "masculineInanimate-singular-2": "ina",
+      "masculineInanimate-singular-3": "inu",
+      "masculineInanimate-singular-4": "in",
+      "masculineInanimate-singular-5": "in",
+      "masculineInanimate-singular-6": "ině",
+      "masculineInanimate-singular-7": "iným",
+      "feminine-singular-1": "ina",
+      "feminine-singular-2": "iny",
+      "feminine-singular-3": "ině",
+      "feminine-singular-4": "inu",
+      "feminine-singular-5": "ina",
+      "feminine-singular-6": "ině",
+      "feminine-singular-7": "inou",
+      "neuter-singular-1": "ino",
+      "neuter-singular-2": "ina",
+      "neuter-singular-3": "inu",
+      "neuter-singular-4": "ino",
+      "neuter-singular-5": "ino",
+      "neuter-singular-6": "ině",
+      "neuter-singular-7": "iným",
+      "masculineAnimate-plural-1": "ini",
+      "masculineAnimate-plural-2": "iných",
+      "masculineAnimate-plural-3": "iným",
+      "masculineAnimate-plural-4": "iny",
+      "masculineAnimate-plural-5": "ini",
+      "masculineAnimate-plural-6": "iných",
+      "masculineAnimate-plural-7": "inými",
+      "masculineInanimate-plural-1": "iny",
+      "masculineInanimate-plural-2": "iných",
+      "masculineInanimate-plural-3": "iným",
+      "masculineInanimate-plural-4": "iny",
+      "masculineInanimate-plural-5": "iny",
+      "masculineInanimate-plural-6": "iných",
+      "masculineInanimate-plural-7": "inými",
+      "feminine-plural-1": "iny",
+      "feminine-plural-2": "iných",
+      "feminine-plural-3": "iným",
+      "feminine-plural-4": "iny",
+      "feminine-plural-5": "iny",
+      "feminine-plural-6": "iných",
+      "feminine-plural-7": "inými",
+      "neuter-plural-1": "ina",
+      "neuter-plural-2": "iných",
+      "neuter-plural-3": "iným",
+      "neuter-plural-4": "ina",
+      "neuter-plural-5": "ina",
+      "neuter-plural-6": "iných",
+      "neuter-plural-7": "inými"
+    }
+  },
+  "verb_models": {
+    "V-AT": {
+      "suffix": "at"
+    },
+    "V-IT": {
+      "suffix": "it"
+    },
+    "V-NOUT": {
+      "suffix": "nout"
+    },
+    "V-ÝT": {
+      "suffix": "ýt"
+    },
+    "V-OVAT": {
+      "suffix": "ovat"
+    }
+  },
+  "verb_present": {
+    "V-AT": [
+      "ám",
+      "áš",
+      "á",
+      "áme",
+      "áte",
+      "ají"
+    ],
+    "V-IT": [
+      "ím",
+      "íš",
+      "í",
+      "íme",
+      "íte",
+      "í"
+    ],
+    "V-NOUT": [
+      "nu",
+      "neš",
+      "ne",
+      "neme",
+      "nete",
+      "nou"
+    ],
+    "V-ÝT": [
+      "yji",
+      "yješ",
+      "yje",
+      "yjeme",
+      "yjete",
+      "yjí"
+    ],
+    "V-OVAT": [
+      "uji",
+      "uješ",
+      "uje",
+      "ujeme",
+      "ujete",
+      "ují"
+    ]
+  },
+  "verb_imperative": {
+    "V-AT": [
+      "ej",
+      "ejme",
+      "ejte"
+    ],
+    "V-IT": [
+      "",
+      "me",
+      "te"
+    ],
+    "V-NOUT": [
+      "ni",
+      "nime",
+      "nite"
+    ],
+    "V-ÝT": [
+      "yj",
+      "yjme",
+      "yjte"
+    ],
+    "V-OVAT": [
+      "uj",
+      "ujme",
+      "ujte"
+    ]
+  },
+  "verb_lparticiple": {
+    "V-AT": [
+      "al",
+      "ala",
+      "alo",
+      "ali",
+      "aly",
+      "ala"
+    ],
+    "V-IT": [
+      "il",
+      "ila",
+      "ilo",
+      "ili",
+      "ily",
+      "ila"
+    ],
+    "V-NOUT": [
+      "nul",
+      "nula",
+      "nulo",
+      "nuli",
+      "nuly",
+      "nula"
+    ],
+    "V-ÝT": [
+      "yl",
+      "yla",
+      "ylo",
+      "yli",
+      "yly",
+      "yla"
+    ],
+    "V-OVAT": [
+      "oval",
+      "ovala",
+      "ovalo",
+      "ovali",
+      "ovaly",
+      "ovala"
+    ]
+  },
+  "preposition_case_government": {
+    "k": [
+      "3"
+    ],
+    "v": [
+      "4",
+      "6"
+    ],
+    "z": [
+      "2"
+    ]
+  },
+  "relation_shapes": {
+    "predicate": [],
+    "subject": [
+      "head"
+    ],
+    "auxiliary": [
+      "predicate"
+    ],
+    "object": [
+      "head"
+    ],
+    "adverbial": [
+      "head"
+    ],
+    "agreeingAttribute": [
+      "head"
+    ],
+    "attribute": [
+      "head"
+    ],
+    "supplement": [
+      "predicate",
+      "nominal"
+    ],
+    "coordination": [
+      "left",
+      "right"
+    ],
+    "preposition": [
+      "nominal"
+    ]
+  },
+  "sentence_types": [
+    "declarative",
+    "interrogative",
+    "imperative"
+  ],
+  "valid_pos": [
+    "noun",
+    "adjective",
+    "verb",
+    "pronoun",
+    "preposition",
+    "conjunction"
+  ],
+  "field_enums": {
+    "case": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "number": [
+      "singular",
+      "plural"
+    ],
+    "gender": [
+      "masculineAnimate",
+      "masculineInanimate",
+      "feminine",
+      "neuter"
+    ],
+    "degree": [
+      "1",
+      "2",
+      "3"
+    ],
+    "aspect": [
+      "imperfective",
+      "perfective",
+      "biaspectual"
+    ],
+    "verbFormType": [
+      "present",
+      "imperative",
+      "lParticiple"
+    ],
+    "verbPerson": [
+      "1",
+      "2",
+      "3"
+    ],
+    "imperativePerson": [
+      "2sg",
+      "1pl",
+      "2pl"
+    ],
+    "verbGender": [
+      "masculine",
+      "feminine",
+      "neuter"
+    ],
+    "verbAnimacy": [
+      "animate",
+      "inanimate"
+    ],
+    "lexicalStatus": [
+      "real",
+      "quasi"
+    ]
+  },
+  "motif_transitions": [
+    {
+      "K": 1,
+      "Q": 2
+    },
+    {
+      "V": 2
+    },
+    {
+      "A": 3,
+      "Á": 3
+    },
+    {
+      "Z": 4
+    },
+    {
+      "I": 0,
+      "Í": 0,
+      "Y": 0,
+      "Ý": 0
+    }
+  ],
+  "functional_pos": [
+    "preposition",
+    "conjunction"
+  ],
+  "nominal_pos": [
+    "noun",
+    "adjective",
+    "pronoun"
+  ],
+  "syntax_role_sets": {
+    "predicate_head": [
+      "subject",
+      "object",
+      "adverbial"
+    ],
+    "nominal_head": [
+      "agreeingAttribute",
+      "attribute"
+    ],
+    "supplement_target": [
+      "subject",
+      "object"
+    ],
+    "coordination": [
+      "object",
+      "agreeingAttribute",
+      "attribute",
+      "adverbial",
+      "supplement"
+    ]
+  },
+  "vowels": "aeiouyáéíóúůýě",
+  "adjective_degrees": {
+    "1": {
+      "prefix": "",
+      "stem_suffix": "",
+      "table": null
+    },
+    "2": {
+      "prefix": "",
+      "stem_suffix": "ějš",
+      "table": "ADJ_JARNI"
+    },
+    "3": {
+      "prefix": "nej",
+      "stem_suffix": "ějš",
+      "table": "ADJ_JARNI"
+    }
+  },
+  "implicit_subject": {
+    "sentence_type": "imperative",
+    "verb_form_type": "imperative"
+  },
+  "pronoun_form_signature": {
+    "case": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "notApplicable"
+    ],
+    "number": [
+      "singular",
+      "plural",
+      "notApplicable"
+    ],
+    "gender": [
+      "masculineAnimate",
+      "masculineInanimate",
+      "feminine",
+      "neuter",
+      "notApplicable"
+    ],
+    "person": [
+      "1",
+      "2",
+      "3",
+      "notApplicable"
+    ]
+  }
+}
