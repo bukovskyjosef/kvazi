@@ -115,16 +115,37 @@ try {
   await page.getByLabel('Druh slovesného tvaru').selectOption('present');
   await page.getByLabel('Větná funkce', { exact: true }).selectOption('predicate');
 
-  // ── Scene 3: Append a third word despite selecting an earlier token ──────────────────
-  // Selection only opens a declaration; insertion still appends.
+  // ── Scene 3: Default append ignores the current selection; explicit before/after is opt-in. ──────────────────
   await page.locator('#token-t1').click();
   await page.locator('#newSurface').fill('k');
   await page.keyboard.press('Enter');
   assert.equal(await page.locator('#tokens .token-chip').count(), 3);
   assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'kvazi', 'k']);
   assert.equal(await page.locator('#insertPlace').count(), 0);
-  assert.equal(await page.getByRole('button', {name:/Vložit (před|za) slovo/}).count(), 0);
-  assert.equal(await page.getByLabel('Text slova', {exact:true}).count(), 0);
+  assert.equal(await page.getByRole('button', {name:/Vložit slovo (před|za)/}).count(), 2);
+
+  await page.locator('#token-t2').click();
+  await page.getByRole('button', {name:'Vložit slovo před'}).click();
+  await page.locator('#newSurface').fill('q');
+  await page.keyboard.press('Enter');
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'q', 'kvazi', 'k']);
+
+  await page.locator('#token-t3').click();
+  await page.getByRole('button', {name:'Vložit slovo za'}).click();
+  await page.locator('#newSurface').fill('m');
+  await page.keyboard.press('Enter');
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'q', 'kvazi', 'k', 'm']);
+
+  await page.goto(`${baseUrl}/konfigurator.php`);
+  const punctEntry = page.getByLabel('Nové slovo (bez mezer)');
+  await punctEntry.pressSequentially('vazi kvazi.');
+  await page.locator('#token-t2').click();
+  await page.getByRole('button', { name: 'Vložit slovo za' }).click();
+  await page.locator('#newSurface').fill('z');
+  await page.keyboard.press('Enter');
+  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'kvazi', 'z', '.']);
+  const punctText = await page.locator('#tokens .closing-punct .chip-text').textContent();
+  assert.equal(punctText, '.');
 
   // Click the new preposition token ('k') — its id is t3 (nextId increments).
   await page.locator('#token-t3').click();

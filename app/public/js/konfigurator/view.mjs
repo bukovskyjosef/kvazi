@@ -72,7 +72,12 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema, ca
       ${field('pos', 'Slovní druh', w.pos, functional ? posLabels : Object.fromEntries(Object.entries(posLabels).filter(([k]) => !functionalPos().includes(k))), 'word', functional || inferKvaziPrefix(w.surface))}
       ${!functional ? field('lemma', w.pos === 'verb' ? 'Neurčitek / základní tvar' : 'Základní tvar', w.lemma) + field('lexicalStatus', 'Deklarovaná identita', w.lexicalStatus, w.pos === 'pronoun' ? { real: 'Skutečné slovo' } : enumOptions('lexicalStatus', { real: 'Skutečné slovo', quasi: 'Kvazislovo' })) + field('model', w.pos === 'verb' ? 'Soutěžní časovací typ' : 'Soutěžní vzor', w.model, models, 'word', !Object.keys(models).length) : '<p>Slovní druh a role jsou určeny pravidlem jednopísmenné výjimky.</p>'}
       ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? translateOptions(f.options, f.path) : null, 'word', false, f.multiline)).join('')}
-    </div>${w.pos === 'noun' && model ? `<p>Rod: ${esc({ masculine: 'mužský', feminine: 'ženský', neuter: 'střední' }[w.identity.gender])}${w.identity.animacy ? `, ${w.identity.animacy === 'animate' ? 'životný' : 'neživotný'}` : ''} (určeno zvoleným vzorem).</p>` : ''}
+    </div>
+    <div class="insert-controls" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+      <button type="button" data-action="insert-before" class="chip-action">Vložit slovo před</button>
+      <button type="button" data-action="insert-after" class="chip-action">Vložit slovo za</button>
+    </div>
+    ${w.pos === 'noun' && model ? `<p>Rod: ${esc({ masculine: 'mužský', feminine: 'ženský', neuter: 'střední' }[w.identity.gender])}${w.identity.animacy ? `, ${w.identity.animacy === 'animate' ? 'životný' : 'neživotný'}` : ''} (určeno zvoleným vzorem).</p>` : ''}
     ${formCheckHtml}
     ${catalogState ? `<div><button id="catalogCheck" type="button" ${catalogState.pending ? 'disabled' : ''}>Ověřit v katalogu</button><p id="catalogResult" role="status">${esc(catalogState.message ?? '')}</p></div>` : ''}
     </fieldset>

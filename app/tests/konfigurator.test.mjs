@@ -113,7 +113,7 @@ test('alphabet, token lengths and prefix exception', () => {
   assert.equal(sequence([]).ok, false);
   assert.equal(deriveValidationState(createDraft()).submitReady, false);
 });
-test('insert before and after selected token preserves index ordering; closed sentences stay locked', () => {
+test('insert before and after selected token preserves index ordering; explicit insert is allowed with closing punctuation', () => {
   let d = createDraft();
   d = mutateDraft(d, { type: 'insert', surface: 'vazi' });
   d = mutateDraft(d, { type: 'insert', surface: 'kvazi' });
@@ -122,9 +122,12 @@ test('insert before and after selected token preserves index ordering; closed se
   d = mutateDraft(d, { type: 'insert', surface: 'zazi', index: d.tokens.length });
   assert.deepEqual(d.tokens.map(w => w.surface), ['vazi', 'qazi', 'kvazi', 'zazi']);
   d.closingPunct = '.';
-  const locked = mutateDraft(d, { type: 'insert', surface: 'yazi', index: 2 });
+  const locked = mutateDraft(d, { type: 'insert', surface: 'yazi' });
   assert.equal(locked, d);
   assert.deepEqual(locked.tokens.map(w => w.surface), ['vazi', 'qazi', 'kvazi', 'zazi']);
+  const explicit = mutateDraft(d, { type: 'insert', surface: 'yazi', index: 2 });
+  assert.equal(explicit.closingPunct, '.');
+  assert.deepEqual(explicit.tokens.map(w => w.surface), ['vazi', 'qazi', 'yazi', 'kvazi', 'zazi']);
 });
 test('prefix inference: createToken auto-sets kvaziPrefix and pos for >5-char kvazi prefix', () => {
   const w = createToken('x', 'kvaziqazi');
