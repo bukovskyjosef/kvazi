@@ -7,7 +7,7 @@ import { publicSchema, getModel } from '../public/js/konfigurator/schema.mjs';
 import { createDraft, createToken, mutateDraft, inferKvaziPrefix } from '../public/js/konfigurator/state.mjs';
 import { validateTokenSequence, validateSyntax, deriveValidationState, previewDraft } from '../public/js/konfigurator/validation.mjs';
 import { validateForm } from '../public/js/konfigurator/morpho.mjs';
-import { renderEditor, renderTokens } from '../public/js/konfigurator/view.mjs';
+import { renderEditor, renderTokens, renderValidation } from '../public/js/konfigurator/view.mjs';
 import { toggleMode } from '../public/js/konfigurator/terms.mjs';
 
 // Initialise normative data from the active rules release before any morpho calls.
@@ -67,6 +67,14 @@ function chipStatuses(draft, state, selectedId = null) {
     chips: [...tokens.innerHTML.matchAll(/class="chip (ok|warn|err) ([^"]*)"/g)].map(match => ({ status: match[1], selected: match[2].includes('active') })),
     sentence: entry.dataset.status,
   };
+}
+
+function tokenDiagnostics(draft, state, selectedId = draft.tokens[0]?.id) {
+  const editor = { innerHTML: '', hidden: false }, validation = { innerHTML: '' };
+  global.document = { getElementById: id => ({ editor, validation })[id] };
+  renderEditor(draft, state, selectedId);
+  renderValidation(draft, state);
+  return { editor: editor.innerHTML, validation: validation.innerHTML };
 }
 
 test('player-facing options respect field context: verbPerson and degree are not case labels', () => {
@@ -474,6 +482,63 @@ test('fully declared token is green; another incomplete token leaves the sentenc
   assert.deepEqual(chipStatuses(draft, state), {
     chips: [{ status: 'ok', selected: false }, { status: 'warn', selected: false }], sentence: 'warn',
   });
+});
+
+test('subject shows its invalid head in both diagnostics, then turns green when the head becomes a predicate', () => {
+  let draft = completeDraft();
+  draft.tokens[1] = createToken('t2', 'kvazí');
+  let state = deriveValidationState(draft);
+  assert.equal(state.sequence.ok, true);
+  assert.equal(state.tokens.t1.formCheck.ok, true);
+  assert.equal(state.tokens.t1.complete, false);
+  assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), ['warn', 'warn']);
+  assert.ok(state.tokens.t1.issues.includes('Řídícím slovem musí být přísudek.'));
+  let diagnostics = tokenDiagnostics(draft, state);
+  assert.match(diagnostics.editor, /<h3>Co zbývá u tohoto slova<\/h3><ul class="status-list"><li>Řídícím slovem musí být přísudek\.<\/li><\/ul>/);
+  assert.match(diagnostics.validation, /<summary>1\. kvazi – zbývá vyřešit<\/summary><ul class="status-list"><li>Řídícím slovem musí být přísudek\.<\/li><\/ul>/);
+
+  draft = mutateDraft(draft, { type: 'field', id: 't2', path: 'pos', value: 'verb' });
+  draft = mutateDraft(draft, { type: 'field', id: 't2', path: 'role', value: 'predicate' });
+  state = deriveValidationState(draft);
+  assert.deepEqual(state.tokens.t1.issues, []);
+  assert.equal(state.tokens.t1.complete, true);
+  assert.equal(state.tokens.t2.complete, false);
+  assert.deepEqual(chipStatuses(draft, state).chips.map(chip => chip.status), ['ok', 'warn']);
+  assert.equal(state.sentenceStatus, 'warn');
+  diagnostics = tokenDiagnostics(draft, state);
+  assert.match(diagnostics.validation, /<summary>1\. kvazi – úplné<\/summary>/);
+  assert.doesNotMatch(diagnostics.editor, /Řídícím slovem musí být přísudek\./);
+});
+
+test('every supported incomplete token has a visible reason, including a skipped declaration check', () => {
+  const draft = createDraft();
+  draft.tokens = [createToken('t1', 'kvazi'), createToken('t2', 'xyz')];
+  const state = deriveValidationState(draft);
+  const { validation } = tokenDiagnostics(draft, state);
+  const details = [...validation.matchAll(/<details><summary>.*?<\/summary>(.*?)<\/details>/gs)];
+  assert.equal(details.length, 2);
+  assert.ok(details.every(([, body]) => body.includes('<li>')));
+  assert.match(details[0][1], /Deklarace zatím nebyla vyhodnocena kvůli povrchové chybě celé věty\./);
+  assert.match(details[1][1], /Použijte pouze znaky/);
+
+  const inconsistent = structuredClone(state);
+  Object.assign(inconsistent.tokens.t1, {
+    complete: false, surfaceIssues: [], missing: [], issues: [], formCheck: { ok: true, message: null },
+  });
+  assert.throws(() => tokenDiagnostics(draft, inconsistent), /Neúplný token nemá vysvětlitelný validační stav/);
+});
+
+test('token diagnostic deduplicates the same reason across validation layers', () => {
+  const draft = completeDraft();
+  const state = deriveValidationState(draft);
+  const reason = 'Stejný důvod.';
+  Object.assign(state.tokens.t1, {
+    complete: false, surfaceIssues: [reason], missing: [reason], issues: [reason],
+    formCheck: { ok: false, message: reason },
+  });
+  const { editor, validation } = tokenDiagnostics(draft, state);
+  assert.equal(editor.split(`<li>${reason}</li>`).length - 1, 1);
+  assert.equal(validation.split(`<li>${reason}</li>`).length - 1, 1);
 });
 
 test('surface-invalid draft: formCheck is notEvaluated, not false success', () => {

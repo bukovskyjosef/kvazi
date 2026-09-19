@@ -15,6 +15,17 @@ function check(path, label, value, scope = 'word') {
   return `<div class="fld"><label class="check-label"><input type="checkbox" id="${id}" data-scope="${scope}" data-path="${esc(path)}"${value ? ' checked' : ''}> ${esc(label)}</label></div>`;
 }
 const list = items => `<ul class="status-list">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+function tokenBlockers(token, state) {
+  const items = [...new Set([
+    ...token.surfaceIssues, ...token.missing, ...token.issues,
+    ...(token.formCheck?.ok === false && token.formCheck.message ? [token.formCheck.message] : []),
+  ])];
+  if (!token.complete && !items.length && token.formCheck?.status === 'notEvaluated' && !state.sequence.ok) {
+    items.push('Deklarace zatím nebyla vyhodnocena kvůli povrchové chybě celé věty.');
+  }
+  if (!token.complete && !items.length) throw new Error('Neúplný token nemá vysvětlitelný validační stav.');
+  return items;
+}
 export function renderSentence(draft, state) {
   const detailsOpen = document.getElementById('sentenceFields')?.querySelector('details')?.open ?? false;
   const preview = document.getElementById('sentencePreview');
@@ -93,7 +104,7 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema, ca
       ${field('evidence.morphology', 'Morfologická obhajoba a odkaz na model (nepovinné)', w.evidence.morphology)}
       ${w.lexicalStatus === 'real' && w.role !== 'auxiliary' ? field('evidence.source', 'Zdroj dokládající existenci (nepovinné)', w.evidence.source, { '': '— nevybráno —', IJP: 'Slovníková část IJP', 'ASSČ': 'Zveřejněné heslo ASSČ' }) + field('evidence.reference', 'Konkrétní heslo / odkaz a doklad použitého tvaru', w.evidence.reference) : ''}
     </fieldset>` : ''}
-    <h3>Co zbývá u tohoto slova</h3>${list([...status.surfaceIssues, ...status.issues, ...status.missing, ...(status.formCheck && !status.formCheck.ok && status.formCheck.message ? [status.formCheck.message] : [])])}
+    <h3>Co zbývá u tohoto slova</h3>${list(tokenBlockers(status, state))}
     </div>`;
 }
 export function renderValidation(draft, state) {
@@ -118,8 +129,7 @@ export function renderValidation(draft, state) {
     + list([...state.sentenceIssues, ...state.sequence.issues.map(i => i.message), ...state.syntax.issues.map(i => `${draft.tokens.find(w => w.id === i.id)?.surface || ''}: ${i.message}`)])
     + draft.tokens.map((w, i) => {
       const t = state.tokens[w.id];
-      const items = [...t.missing];
-      if (t.formCheck && t.formCheck.ok === false && t.formCheck.message) items.push(t.formCheck.message);
-      return `<details><summary>${i + 1}. ${esc(w.surface)} – ${t.complete ? 'úplné' : 'chybějící údaje'}</summary>${list(items)}</details>`;
+      const items = tokenBlockers(t, state);
+      return `<details><summary>${i + 1}. ${esc(w.surface)} – ${t.complete ? 'úplné' : 'zbývá vyřešit'}</summary>${list(items)}</details>`;
     }).join('');
 }
