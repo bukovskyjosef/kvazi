@@ -38,7 +38,9 @@ export function renderSentence(draft, state) {
 export function renderTokens(draft, state, selectedId) {
   const wordChips = draft.tokens.map((w, i) => {
     const disp = i === 0 && w.surface.length > 0 ? w.surface[0].toUpperCase() + w.surface.slice(1) : w.surface;
-    return `<span class="token-chip"><button type="button" id="token-${esc(w.id)}" class="chip ${state.tokens[w.id].complete ? 'ok' : 'err'} ${selectedId === w.id ? 'active' : ''}${w.pos ? ' pos-' + w.pos : ''}" data-action="select" data-id="${esc(w.id)}" aria-pressed="${selectedId === w.id}"><span class="chip-text">${esc(disp)}</span></button><button type="button" class="chip-remove" data-action="delete-chip" data-id="${esc(w.id)}" aria-label="Smazat ${esc(w.surface)}">×</button></span>`;
+    const tokenState = state.tokens[w.id];
+    const chipClass = tokenState.complete ? 'ok' : tokenState.issues.length ? 'err' : 'warn';
+    return `<span class="token-chip"><button type="button" id="token-${esc(w.id)}" class="chip ${chipClass} ${selectedId === w.id ? 'active' : ''}${w.pos ? ' pos-' + w.pos : ''}" data-action="select" data-id="${esc(w.id)}" aria-pressed="${selectedId === w.id}"><span class="chip-text">${esc(disp)}</span></button><button type="button" class="chip-remove" data-action="delete-chip" data-id="${esc(w.id)}" aria-label="Smazat ${esc(w.surface)}">×</button></span>`;
   }).join('');
   const punctChip = draft.closingPunct
     ? `<span class="token-chip"><button type="button" class="chip closing-punct" disabled><span class="chip-text">${esc(draft.closingPunct)}</span></button><button type="button" class="chip-remove" data-action="delete-punct" aria-label="Odebrat závěrečnou interpunkci">×</button></span>`

@@ -57,6 +57,19 @@ test('alphabet, token lengths and prefix exception', () => {
   assert.equal(sequence([]).ok, false);
   assert.equal(deriveValidationState(createDraft()).submitReady, false);
 });
+test('insert before and after selected token preserves index ordering; closed sentences stay locked', () => {
+  let d = createDraft();
+  d = mutateDraft(d, { type: 'insert', surface: 'vazi' });
+  d = mutateDraft(d, { type: 'insert', surface: 'kvazi' });
+  d = mutateDraft(d, { type: 'insert', surface: 'qazi', index: 1 });
+  assert.deepEqual(d.tokens.map(w => w.surface), ['vazi', 'qazi', 'kvazi']);
+  d = mutateDraft(d, { type: 'insert', surface: 'zazi', index: d.tokens.length });
+  assert.deepEqual(d.tokens.map(w => w.surface), ['vazi', 'qazi', 'kvazi', 'zazi']);
+  d.closingPunct = '.';
+  const locked = mutateDraft(d, { type: 'insert', surface: 'yazi', index: 2 });
+  assert.equal(locked, d);
+  assert.deepEqual(locked.tokens.map(w => w.surface), ['vazi', 'qazi', 'kvazi', 'zazi']);
+});
 test('prefix inference: createToken auto-sets kvaziPrefix and pos for >5-char kvazi prefix', () => {
   const w = createToken('x', 'kvaziqazi');
   assert.equal(w.kvaziPrefix, 'kvazi');

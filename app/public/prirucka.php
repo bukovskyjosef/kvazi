@@ -1,10 +1,8 @@
 <?php
-// Odvozená veřejná projekce. Kanonickou autoritu určuje pouze docs/README.md.
 declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 auth_session_start();
 $activePage = 'prirucka';
-$repo = 'https://github.com/bukovskyjosef/kvazi/blob/main/';
 ?>
 <!DOCTYPE html>
 <html lang="cs">
@@ -61,13 +59,7 @@ $repo = 'https://github.com/bukovskyjosef/kvazi/blob/main/';
   </div>
 
   <div class="authority-note">
-    <strong>Autorita pravidel:</strong> úplnou mapu kanonického normativního balíku určuje pouze
-    <a href="<?= htmlspecialchars($repo . 'docs/README.md') ?>">docs/README.md</a> v repozitáři. Obecnou soutěžní platnost spravuje
-    <a href="<?= htmlspecialchars($repo . 'docs/rules/02-rozhodcovska-specifikace.md') ?>">rozhodcovská specifikace</a>,
-    přesnou mechaniku NORMATIVNÍ části modulů <a href="<?= htmlspecialchars($repo . 'docs/kvazitahak/README.md') ?>">kvazitaháku 01–07</a>,
-    práci s nástroji <a href="<?= htmlspecialchars($repo . 'docs/rules/03-ai-policy.md') ?>">AI policy</a> a lifecycle pravidel
-    <a href="<?= htmlspecialchars($repo . 'docs/rules/04-verzovani-a-sprava.md') ?>">verzování a správa</a>.
-    Pokud by se tato veřejná projekce s některým z těchto zdrojů rozešla, jde o chybu projekce, nikoli o nové pravidlo.
+    <strong>Autorita pravidel:</strong> veřejná příručka slouží jako přehled. Přesné závazné podmínky se řídí aktuální soutěžní dokumentací a závěry rozhodčích. Pokud se tato projekce s platným pravidlem rozchází, platné pravidlo má přednost.
   </div>
 
   <nav class="spec-toc" aria-label="Obsah příručky">

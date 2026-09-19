@@ -60,8 +60,8 @@ function buildModels() {
 
   // Adjective models: names from normative; UI fields contain noun model option lists.
   const adjSchemaModels = {
-    'mladý': { label: 'mladý', fields: [field('form.degree', 'Stupeň', enumOptions('degree', { '1': '1. stupeň', '2': '2. stupeň (S+ější)', '3': '3. stupeň (nejS+ější)' }))] },
-    'jarní': { label: 'jarní', fields: [field('form.degree', 'Stupeň', enumOptions('degree', { '1': '1. stupeň', '2': '2. stupeň (S+ější)', '3': '3. stupeň (nejS+ější)' }))] },
+    'mladý': { label: 'mladý', fields: [field('form.degree', 'Stupeň', enumOptions('degree', { '1': '1. stupeň (pozitiv)', '2': '2. stupeň (komparativ)', '3': '3. stupeň (superlativ)' }))] },
+    'jarní': { label: 'jarní', fields: [field('form.degree', 'Stupeň', enumOptions('degree', { '1': '1. stupeň (pozitiv)', '2': '2. stupeň (komparativ)', '3': '3. stupeň (superlativ)' }))] },
     'otcův': { label: 'otcův', fields: [
       field('identity.sourceNounLemma', 'Lemma zdrojového substantiva'),
       field('identity.sourceNounModel', 'Vzor zdrojového substantiva', nounModelOptions),
@@ -116,7 +116,7 @@ export function wordFields(w, schema = publicSchema) {
 
   if (w.pos === 'verb') {
     const vft = w.form?.verbFormType;
-    const personOpts = enumOptions('verbPerson', { '1': '1.', '2': '2.', '3': '3.' });
+    const personOpts = enumOptions('verbPerson', { '1': '1. osoba', '2': '2. osoba', '3': '3. osoba' });
     if (vft === 'present') {
       return [...base,
         field('form.verbPerson', 'Osoba', personOpts),

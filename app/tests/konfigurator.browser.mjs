@@ -144,14 +144,9 @@ try {
   assert.equal(await page.locator('#word-surface').inputValue(), 'vázi');
   assert.equal(await page.locator('#token-t4').evaluate(el => el === document.activeElement), true);
 
-  // ── Scene 5: Preview JSON ─────────────────────────────────────────────────
-  await page.getByRole('button', { name: 'Zobrazit náhled JSON (neodesílá)' }).click();
-  const payload = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.deepEqual(payload.draft.tokens.map(w => w.id), ['t1', 't2', 't3', 't4']);
-  assert.equal(payload.validation.submitReady, false); // incomplete declarations
-  assert.equal(payload.submitted, false);
-  assert.equal(payload.draft.tokens[3].surface, 'vázi');
-  assert.ok(payload.validation.text.includes('vázi'), `preview text should contain vázi`);
+  // ── Scene 5: JSON preview action is intentionally removed in this hotfix ──
+  assert.equal(await page.getByRole('button', { name: /Zobrazit náhled JSON/ }).count(), 0);
+  assert.equal(await page.locator('#payload').count(), 0);
 
   // ── Scene 6: All visible form inputs must have an associated label ────────
   const unlabelled = await page.locator('input:not([type="hidden"]), select:not([hidden]), textarea')
@@ -200,10 +195,6 @@ try {
   await page.locator('#token-t1').click();
   assert.equal(await page.getByLabel('Slovní druh', { exact: true }).inputValue(), 'noun', 'kvazi-prefix token: pos auto-set to noun');
   assert.equal(await page.getByLabel('Slovní druh', { exact: true }).isDisabled(), true, 'kvazi-prefix token: pos locked');
-  await page.getByRole('button', { name: 'Zobrazit náhled JSON (neodesílá)' }).click();
-  const payload11 = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.equal(payload11.draft.tokens[0].kvaziPrefix, 'kvazi', 'kvaziPrefix should be kvazi for kvazipan');
-  assert.equal(payload11.draft.tokens[0].pos, 'noun', 'pos should be noun for kvazipan (from JSON)');
 
   // ── Scene 12: Surface-invalid auxiliary — staged validation produces notEvaluated ──
   // "jsme" fails the surface gate (characters J,S,M,E outside kvazi charset).
@@ -218,12 +209,8 @@ try {
   await page.getByLabel('Větná funkce', { exact: true }).selectOption('auxiliary');
   await page.getByLabel('Neurčitek / základní tvar', { exact: true }).fill('být');
   await page.getByLabel('Deklarovaná identita').selectOption('real');
-  await page.getByRole('button', { name: 'Zobrazit náhled JSON (neodesílá)' }).click();
-  const payload12 = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.equal(payload12.validation.tokens['t1'].formCheck.status, 'notEvaluated', 'jsme is surface-invalid: formCheck must be notEvaluated, not deep-checked');
-  assert.equal(payload12.validation.tokens['t1'].formCheck.ok, null, 'notEvaluated formCheck.ok is null');
-  assert.equal(payload12.validation.morphologyOk, false, 'morphologyOk false when formCheck is notEvaluated');
-  assert.equal(payload12.validation.submitReady, false, 'submitReady false for surface-invalid token');
+  const status12 = await page.locator('#liveStatus').textContent();
+  assert.match(status12, /nevyhodnocena|povrchová chyba/i, 'surface-invalid token must leave validation un-evaluated');
 
   // ── Scene 13: Positive submitReady — completely declared valid 2-token draft ─
   await page.goto(`${baseUrl}/konfigurator.php`);
@@ -270,10 +257,8 @@ try {
   }
   await page.locator('#token-t2').click();
 
-  await page.getByRole('button', { name: 'Zobrazit náhled JSON (neodesílá)' }).click();
-  const payload13 = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.equal(payload13.validation.submitReady, true, 'submitReady should be true for fully declared valid draft');
-  assert.equal(payload13.validation.charScore, 10, 'charScore should be 10');
+  assert.equal(await page.locator('#submitButton').isDisabled(), false, 'submitReady should be true for fully declared valid draft');
+  assert.ok((await page.locator('#liveStatus').textContent()).includes('skóre 10') || (await page.locator('#liveStatus').textContent()).includes('charScore'), 'live status should reflect scoring');
 
   const valencyInput = page.getByLabel('Valenční obhajoba');
   await valencyInput.fill('');
@@ -440,10 +425,8 @@ try {
   await page.getByLabel('Větná funkce', {exact:true}).selectOption('predicate');
   await page.getByLabel('Valenční obhajoba').fill('Indikativ bez obligatorního doplnění.');
   await page.getByLabel('Morfologická obhajoba a odkaz na model').fill('3. pl V-IT.');
-  await page.locator('#previewButton').click();
-  const indicative = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.equal(indicative.validation.tokens.t2.formCheck.ok, true);
-  assert.equal(await page.locator('#submitButton').isDisabled(),true);
+  assert.equal(await page.getByRole('button', { name: /Zobrazit náhled JSON/ }).count(), 0);
+  assert.equal(await page.locator('#submitButton').isDisabled(), true);
   assert.ok((await page.locator('#validation').textContent()).includes('skutečný imperativní'));
 
   // ── Scene 18: Browser logout uses CSRF-protected POST ─────────────────────
@@ -503,16 +486,12 @@ try {
   await page.getByLabel('Použitý tvar slova (bez mezer)').fill('qazi');
   assert.equal(await page.locator('#word-pos').isDisabled(), false);
   await page.getByLabel('Použitý tvar slova (bez mezer)').fill('xyz');
-  await page.locator('#previewButton').click();
-  const edited = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.equal(edited.validation.sequence.ok, false);
-  assert.equal(edited.validation.submitReady, false);
-  assert.equal(edited.draft.tokens[1].kvaziPrefix, '');
-  assert.deepEqual(edited.draft.tokens.map(w => w.id), ['t1','t2','t3']);
+  const editedStatus = await page.locator('#liveStatus').textContent();
+  assert.match(editedStatus, /nesplněna|nevyhodnocena|povrchová chyba/i, 'invalid edited surface should not offer an empty success state');
+  assert.equal(await page.locator('#submitButton').isDisabled(), true);
   await page.getByLabel('Použitý tvar slova (bez mezer)').fill('qazi');
-  assert.equal(await page.locator('#payload pre').count(), 0);
-  await page.locator('#previewButton').click();
-  assert.equal(JSON.parse(await page.locator('#payload pre').textContent()).validation.sequence.ok, true);
+  assert.equal(await page.locator('#payload').count(), 0);
+  assert.equal(await page.locator('#submitButton').isDisabled(), false);
 
   // Pronoun person and case labels are independent of terminology mode.
   await page.locator('#word-pos').selectOption('pronoun');
@@ -552,9 +531,7 @@ try {
       const animation = await reward.evaluate(el => getComputedStyle(el).animationName);
       assert.equal(animation, reducedMotion === 'reduce' ? 'none' : 'surface-celebration');
       await page.locator('#token-t1').click();
-      await page.locator('#previewButton').click();
-      assert.equal(await page.evaluate(() => window.rewardCount), index + 1, 'selection and preview do not refire');
-      assert.equal(JSON.parse(await page.locator('#payload pre').textContent()).validation.submitReady, false);
+      assert.equal(await page.evaluate(() => window.rewardCount), index + 1, 'selection does not refire reward');
       assert.equal(await page.locator('#submitButton').isDisabled(), true);
       await page.getByRole('button', {name:'Odebrat závěrečnou interpunkci'}).click();
       assert.equal(await reward.isVisible(), false);
