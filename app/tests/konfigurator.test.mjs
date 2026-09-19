@@ -7,6 +7,8 @@ import { publicSchema, getModel } from '../public/js/konfigurator/schema.mjs';
 import { createDraft, createToken, mutateDraft, inferKvaziPrefix } from '../public/js/konfigurator/state.mjs';
 import { validateTokenSequence, validateSyntax, deriveValidationState, previewDraft } from '../public/js/konfigurator/validation.mjs';
 import { validateForm } from '../public/js/konfigurator/morpho.mjs';
+import { renderEditor } from '../public/js/konfigurator/view.mjs';
+import { toggleMode } from '../public/js/konfigurator/terms.mjs';
 
 // Initialise normative data from the active rules release before any morpho calls.
 const _appRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,6 +36,60 @@ function fixture() {
   draft.tokens = [a, b];
   return draft;
 }
+
+test('player-facing options respect field context: verbPerson and degree are not case labels', () => {
+  const verb = createToken('v1', 'kvazi');
+  Object.assign(verb, {
+    pos: 'verb',
+    lemma: 'kvazit',
+    model: 'V-AT',
+    form: { verbFormType: 'present', verbPerson: '1', number: 'singular', aspect: 'imperfective' },
+    lexicalStatus: 'quasi',
+    role: 'predicate',
+    valency: { declaration: 'test' },
+  });
+  const adj = createToken('a1', 'mladý');
+  Object.assign(adj, {
+    pos: 'adjective',
+    lemma: 'mladý',
+    model: 'mladý',
+    form: { degree: '2', gender: 'masculineAnimate', case: '1', number: 'singular' },
+    lexicalStatus: 'quasi',
+    role: 'agreeingAttribute',
+    identity: { gender: 'masculineAnimate' },
+  });
+  const draft = createDraft();
+  draft.tokens = [verb, adj];
+  const state = { tokens: { [verb.id]: { complete: true, issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } }, [adj.id]: { complete: true, issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } } } };
+  const editor = { innerHTML: '', hidden: false };
+  global.document = { getElementById: id => id === 'editor' ? editor : { querySelector: () => ({ open: false }), classList: { toggle() {} } } };
+
+  renderEditor(draft, state, verb.id, publicSchema);
+  assert.match(editor.innerHTML, /1\. osoba/);
+  assert.doesNotMatch(editor.innerHTML, /1\. pád/);
+
+  renderEditor(draft, state, adj.id, publicSchema);
+  assert.match(editor.innerHTML, /2\. stupeň \(komparativ\)/);
+  assert.doesNotMatch(editor.innerHTML, /2\. pád/);
+
+  toggleMode();
+  const caseSelect = { innerHTML: '' };
+  global.document = { getElementById: id => id === 'editor' ? caseSelect : { querySelector: () => ({ open: false }), classList: { toggle() {} } } };
+  const noun = createToken('n1', 'kvazi');
+  Object.assign(noun, {
+    pos: 'noun',
+    lemma: 'kvaz',
+    model: 'hrad',
+    form: { case: '1', number: 'singular' },
+    identity: { gender: 'masculineAnimate', animacy: 'inanimate' },
+    lexicalStatus: 'quasi',
+    role: 'subject',
+    relations: { head: 'n1' },
+  });
+  draft.tokens = [noun];
+  renderEditor(draft, { tokens: { [noun.id]: { complete: true, issues: [], missing: [], formCheck: { status: 'notEvaluated', ok: true, expected: null } } } }, noun.id, publicSchema);
+  assert.match(caseSelect.innerHTML, /1\. pád/);
+});
 
 test('Unicode NFC before storing, validating and scoring; no alphabet limits on lemma/paradigm', () => {
   let d = mutateDraft(createDraft(), { type: 'insert', surface: 'KVA\u0301ZI\u0301' });
