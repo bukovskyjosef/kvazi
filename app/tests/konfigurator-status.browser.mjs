@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 
 const appRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const baseUrl = process.env.KVAZI_BASE_URL || 'http://127.0.0.1:17877';
