@@ -16,7 +16,7 @@ const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_P
 // Each entry: [regex, human-readable description]
 const FORBIDDEN = [
   [/github\.com\/bukovskyjosef\/kvazi/gi, 'GitHub repo URL'],
-  [/(?:^|\s|["'>])docs\//gi, 'docs/ reference'],
+  [/(?:^|\s|["'>\/])docs\//gi, 'docs/ reference'],
   [/kanonick[ýáé]/gi, 'kanonický/á/é'],
   [/source\s+of\s+truth/gi, 'source of truth'],
   [/(?:veřejn[áé]|interní)\s+projekce/gi, 'interní/veřejná projekce'],
@@ -30,6 +30,14 @@ const PAGES = [
   '/',
   '/prirucka.php',
   '/tahak.php',
+  '/tahak.php?sekce=prehled',
+  '/tahak.php?sekce=syntax',
+  '/tahak.php?sekce=substantiva',
+  '/tahak.php?sekce=adjektiva',
+  '/tahak.php?sekce=slovesa',
+  '/tahak.php?sekce=valence',
+  '/tahak.php?sekce=hranicni',
+  '/tahak.php?sekce=kvazi',
   '/konfigurator.php',
   '/manifest.php',
   '/vety.php',
