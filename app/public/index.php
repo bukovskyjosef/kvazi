@@ -33,6 +33,7 @@ $activePage = 'home';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nejdelší kvazivěta</title>
+  <meta property="og:image" content="https://kvazi.cz/og.png">
   <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
