@@ -8,7 +8,7 @@ die() {
   exit 1
 }
 
-for cmd in git node docker npm php; do
+for cmd in git node docker npm php curl; do
   command -v "$cmd" >/dev/null || die "missing required command: $cmd"
 done
 

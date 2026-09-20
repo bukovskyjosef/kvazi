@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 
 // The CI workflow uses this grep pattern to identify safe (non-risky) paths.
 // A path matching this pattern is classified as low-risk (docs-only).
@@ -67,4 +68,9 @@ test('CI risk: workflow and developer pre-push gate use the tested safe-path pat
   const prePush = readFileSync('app/tests/pre-push.sh', 'utf8');
   assert.ok(workflow.includes(expected), 'ci.yml must contain the expected safe-path grep pattern');
   assert.ok(prePush.includes(expected), 'pre-push.sh must use the same safe-path grep pattern as CI');
+});
+
+
+test('developer pre-push runner has valid bash syntax', () => {
+  execFileSync('bash', ['-n', 'app/tests/pre-push.sh'], {stdio: 'pipe'});
 });
