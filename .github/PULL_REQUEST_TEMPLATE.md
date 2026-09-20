@@ -45,12 +45,17 @@ Pokud změna sahá do konfigurátoru, validátoru nebo testovací matice:
 
 ## Testy / ověření
 
-- [ ] relevantní lokální testy/validace pro změněnou oblast jsou PASS
+- [ ] změny byly před pushem commitnuté a pracovní strom byl čistý
+- [ ] `bash app/tests/pre-push.sh` prošel PASS pro exact commit určený k pushi
+- Pre-push base: `<origin/main | origin/develop | jiný explicitní target>`
+- Pre-push risk class: `<low | full>`
+- Pre-push exact HEAD SHA: `<exact SHA>`
+- Pre-push evidence / finální marker:
 - [ ] finální diff a scope byly zkontrolovány
-- [ ] všechny změny určené k review jsou commitnuté a pushnuté
+- [ ] pokud diff mění verdict code, byl explicitně vyhodnocen rules-release invariant
+- [ ] pokud diff mění env/runtime kontrakt, jsou sladěné runtime / Compose / CI / fixtures / docs podle dopadu
+- [ ] všechny změny určené k review jsou pushnuté
 - Review target HEAD SHA: `<exact SHA>`
 - Required GitHub PR gate: [ ] PASS  [ ] pending
-- Lokální test evidence:
-- [ ] pokud konkrétní issue / technická dokumentace vyžaduje plný lokální gate, byl spuštěn a je PASS
 
 ## Poznámky pro review
