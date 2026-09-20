@@ -108,7 +108,8 @@ function consumeInput(commitLast = false) {
   if (draft.closingPunct && !insertionMode) { input.value = ''; updateInputPlaceholder(); return; }
   const raw = nfc(input.value);
   // Detect closing punctuation anywhere in the current input value.
-  const punctIdx = raw.search(/[.?!]/);
+  // During explicit insertion with existing closingPunct, ignore punctuation chars.
+  const punctIdx = (draft.closingPunct && insertionMode) ? -1 : raw.search(/[.?!]/);
   if (punctIdx >= 0) {
     const before = raw.slice(0, punctIdx);
     for (const surface of before.split(/\s+/u).filter(Boolean)) insertWord(surface);

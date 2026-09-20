@@ -47,12 +47,14 @@ try {
   assert.equal(dark.theme, '2');
   checkTheme(dark);
   await page.locator('#footerThemeBtn1').evaluate(button => button.click());
+  await page.waitForTimeout(250); // wait for CSS color transitions (150ms) to settle
   const light = await themeStyles();
   assert.equal(light.theme, '1');
   checkTheme(light);
   assert.notEqual(light.background, dark.background, 'Visible consent banner must adopt light theme');
   assert.notEqual(light.heading, dark.heading, 'Banner text must adopt light theme');
   await page.locator('#footerThemeBtn2').evaluate(button => button.click());
+  await page.waitForTimeout(250);
   const darkAgain = await themeStyles();
   assert.equal(darkAgain.theme, '2');
   checkTheme(darkAgain);

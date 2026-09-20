@@ -591,17 +591,14 @@ try {
     }
   }
 
-  // Insert buttons are disabled when closing punctuation is present.
+  // Normal append is blocked when closing punctuation exists, but explicit insertion still works.
   await page.goto(`${baseUrl}/konfigurator.php`);
   const punctEntry = page.getByLabel('Nové slovo (bez mezer)');
   await punctEntry.pressSequentially('vazi kvazi.');
+  assert.equal(await page.locator('#newSurface').isHidden(), true, 'main input hidden after closing punct');
   await page.locator('#token-t2').click();
-  assert.equal(await page.getByRole('button', { name: 'Vložit slovo před' }).isDisabled(), true, 'insert-before disabled with closing punct');
-  assert.equal(await page.getByRole('button', { name: 'Vložit slovo za' }).isDisabled(), true, 'insert-after disabled with closing punct');
-  // Removing punctuation re-enables the buttons.
-  await page.getByRole('button', { name: 'Odebrat závěrečnou interpunkci' }).click();
-  await page.locator('#token-t2').click();
-  assert.equal(await page.getByRole('button', { name: 'Vložit slovo před' }).isDisabled(), false, 'insert-before enabled after punct removal');
+  assert.equal(await page.getByRole('button', { name: 'Vložit slovo před' }).isDisabled(), false, 'insert-before enabled with closing punct');
+  assert.equal(await page.getByRole('button', { name: 'Vložit slovo za' }).isDisabled(), false, 'insert-after enabled with closing punct');
 
   // Explicit insertion supports the first token and both sides of an interior token.
   await page.goto(`${baseUrl}/konfigurator.php`);
@@ -623,12 +620,40 @@ try {
   await page.keyboard.press('Enter');
   assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Qazi', 'kvazi', 'qazí', 'qázi', 'kvazí']);
 
+  // Insertion with each closing punctuation type: . ? !
   for (const punct of ['.', '?', '!']) {
     await page.goto(`${baseUrl}/konfigurator.php`);
     await page.locator('#newSurface').pressSequentially(`kvazi kvazí${punct}`);
-    assert.equal(await page.locator('#newSurface').isHidden(), true);
-    await page.locator('#token-t2').click();
-    assert.equal(await page.getByRole('button', { name: 'Vložit slovo za' }).isDisabled(), true, `insert-after disabled with ${punct}`);
+    assert.equal(await page.locator('#newSurface').isHidden(), true, `main input hidden after ${punct}`);
+    // Insert before first token
+    await page.locator('#token-t1').click();
+    assert.equal(await page.getByRole('button', { name: 'Vložit slovo před' }).isDisabled(), false, `insert-before enabled with ${punct}`);
+    await page.getByRole('button', { name: 'Vložit slovo před' }).click();
+    assert.equal(await page.locator('#newSurface').isHidden(), false, `input shown for explicit insert with ${punct}`);
+    await page.locator('#newSurface').fill('qazi');
+    await page.keyboard.press('Enter');
+    assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Qazi', 'kvazi', 'kvazí', punct], `insert-before first with ${punct}`);
+    // Insert after last token — new token goes before punctuation
+    const lastTokenId = await page.locator('#tokens .chip[data-action="select"]').last().getAttribute('data-id');
+    await page.locator(`#token-${lastTokenId}`).click();
+    await page.getByRole('button', { name: 'Vložit slovo za' }).click();
+    await page.locator('#newSurface').fill('qázi');
+    await page.keyboard.press('Enter');
+    const chips = await page.locator('#tokens .chip-text').allTextContents();
+    assert.equal(chips.at(-1), punct, `punctuation preserved at end after insert-after with ${punct}`);
+    assert.equal(chips.at(-2), 'qázi', `new token before punctuation with ${punct}`);
+    // Insert between two interior tokens (insert-after t1 = original 'kvazi')
+    await page.locator('#token-t1').click();
+    await page.getByRole('button', { name: 'Vložit slovo za' }).click();
+    await page.locator('#newSurface').fill('qazy');
+    await page.keyboard.press('Enter');
+    const final = await page.locator('#tokens .chip-text').allTextContents();
+    assert.equal(final[0], 'Qazi', `first token unchanged with ${punct}`);
+    assert.equal(final[1], 'kvazi', `original first token at position 1 with ${punct}`);
+    assert.equal(final[2], 'qazy', `interior-inserted token at position 2 with ${punct}`);
+    assert.equal(final.at(-1), punct, `punctuation still at end after interior insert with ${punct}`);
+    // Main input hidden again after insertion completes
+    assert.equal(await page.locator('#newSurface').isHidden(), true, `main input re-hidden after insert completes with ${punct}`);
   }
 
   assert.deepEqual(errors, []);
