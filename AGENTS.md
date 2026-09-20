@@ -117,6 +117,65 @@ Nesmí autonomně rozhodnout otevřený produktový nebo pravidlový problém.
 
 Musí před implementací přečíst relevantní normativní pravidla, architekturu a otevřená issues.
 
+#### Branch a povinný pre-push kontrakt
+
+GitHub CI je **nezávislý merge gate, nikoli iterativní debugger**. Developer nesmí používat opakované `push → CI FAIL → oprava → push` jako náhradu lokální validace.
+
+Před zahájením implementace Developer:
+1. provede `git fetch origin`,
+2. ověří aktuální target branch a vytvoří pracovní branch z jejího aktuálního stavu; nevyvíjí přímo na `main`/`develop`,
+3. načte Issue a relevantní repository governance/specifikaci.
+
+Během práce smí používat cílené rychlé testy. **Před každým pushem** však musí:
+1. mít změny commitnuté a pracovní strom čistý,
+2. znovu načíst aktuální remote base,
+3. spustit z kořene repozitáře `bash app/tests/pre-push.sh` (pro jiný target než `main` nastaví např. `KVAZI_PRE_PUSH_BASE=origin/develop`),
+4. odstranit každý blokující výsledek,
+5. pushnout pouze exact commit, pro který lokální pre-push gate skončil PASS.
+
+Pre-push gate používá stejnou fail-safe risk classification jako GitHub CI:
+- explicitně docs-only/low-risk diff → release integrity + statické kontroly,
+- jakákoli aplikační, runtime, DB, auth, Docker, workflow, testovací nebo jiná neznámá cesta → celý repository-authoritative integrační gate `app/tests/run-integration.sh`.
+
+Každá corrective změna po review nebo CI, která změní HEAD, ruší předchozí pre-push evidenci. Nový HEAD musí znovu projít odpovídajícím lokálním gate **před** dalším pushem.
+
+##### Verdict / rules-release invariant
+
+Před pushem Developer vždy ověří, zda diff mění verdict-code soubor klasifikovaný `app/tools/check-releases.mjs`, zejména:
+- `app/public/includes/validator.php`,
+- `app/public/js/konfigurator/validation.mjs`,
+- `morpho.mjs`,
+- `schema.mjs`,
+- `rules-data.mjs`.
+
+Pokud Issue **neautorizuje změnu validačního/verdict významu**, Developer nesmí vyrábět nový rules release jen proto, aby prošel release gate; změnu musí přesunout mimo verdict code nebo revertovat.
+
+Pokud Issue změnu verdictu **autorizuje**, musí být nový immutable active release kompletní: nový release dataset/manifest, nový `validator_version` a všechny nutné DB/bootstrap/forward registrační artefakty. Starší publikované releases se nikdy neupravují. Před pushem musí celý local full gate skončit PASS.
+
+##### Runtime / environment invariant
+
+Přidání nebo změna runtime environment/configuration kontraktu není dokončená změna, dokud nejsou podle dopadu konzistentně aktualizovány aplikace, `.env.example`, Docker Compose/runtime configuration, CI environment, test fixtures a relevantní operations dokumentace. Tuto konzistenci Developer ověřuje full pre-push gate.
+
+##### Test invariant
+
+Existující test se nesmí oslabit nebo přepsat jen proto, aby implementace prošla. Změna očekávání testu musí být podložena Issue/specifikací nebo skutečně změněným požadovaným chováním.
+
+#### Předání Developer → Reviewer
+
+Před předáním implementace k nezávislému review musí vývojový agent:
+
+1. dokončit scope příslušného issue,
+2. mít PASS lokálního pre-push gate pro exact commit, který byl pushnut,
+3. ověřit finální diff a jeho scope,
+4. ověřit, že Pull Request ukazuje na tentýž publikovaný HEAD,
+5. durable zaznamenat exact HEAD SHA a lokální testovací evidence do PR nebo souvisejícího issue,
+6. počkat na výsledek required GitHub `PR gate`,
+7. teprve po zeleném required gate předat exact SHA Reviewerovi k finálnímu review.
+
+Finálním review targetem je vždy **publikovaný exact SHA** dostupný v Pull Requestu se zeleným required GitHub `PR gate`. Lokální necommitnutý nebo nepushnutý stav není finální review target a nesmí být vydáván za stav PR.
+
+Required GitHub `PR gate` zůstává autoritativní technický merge gate a nezávislá kontrola developerova pre-push ověření. Nemá však být prvním místem, kde se zjišťuje, zda implementace nebo repository contract funguje.
+
 Nesmí:
 - měnit význam pravidel kvůli jednodušší implementaci,
 - považovat DB schéma, UI nebo existující kód za vyšší autoritu než pravidla,
@@ -125,6 +184,22 @@ Nesmí:
 - mazat funkční dormant implementaci pouze proto, že ji aktuální surface/motiv dělá nedosažitelnou, pokud issue výslovně nepožaduje její odstranění z jiného důvodu.
 
 Pokud lze technický základ vytvořit parametricky bez předjímání otevřené otázky, je to přípustné; jinak platí vývojový gate z governance workflow.
+
+### Reviewer
+
+Reviewer provádí nezávislé review pouze nad publikovaným exact SHA v Pull Requestu se zeleným required GitHub `PR gate`.
+
+Musí:
+- ověřit, že reviewovaný exact SHA odpovídá aktuálnímu PR HEAD,
+- zkontrolovat diff, scope, relevantní specifikaci/governance a evidence z required GitHub gate,
+- podle potřeby spustit **cílené lokální testy nebo reprodukci konkrétního nálezu**,
+- durable zapsat PASS/APPROVE nebo konkrétní blocker proti přesnému reviewed SHA.
+
+Reviewer **standardně znovu nespouští celý repository-authoritative integrační/release gate lokálně**, pokud tentýž required gate již pro exact SHA úspěšně proběhl na GitHubu. Required GitHub `PR gate` je pro tento účel sdílená autoritativní testovací evidence a nemá se bez konkrétního důvodu duplikovat lokálním full runem.
+
+Plný lokální gate Reviewer spouští pouze tehdy, když je to nutné k vyšetření konkrétní nesrovnalosti nebo CI chyby, když required GitHub gate pro daný typ změny neposkytuje potřebnou evidenci, nebo když to výslovně vyžaduje konkrétní issue či relevantní technický kontrakt. Samotná potřeba „ještě jednou vše ověřit“ není důvodem k opakování full gate.
+
+Po corrective změně s novým HEAD SHA Reviewer nepřenáší svůj předchozí finální verdikt automaticky. Počká na nový zelený required GitHub `PR gate` a provede delta re-review nového exact SHA; celý lokální integrační gate znovu nespouští bez některého z výše uvedených důvodů.
 
 ## 6. Historické artefakty
 
