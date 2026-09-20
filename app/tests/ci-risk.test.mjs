@@ -48,6 +48,7 @@ const MUST_BE_SAFE = [
   'LICENSE',
   '.github/ISSUE_TEMPLATE/bug.md',
   '.github/PULL_REQUEST_TEMPLATE/default.md',
+  '.github/PULL_REQUEST_TEMPLATE.md',
 ];
 
 test('CI risk: risky paths are never classified as safe', () => {
@@ -73,4 +74,34 @@ test('CI risk: workflow and developer pre-push gate use the tested safe-path pat
 
 test('developer pre-push runner has valid bash syntax', () => {
   execFileSync('bash', ['-n', 'app/tests/pre-push.sh'], {stdio: 'pipe'});
+});
+
+
+test('CI risk: current remote base ref is used instead of historical PR base SHA', () => {
+  const workflow = readFileSync('.github/workflows/ci.yml', 'utf8');
+
+  assert.ok(
+    workflow.includes('KVAZI_RELEASE_BASE: origin/${{ github.base_ref }}'),
+    'release integrity must compare against the current target branch ref',
+  );
+  assert.ok(
+    workflow.includes('BASE_REF="${{ github.base_ref }}"'),
+    'risk classifier must derive the target branch from github.base_ref',
+  );
+  assert.ok(
+    workflow.includes('git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"'),
+    'risk classifier must refresh the current remote target branch',
+  );
+  assert.ok(
+    workflow.includes('BASE="origin/$BASE_REF"'),
+    'risk classifier must diff against the refreshed remote target branch',
+  );
+  assert.ok(
+    !workflow.includes('BASE="${{ github.event.pull_request.base.sha }}"'),
+    'risk classifier must not use the historical PR base SHA snapshot',
+  );
+  assert.ok(
+    !workflow.includes('KVAZI_RELEASE_BASE: ${{ github.event.pull_request.base.sha'),
+    'release integrity must not use the historical PR base SHA snapshot',
+  );
 });

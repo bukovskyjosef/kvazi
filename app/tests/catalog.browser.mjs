@@ -111,10 +111,8 @@ try {
   assert.equal(await page.locator('#submitButton').isEnabled(), true);
   await lookup(false);
   assert.equal(await page.locator('#submitButton').isEnabled(), true);
-  await page.locator('#previewButton').click();
-  const preview = JSON.parse(await page.locator('#payload pre').textContent());
-  assert.equal(preview.draft.tokens[0].form.aspect, 'biaspectual');
-  assert.ok(preview.draft.tokens[0].evidence.morphology);
+  assert.equal(await page.getByRole('button', { name: /Zobrazit náhled JSON/ }).count(), 0);
+  assert.equal(await page.locator('#payload').count(), 0);
   const submitted = page.waitForResponse(r => r.url().endsWith('/api/submit.php'));
   await page.locator('#submitButton').click(); assert.equal((await submitted).status(), 200);
   await page.locator('#submitResult .alert-ok').waitFor();
