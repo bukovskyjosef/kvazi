@@ -37,6 +37,11 @@ if grep -qi 'skipped' "$log"; then
   echo 'Mandatory browser scenarios were skipped' >&2
   exit 1
 fi
+node app/tests/footer.browser.mjs | tee "$log"
+if grep -qi 'skipped' "$log"; then
+  echo 'Mandatory footer browser scenarios were skipped' >&2
+  exit 1
+fi
 node app/tests/catalog.browser.mjs | tee "$log"
 if grep -qi 'skipped' "$log"; then
   echo 'Mandatory catalog browser scenarios were skipped' >&2
@@ -45,6 +50,21 @@ fi
 node app/tests/workflow.browser.mjs | tee "$log"
 if grep -qi 'skipped' "$log"; then
   echo 'Mandatory M3 browser scenarios were skipped' >&2
+  exit 1
+fi
+node app/tests/analytics-consent.browser.mjs | tee "$log"
+if grep -qi 'skipped' "$log"; then
+  echo 'Mandatory analytics-consent browser scenarios were skipped' >&2
+  exit 1
+fi
+node app/tests/konfigurator-status.browser.mjs | tee "$log"
+if grep -qi 'skipped' "$log"; then
+  echo 'Mandatory konfigurator-status browser scenarios were skipped' >&2
+  exit 1
+fi
+node app/tests/player-facing.browser.mjs | tee "$log"
+if grep -qi 'skipped' "$log"; then
+  echo 'Mandatory player-facing browser scenarios were skipped' >&2
   exit 1
 fi
 node --test --test-reporter=tap app/tests/deployment.acceptance.mjs | tee "$log"

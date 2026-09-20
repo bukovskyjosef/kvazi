@@ -51,6 +51,36 @@ const TERMS = {
 const idx = () => czechMode ? 1 : 0;
 export const T = key => (TERMS[key] ?? [key, key])[idx()];
 
+const PATH_OVERRIDES = {
+  'form.verbPerson': {
+    '1': ['1. osoba', '1. osoba'],
+    '2': ['2. osoba', '2. osoba'],
+    '3': ['3. osoba', '3. osoba'],
+    '2sg': ['2. sg', '2. sg'],
+    '1pl': ['1. pl', '1. pl'],
+    '2pl': ['2. pl', '2. pl'],
+  },
+  'form.pronoun.person': {
+    '1': ['1. osoba', '1. osoba'],
+    '2': ['2. osoba', '2. osoba'],
+    '3': ['3. osoba', '3. osoba'],
+  },
+  'form.pronoun.case': {
+    '1': ['1. pád', '1. pád'],
+    '2': ['2. pád', '2. pád'],
+    '3': ['3. pád', '3. pád'],
+    '4': ['4. pád', '4. pád'],
+    '5': ['5. pád', '5. pád'],
+    '6': ['6. pád', '6. pád'],
+    '7': ['7. pád', '7. pád'],
+  },
+  'form.degree': {
+    '1': ['1. stupeň (pozitiv)', '1. stupeň (pozitiv)'],
+    '2': ['2. stupeň (komparativ)', '2. stupeň (komparativ)'],
+    '3': ['3. stupeň (superlativ)', '3. stupeň (superlativ)'],
+  },
+};
+
 export const partsOfSpeechLabels = () => Object.fromEntries(
   validPos().map(k => [k, T(k)])
 );
@@ -67,7 +97,12 @@ export const numbersLabels = () => Object.fromEntries(
   fieldEnums().number.map(k => [k, T(k)])
 );
 
-// Translate an options object {key: czechLabel} through TERMS (for schema-embedded options).
-export const translateOptions = opts => Object.fromEntries(
-  Object.entries(opts).map(([k, v]) => [k, (TERMS[k] ?? [v, v])[idx()]])
-);
+// Translate an options object {key: label} using the field context when the same raw key
+// is reused across different grammatical dimensions (e.g. person vs case vs degree).
+export const translateOptions = (opts, path = '') => {
+  const override = PATH_OVERRIDES[path] ?? null;
+  return Object.fromEntries(Object.entries(opts).map(([k, v]) => {
+    const value = override && Object.hasOwn(override, k) ? override[k] : (TERMS[k] ?? [v, v]);
+    return [k, value[idx()]];
+  }));
+};
