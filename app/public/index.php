@@ -183,7 +183,7 @@ $activePage = 'home';
 
     </div>
     <div style="margin-top:28px;text-align:center">
-      <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">Tato stránka je stručný veřejný úvod. Přesná pravidla a jejich autoritu určuje kanonický normativní balík projektu.</p>
+      <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">Tato stránka je stručný úvod. Podrobná pravidla a vysvětlení najdeš v&nbsp;<a href="/prirucka.php">příručce</a>.</p>
       <a class="btn btn-ghost" href="/prirucka.php">Veřejná rozhodcovská příručka &rarr;</a>
     </div>
   </div>
