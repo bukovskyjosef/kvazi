@@ -591,16 +591,17 @@ try {
     }
   }
 
+  // Insert buttons are disabled when closing punctuation is present.
   await page.goto(`${baseUrl}/konfigurator.php`);
   const punctEntry = page.getByLabel('Nové slovo (bez mezer)');
   await punctEntry.pressSequentially('vazi kvazi.');
   await page.locator('#token-t2').click();
-  await page.getByRole('button', { name: 'Vložit slovo za' }).click();
-  await page.locator('#newSurface').fill('z');
-  await page.keyboard.press('Enter');
-  assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Vazi', 'kvazi', 'z', '.']);
-  const punctText = await page.locator('#tokens .closing-punct .chip-text').textContent();
-  assert.equal(punctText, '.');
+  assert.equal(await page.getByRole('button', { name: 'Vložit slovo před' }).isDisabled(), true, 'insert-before disabled with closing punct');
+  assert.equal(await page.getByRole('button', { name: 'Vložit slovo za' }).isDisabled(), true, 'insert-after disabled with closing punct');
+  // Removing punctuation re-enables the buttons.
+  await page.getByRole('button', { name: 'Odebrat závěrečnou interpunkci' }).click();
+  await page.locator('#token-t2').click();
+  assert.equal(await page.getByRole('button', { name: 'Vložit slovo před' }).isDisabled(), false, 'insert-before enabled after punct removal');
 
   // Explicit insertion supports the first token and both sides of an interior token.
   await page.goto(`${baseUrl}/konfigurator.php`);
@@ -627,14 +628,7 @@ try {
     await page.locator('#newSurface').pressSequentially(`kvazi kvazí${punct}`);
     assert.equal(await page.locator('#newSurface').isHidden(), true);
     await page.locator('#token-t2').click();
-    await page.getByRole('button', { name: 'Vložit slovo za' }).click();
-    assert.equal(await page.locator('#newSurface').isVisible(), true);
-    assert.equal(await page.locator('#newSurface').getAttribute('aria-label'), 'Vložit slovo za vybraný token');
-    await page.locator('#newSurface').fill('qazi');
-    await page.keyboard.press('Enter');
-    assert.deepEqual(await page.locator('#tokens .chip-text').allTextContents(), ['Kvazi', 'kvazí', 'qazi', punct]);
-    assert.equal(await page.locator('#newSurface').isHidden(), true, `insertion mode must end immediately after ${punct}`);
-    assert.equal(await page.locator('#newSurface').getAttribute('aria-label'), 'Nové slovo (bez mezer)');
+    assert.equal(await page.getByRole('button', { name: 'Vložit slovo za' }).isDisabled(), true, `insert-after disabled with ${punct}`);
   }
 
   assert.deepEqual(errors, []);

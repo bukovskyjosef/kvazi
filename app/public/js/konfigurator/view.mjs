@@ -98,8 +98,8 @@ export function renderEditor(draft, state, selectedId, schema = publicSchema, ca
       ${wordFields(w, schema).map(f => field(f.path, f.label, getPath(w, f.path), f.options ? translateOptions(f.options, f.path) : null, 'word', false, f.multiline)).join('')}
     </div>
     <div class="insert-controls" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-      <button type="button" data-action="insert-before" class="chip-action">Vložit slovo před</button>
-      <button type="button" data-action="insert-after" class="chip-action">Vložit slovo za</button>
+      <button type="button" data-action="insert-before" class="chip-action"${draft.closingPunct ? ' disabled' : ''}>Vložit slovo před</button>
+      <button type="button" data-action="insert-after" class="chip-action"${draft.closingPunct ? ' disabled' : ''}>Vložit slovo za</button>
     </div>
     ${w.pos === 'noun' && model ? `<p>Rod: ${esc({ masculine: 'mužský', feminine: 'ženský', neuter: 'střední' }[w.identity.gender])}${w.identity.animacy ? `, ${w.identity.animacy === 'animate' ? 'životný' : 'neživotný'}` : ''} (určeno zvoleným vzorem).</p>` : ''}
     ${formCheckHtml}

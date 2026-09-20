@@ -6,7 +6,8 @@ import { catalogCandidate, catalogFingerprint } from './catalog.mjs';
 import { createSurfaceRewardTracker } from './reward.mjs';
 
 let draft = window.__resubmit?.draft ?? createDraft(), selectedId = null;
-let insertionMode = null;
+let insertionMode = null;   // 'before' | 'after' | null
+let insertionTargetId = null; // token ID that insert-before/after refers to
 const resubmitSentenceId = window.__resubmit?.sentenceId ?? null;
 let composing = false;
 const catalogResults = new Map();
@@ -46,7 +47,7 @@ function render() {
   }
   const termBtn = element('termToggle');
   if (termBtn) termBtn.textContent = buttonLabel();
-  const explicitInsert = !!selectedId && !!insertionMode;
+  const explicitInsert = !!insertionTargetId && !!insertionMode;
   element('newSurface').hidden = !!draft.closingPunct && !explicitInsert;
   if (explicitInsert) {
     const input = element('newSurface');
@@ -93,12 +94,13 @@ function insertWord(surface, index = null) {
   if (!surface) return;
   let targetIndex = draft.tokens.length;
   if (typeof index === 'number') targetIndex = index;
-  else if (selectedId && insertionMode) {
-    const offset = draft.tokens.findIndex(w => w.id === selectedId);
+  else if (insertionTargetId && insertionMode) {
+    const offset = draft.tokens.findIndex(w => w.id === insertionTargetId);
     if (offset >= 0) targetIndex = insertionMode === 'before' ? offset : offset + 1;
   }
   selectedId = `t${draft.nextId}`;
   insertionMode = null;
+  insertionTargetId = null;
   dispatch({ type: 'insert', surface: nfc(surface), index: targetIndex });
 }
 function consumeInput(commitLast = false) {
@@ -155,11 +157,13 @@ document.addEventListener('click', e => {
   const action = button.dataset.action;
   if (action === 'select') {
     insertionMode = null;
+    insertionTargetId = null;
     selectedId = button.dataset.id;
     render();
     element(`token-${selectedId}`).focus();
   } else if (action === 'insert-before' || action === 'insert-after') {
     insertionMode = action === 'insert-before' ? 'before' : 'after';
+    insertionTargetId = selectedId;
     const input = element('newSurface');
     input.hidden = false;
     input.focus();
