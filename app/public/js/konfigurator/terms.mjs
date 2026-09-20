@@ -60,6 +60,20 @@ const PATH_OVERRIDES = {
     '1pl': ['1. pl', '1. pl'],
     '2pl': ['2. pl', '2. pl'],
   },
+  'form.pronoun.person': {
+    '1': ['1. osoba', '1. osoba'],
+    '2': ['2. osoba', '2. osoba'],
+    '3': ['3. osoba', '3. osoba'],
+  },
+  'form.pronoun.case': {
+    '1': ['1. pád', '1. pád'],
+    '2': ['2. pád', '2. pád'],
+    '3': ['3. pád', '3. pád'],
+    '4': ['4. pád', '4. pád'],
+    '5': ['5. pád', '5. pád'],
+    '6': ['6. pád', '6. pád'],
+    '7': ['7. pád', '7. pád'],
+  },
   'form.degree': {
     '1': ['1. stupeň (pozitiv)', '1. stupeň (pozitiv)'],
     '2': ['2. stupeň (komparativ)', '2. stupeň (komparativ)'],

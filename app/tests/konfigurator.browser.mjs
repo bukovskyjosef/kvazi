@@ -278,7 +278,7 @@ try {
   await page.getByLabel('Krátká obhajoba vztahu').fill('Obhajoba.');
   assert.equal(await page.locator('#submitButton').isDisabled(), true, 'missing analogy');
   await page.getByLabel('Běžná česká analogie stejné konstrukce').fill('Děti spí.');
-  assert.equal(await page.locator('#submitButton').isDisabled(), true, 'unfinished sentence cannot be submitted after restoring the word surface');
+  assert.equal(await page.locator('#submitButton').isDisabled(), false, 'filled explanation + analogy completes the declaration');
   await page.getByLabel('Krátká obhajoba vztahu').fill('');
   assert.equal(await page.locator('#submitButton').isDisabled(), true, 'missing explanation');
   await page.locator('#word-evidence-needsAnalogy').uncheck();
@@ -501,7 +501,7 @@ try {
   assert.equal(await page.locator('#submitButton').isDisabled(), true);
   await page.getByLabel('Použitý tvar slova (bez mezer)').fill('qazi');
   assert.equal(await page.locator('#payload').count(), 0);
-  assert.equal(await page.locator('#submitButton').isDisabled(), false);
+  assert.equal(await page.locator('#submitButton').isDisabled(), true, 'valid surface restored but sentence declarations are still incomplete');
 
   // Pronoun person and case labels are independent of terminology mode.
   await page.locator('#word-pos').selectOption('pronoun');
