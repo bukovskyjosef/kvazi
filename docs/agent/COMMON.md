@@ -25,6 +25,8 @@ Repository/GitHub durable state má přednost před:
 
 GitHub Issues jsou jediný živý backlog. Current-next-authority status je lifecycle informace, nikoli role activation.
 
+Historické artefakty (`docs/history/`, datované auditní reporty, historical decision summaries) jsou kontext, ne current backlog ani náhrada současných canonical sources.
+
 ## 3. Generic pre-run authority guard
 
 Po načtení vlastního role contractu agent fresh-readne assigned Issue a current comments; linked/current PR načte tehdy, pokud existuje nebo je pro daný lifecycle krok relevantní.
@@ -61,6 +63,14 @@ Pokud Human instrukce odporuje current work contractu, required gate nebo govern
 5. agent fresh-readne nový stav a teprve potom pokračuje.
 
 Soukromé chatové „tentokrát to ignoruj“ samo repository contract nemění.
+
+Pokud si dva relevantní autoritativní artefakty odporují:
+1. neurčuj vítěze odhadem,
+2. ověř current Issue a explicitní H decision,
+3. pokud rozhodnutí existuje, stale derived artifact se má opravit,
+4. pokud rozhodnutí chybí, konflikt durable routuj a spornou část neprováděj.
+
+Technický nebo odvozený artefakt (UI, DB constraint, regex, katalog, validator, příklad, README či komentář) nesmí potichu vytvořit nebo změnit soutěžní pravidlo. Pokud task může měnit soutěžní platnost, agent musí následovat applicable canonical normative references.
 
 ## 5. Minimum complete context
 
