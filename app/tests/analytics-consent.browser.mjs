@@ -14,6 +14,14 @@ try {
 
   const bannerText = await banner.textContent();
   assert.equal(bannerText.includes('Upravit nastavení'), false, 'Initial consent banner should not include the redundant settings action.');
+  assert.equal(bannerText.includes('anonymní'), false, 'Consent banner must not claim analytics data are anonymous.');
+
+  const btnClasses = await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('#analyticsConsentBanner .analytics-consent-btn'));
+    return btns.map(b => Array.from(b.classList).sort().join(' '));
+  });
+  assert.ok(btnClasses.length >= 2, 'Banner should have at least two consent buttons.');
+  assert.equal(btnClasses[0], btnClasses[1], 'Accept and reject buttons must have identical CSS classes for visual parity.');
 
   const themeStyles = () => page.evaluate(() => {
     const probe = document.createElement('div');
@@ -22,7 +30,7 @@ try {
     const actual = getComputedStyle(document.getElementById('analyticsConsentBanner'));
     const expected = getComputedStyle(probe);
     const expectedHeading = expected.color;
-    probe.style.color = 'var(--accent)';
+    probe.style.color = 'var(--text-muted)';
     const result = {
       theme: document.documentElement.dataset.theme,
       background: actual.backgroundColor, expectedBackground: expected.backgroundColor,
@@ -30,7 +38,7 @@ try {
       shadow: actual.boxShadow, expectedShadow: expected.boxShadow,
       heading: getComputedStyle(document.getElementById('analyticsConsentTitle')).color,
       expectedHeading,
-      button: getComputedStyle(document.querySelector('.analytics-consent-btn-primary')).color,
+      button: getComputedStyle(document.querySelector('.analytics-consent-btn')).color,
       expectedButton: getComputedStyle(probe).color,
     };
     probe.remove();
@@ -83,6 +91,15 @@ try {
 
   assert.equal(grantedState.localStorage ? JSON.parse(grantedState.localStorage).value : null, 'granted', 'Grant action should persist granted consent.');
   assert.ok(grantedState.gaScript, 'GA4 script should load after explicit consent.');
+
+  const ga4Config = await page.evaluate(() => {
+    const dl = window.dataLayer || [];
+    const cfg = dl.find(e => e[0] === 'config' && e.length >= 3);
+    return cfg ? cfg[2] : null;
+  });
+  assert.ok(ga4Config, 'GA4 config call must be present in dataLayer after consent.');
+  assert.equal(ga4Config.cookie_expires, 31536000, 'GA4 cookie_expires must be 31536000 (12 months).');
+  assert.equal(ga4Config.cookie_update, false, 'GA4 cookie_update must be false (non-rolling).');
 
   await page.locator('.footer-analytics-settings').click();
   await page.waitForTimeout(100);

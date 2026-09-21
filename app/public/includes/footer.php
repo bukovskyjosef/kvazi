@@ -10,10 +10,10 @@ $_ftCfBeaconToken = getenv('CLOUDFLARE_WEB_ANALYTICS_TOKEN') ?: '';
   <div id="analyticsConsentBanner" class="analytics-consent-banner is-hidden" role="dialog" aria-live="polite" aria-labelledby="analyticsConsentTitle" aria-describedby="analyticsConsentText">
     <div class="analytics-consent-copy">
       <strong id="analyticsConsentTitle">Používáme základní analytiku</strong>
-      <p id="analyticsConsentText">Abychom mohli měřit návštěvnost a zdroje provozu, potřebujeme váš souhlas se sběrem anonymních analytických dat. Žádné e-maily, loginy ani obsah kvazivět se neposílají.</p>
+      <p id="analyticsConsentText">Abychom mohli měřit návštěvnost a zdroje provozu, potřebujeme váš souhlas se zpracováním analytických dat. Žádné e-maily, loginy ani obsah kvazivět se neposílají.</p>
     </div>
     <div class="analytics-consent-actions">
-      <button type="button" class="analytics-consent-btn analytics-consent-btn-primary" data-analytics-consent="granted">Povolit analytiku</button>
+      <button type="button" class="analytics-consent-btn" data-analytics-consent="granted">Povolit analytiku</button>
       <button type="button" class="analytics-consent-btn" data-analytics-consent="denied">Nepovolit</button>
     </div>
   </div>
@@ -178,7 +178,7 @@ $_ftCfBeaconToken = getenv('CLOUDFLARE_WEB_ANALYTICS_TOKEN') ?: '';
     script.setAttribute('data-kvazi-analytics', 'ga4');
     script.onload = function () {
       window.gtag('consent', 'default', SILENT_DEFAULT);
-      window.gtag('config', GA_MEASUREMENT_ID, { anonymize_ip: true, send_page_view: false });
+      window.gtag('config', GA_MEASUREMENT_ID, { anonymize_ip: true, send_page_view: false, cookie_expires: 31536000, cookie_update: false });
       window.gtag('consent', 'update', {
         analytics_storage: 'granted',
         ad_storage: 'denied',
