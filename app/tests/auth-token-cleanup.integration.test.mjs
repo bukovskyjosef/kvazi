@@ -126,6 +126,7 @@ function randomHash() {
 
 function insertToken(userId, purpose, ageSpec) {
   // ageSpec: { usedDaysAgo?: number, expiredDaysAgo?: number, activeHoursLeft?: number }
+  // Returns the token_hash so callers can assert exact-row survival.
   const hash = randomHash();
   if (ageSpec.usedDaysAgo !== undefined) {
     // Used token, used N days ago, expired before that.
@@ -147,6 +148,11 @@ function insertToken(userId, purpose, ageSpec) {
         now() + interval '${ageSpec.activeHoursLeft} hours',
         now() - interval '1 hour')`);
   }
+  return hash;
+}
+
+function tokenExistsByHash(hash) {
+  return db(`SELECT count(*) FROM kvazi.auth_token WHERE token_hash = ${pg(hash)}`) === '1';
 }
 
 function tokenCount(userId) {
@@ -203,22 +209,32 @@ integrationTest('cleanup: token within 7-day post-use retention stays', async ()
 });
 
 integrationTest('cleanup: active valid token is not removed', async () => {
-  const u = createVerifiedUser('active');
-  insertToken(u.userId, 'email_verification', { activeHoursLeft: 12 });
-  assert.equal(tokenCount(u.userId), 1, 'precondition: token exists');
+  const u = createVerifiedUser('activ');
+  const seededHash = insertToken(u.userId, 'email_verification', { activeHoursLeft: 12 });
+  assert.ok(tokenExistsByHash(seededHash), 'precondition: seeded token exists');
 
-  // Trigger cleanup.
+  // Trigger cleanup via a different user so no replacement token masks deletion.
   clearOutbox();
-  await form('/forgot-password.php', { email: u.email, challenge: 'kvazi kvazi.' });
+  const u2 = createVerifiedUser('act_trg');
+  db(`UPDATE kvazi.user_account SET email_verified_at = NULL WHERE username=${pg(u2.username)}`);
+  await form('/resend-verification.php', { email: u2.email });
 
-  // The recovery request adds its own token, so expect 2 (original + new).
-  assert.ok(tokenCount(u.userId) >= 1, 'active valid token must not be removed');
-  // Verify our specific active token is still there.
-  const activeCount = parseInt(db(
-    `SELECT count(*) FROM kvazi.auth_token
-      WHERE user_id = ${u.userId} AND used_at IS NULL AND expires_at > now()`
-  ), 10);
-  assert.ok(activeCount >= 1, 'active unexpired token must survive cleanup');
+  // The exact seeded active token must still exist.
+  assert.ok(tokenExistsByHash(seededHash), 'exact seeded active token must survive cleanup');
+});
+
+integrationTest('cleanup: unused expired token within 7-day post-expiry retention stays', async () => {
+  const u = createVerifiedUser('exp_rec');
+  const seededHash = insertToken(u.userId, 'password_recovery', { expiredDaysAgo: 3 });
+  assert.ok(tokenExistsByHash(seededHash), 'precondition: seeded token exists');
+
+  // Trigger cleanup via a different user.
+  clearOutbox();
+  const u2 = createVerifiedUser('exr_trg');
+  db(`UPDATE kvazi.user_account SET email_verified_at = NULL WHERE username=${pg(u2.username)}`);
+  await form('/resend-verification.php', { email: u2.email });
+
+  assert.ok(tokenExistsByHash(seededHash), 'unused expired token within 7d post-expiry retention must stay');
 });
 
 integrationTest('cleanup: both purposes are cleaned (email_verification + password_recovery)', async () => {
