@@ -92,6 +92,15 @@ try {
   assert.equal(grantedState.localStorage ? JSON.parse(grantedState.localStorage).value : null, 'granted', 'Grant action should persist granted consent.');
   assert.ok(grantedState.gaScript, 'GA4 script should load after explicit consent.');
 
+  const ga4Config = await page.evaluate(() => {
+    const dl = window.dataLayer || [];
+    const cfg = dl.find(e => e[0] === 'config' && e.length >= 3);
+    return cfg ? cfg[2] : null;
+  });
+  assert.ok(ga4Config, 'GA4 config call must be present in dataLayer after consent.');
+  assert.equal(ga4Config.cookie_expires, 31536000, 'GA4 cookie_expires must be 31536000 (12 months).');
+  assert.equal(ga4Config.cookie_update, false, 'GA4 cookie_update must be false (non-rolling).');
+
   await page.locator('.footer-analytics-settings').click();
   await page.waitForTimeout(100);
   await page.locator('#analyticsConsentBanner [data-analytics-consent="denied"]').click();
