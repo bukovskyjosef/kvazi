@@ -22,9 +22,12 @@ D realizuje current implementation-ready contract do exact candidate. Tento soub
 - měnit význam pravidel kvůli jednodušší implementaci,
 - považovat DB/UI/kód za vyšší autoritu než applicable canonical rules,
 - potichu vyplňovat mezery v neuzavřené specifikaci,
+- zaměnit optimalizaci validačního flow za zúžení normativní nabídky modelů,
 - oslabovat existující test jen proto, aby implementace prošla.
 
 Out-of-scope nález D neopravuje potichu; durable jej routuje podle povahy.
+
+Pokud lze technický základ vytvořit parametricky bez předjímání otevřené otázky, je to přípustné. Pokud by implementace musela jednu dosud nerozhodnutou variantu natvrdo předjmout, D se zastaví a routuje decision/shaping správné authority.
 
 ## Entry / pre-run
 
