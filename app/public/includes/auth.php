@@ -98,7 +98,22 @@ function kvazi_db(): PDO {
 /** Returns current user array ['id','username','email','role'] or null. */
 function auth_user(): ?array {
     auth_session_start();
-    return $_SESSION['auth_user'] ?? null;
+    $user = $_SESSION['auth_user'] ?? null;
+    if ($user === null) return null;
+    // Invalidate session for deleted accounts.
+    try {
+        $stmt = kvazi_db()->prepare('SELECT deleted_at FROM kvazi.user_account WHERE id = :id');
+        $stmt->execute([':id' => $user['id']]);
+        $row = $stmt->fetch();
+        if ($row === false || $row['deleted_at'] !== null) {
+            $_SESSION = [];
+            session_regenerate_id(true);
+            return null;
+        }
+    } catch (\Throwable) {
+        // On DB error, keep session alive to avoid locking out users during outages.
+    }
+    return $user;
 }
 
 function auth_is_admin(): bool {
@@ -169,7 +184,8 @@ function auth_login(string $identifier, string $password): array|string {
         $stmt = $pdo->prepare(
             'SELECT id, username, email, password_hash, role, email_verified_at
                FROM kvazi.user_account
-              WHERE lower(email) = lower(:id) OR lower(username) = lower(:id)
+              WHERE (lower(email) = lower(:id) OR lower(username) = lower(:id))
+                AND deleted_at IS NULL
               LIMIT 1'
         );
         $stmt->execute([':id' => trim($identifier)]);
@@ -252,7 +268,8 @@ function auth_register(string $username, string $email, string $password, string
         $pdo  = kvazi_db();
         $stmt = $pdo->prepare(
             'SELECT id FROM kvazi.user_account
-              WHERE lower(email) = lower(:e) OR lower(username) = lower(:u)
+              WHERE (lower(email) = lower(:e) OR lower(username) = lower(:u))
+                AND deleted_at IS NULL
               LIMIT 1'
         );
         $stmt->execute([':e' => $email, ':u' => $username]);

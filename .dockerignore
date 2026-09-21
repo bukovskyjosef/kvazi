@@ -10,6 +10,8 @@
 !app/public/**
 !app/data/
 !app/data/**
+!app/cli/
+!app/cli/**
 
 .git
 **/.git

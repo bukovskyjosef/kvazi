@@ -122,7 +122,7 @@ test('SOURCE_COMMIT build arg embeds SHA in image and version endpoint returns i
 
 test('external PG18 explicit ordered bootstrap: normal public pages and private data layout, runtime env only',async () => {
   const files=readdirSync('docker/db/init').filter(f=>f.endsWith('.sql')).sort();
-  assert.deepEqual(files.map(f=>f.slice(0,2)),['01','02','03','04','05','06','07','08','09']);
+  assert.deepEqual(files.map(f=>f.slice(0,2)),['01','02','03','04','05','06','07','08','09','10']);
   for (const file of files) docker(['exec','-i',database,'psql','-p',dbPort,'-U',dbUser,'-d',dbName,'-v','ON_ERROR_STOP=1'],
     {input:readFileSync('docker/db/init/'+file),timeout:30000});
   assert.equal(sql('SELECT count(*) FROM kvazi.user_account'),'0');
