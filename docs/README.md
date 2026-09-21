@@ -22,6 +22,7 @@ Každý hráčský nebo normativní dokument má u svého začátku krátkou sek
 | Artefakt / kategorie | Publikum | Normativní? | Účel | Jak se mění / čte |
 |---|---|---:|---|---|
 | `/AGENTS.md` | všichni agenti | procesní vstupní kontrakt | povinný startup protocol, práce se source of truth a Definition of Done | hlavní instrukční vstup pro agenty; tool-specific instrukce jej nesmějí přebít |
+| `agent/ROLES.md` | H/K/A/D/R/P | procesní / kanonický role contract | jediná definice canonical rolí, lifecycle, pre-run authority guardu, override a Human-proxy handoffu | role-bound agent jej čte po `AGENTS.md`; ostatní dokumenty na něj pouze odkazují a nesmějí vytvářet konkurenční role model |
 | root `README.md` + tool-specific instrukční stuby (např. `CLAUDE.md`, `.github/copilot-instructions.md`) | člověk, agent | ne | orientace a přesměrování na kanonické zdroje | nesmějí duplikovat ani měnit autoritu `AGENTS.md` a tohoto souboru |
 | `00-project-context.md` | všichni agenti | ne | stabilní kontext, cíle a produktové principy projektu | vysvětluje záměr; soutěžní platnost určuje normativní balík |
 | `rules/01-jak-hrat.md` | hráč | ne | stručná příručka základních pravidel a vstup do hry | musí následovat normativní balík |

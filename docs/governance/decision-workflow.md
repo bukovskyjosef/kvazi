@@ -16,6 +16,14 @@ Agenti mohou:
 
 Agenti nesmějí považovat vlastní doporučení za přijaté rozhodnutí.
 
+## Agentní lifecycle a current authority
+
+Kanonické role, jejich kompetence, lifecycle, pre-run authority guard, Human override a povinný Human-proxy handoff vlastní výhradně `../agent/ROLES.md`.
+
+Každý aktivní role-bound Issue musí z current durable state jednoznačně ukazovat, na koho nebo na co právě čeká (např. `READY FOR D`, `READY FOR R`, `READY FOR P`, `WAITING FOR H`, `CHANGES REQUIRED — D`, `BLOCKED BY #N`, `DONE`). Tento status je lifecycle informace, nikoli role assignment; konkrétní agentní session stále vyžaduje explicitní Human aktivaci role.
+
+Chatový nebo dříve připravený handoff prompt current durable state nepřebíjí. Pokud mu Issue/PR již neodpovídá, agent provede bezpečný no-op a Humanovi vrátí správný další krok podle `../agent/ROLES.md`.
+
 ## Povinná evidence v GitHub Issues
 
 Každá samostatná práce, která má přežít aktuální chat nebo pracovní session, musí mít issue. To platí pro:

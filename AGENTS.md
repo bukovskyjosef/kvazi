@@ -9,11 +9,12 @@ Tento soubor je **kanonický vstupní kontrakt pro všechny agenty**, kteří pr
 Před netriviální analýzou, auditem nebo změnou:
 
 1. přečti tento `AGENTS.md`,
-2. přečti `docs/00-project-context.md`,
-3. přečti `docs/README.md` jako mapu autority dokumentace,
-4. načti dokumenty relevantní pro svou roli a úkol,
-5. zjisti **aktuální** stav práce přímo z GitHub Issues,
-6. teprve potom navrhuj změny nebo implementuj.
+2. pokud jde o role-bound práci, přečti kanonický kontrakt `docs/agent/ROLES.md`,
+3. přečti `docs/00-project-context.md`,
+4. přečti `docs/README.md` jako mapu autority dokumentace,
+5. načti dokumenty relevantní pro svou roli a úkol,
+6. zjisti **aktuální** stav práce přímo z GitHub Issues,
+7. teprve potom navrhuj změny nebo implementuj.
 
 Nikdy nepoužívej historii chatu, starou auditní zprávu ani ručně udržovaný Markdown seznam jako náhradu za aktuální stav repozitáře a Issues.
 
@@ -88,32 +89,17 @@ Pokud dva autoritativní nebo relevantní artefakty odporují jeden druhému:
 
 Technický artefakt odporující platnému pravidlu je vadný technický artefakt.
 
-## 5. Role agentů
+## 5. Kanonické agentní role
 
-### Auditor / oponent
+Kanonický kontrakt rolí, lifecycle, pre-run authority guardu, Human override a povinného Human-proxy handoffu vlastní výhradně `docs/agent/ROLES.md`.
 
-Musí:
-- načíst celý relevantní kontext, ne pouze pravidla,
-- hledat rozpory, mezery, exploity, expert advantage a skryté předpoklady,
-- auditovat podle `docs/audit/README.md`,
-- každý samostatný akční nález zachytit v GitHub Issue.
+Kanonické role projektu jsou právě `H / K / A / D / R / P`. Role-bound session má vždy právě jednu explicitně aktivní roli získanou explicitním Human assignmentem. Handoff, Issue status ani zřejmý next step samy roli neaktivují ani nepřepínají.
 
-Nesmí:
-- bez explicitního rozhodnutí Josefa měnit normativní pravidla,
-- proměnit vlastní doporučení v produktové rozhodnutí,
-- vést paralelní auditní backlog v textovém souboru.
+Aktivní role před materiální prací fresh-readne current durable stav Issue/PR a ověří, že práce skutečně čeká na její authority. Stale copy-paste prompt není autorita. Pokud Human instrukce odporuje current work contractu, roli nebo governance, agent konfliktní akci neprovede potichu; postupuje podle override pravidla v `docs/agent/ROLES.md`.
 
-### Návrhový / produktový agent
+Následující D/R části jsou projektově specifické technické kontrakty. Doplňují, ale nemění obecné kompetence rolí z `docs/agent/ROLES.md`.
 
-Smí analyzovat varianty a připravovat návrhy změn.
-
-Musí:
-- zachytit rozhodnutí a jeho důsledky v příslušném issue,
-- po explicitním rozhodnutí aktualizovat všechny dotčené canonical artefakty před uzavřením issue.
-
-Nesmí autonomně rozhodnout otevřený produktový nebo pravidlový problém.
-
-### Vývojový agent
+### D = Developer — technický delivery kontrakt
 
 Musí před implementací přečíst relevantní normativní pravidla, architekturu a otevřená issues.
 
@@ -185,7 +171,7 @@ Nesmí:
 
 Pokud lze technický základ vytvořit parametricky bez předjímání otevřené otázky, je to přípustné; jinak platí vývojový gate z governance workflow.
 
-### Reviewer
+### R = Reviewer — technický review kontrakt
 
 Reviewer provádí nezávislé review pouze nad publikovaným exact SHA v Pull Requestu se zeleným required GitHub `PR gate`.
 
