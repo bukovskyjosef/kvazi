@@ -46,6 +46,11 @@ test('footer.php contains permanent privacy link to /soukromi.php', () => {
   assert.ok(src.includes('/soukromi.php'), 'footer must link to /soukromi.php');
 });
 
+test('footer.php analytics consent banner links to /soukromi.php#analytika', () => {
+  const src = readFileSync(join(publicDir, 'includes/footer.php'), 'utf8');
+  assert.ok(src.includes('/soukromi.php#analytika'), 'analytics consent UI must link to privacy analytics section');
+});
+
 // ── Registration link ────────────────────────────────────────────────────────
 
 test('register.php contains privacy information link', () => {
