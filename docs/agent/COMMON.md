@@ -90,7 +90,27 @@ Token economy nikdy neospravedlňuje vynechání aplikovatelného autoritativní
 
 Nežádej Humana o branch, base, SHA, status nebo jiný stav, který lze bezpečně rekonstruovat z Issue/PR/repozitáře.
 
-## 6. Fallback authority routing
+## 6. Phase-aware fresh reconstruction
+
+Fresh session neznamená povinný replay celého původního task contextu.
+
+Každá nová role-bound session:
+- fresh ověří drift-prone durable state potřebný pro svou aktuální fázi,
+- smí znovu použít durable závěry/evidence z předchozích fází,
+- nenačítá znovu stabilní nezměněný kontext jen proto, že je session nová.
+
+Mezi drift-prone state patří podle fáze zejména:
+- current Issue state,
+- current PR state,
+- exact HEAD/candidate,
+- unresolved review findings,
+- required gates,
+- current base/target, pokud je materiální,
+- Canonical reference, která se změnila nebo jejíž předpoklad byl zpochybněn.
+
+Rozsah startupu dále zpřesňuje phase profile uvnitř aktivního role contractu. Fáze nevytváří novou roli ani novou authority.
+
+## 7. Fallback authority routing
 
 `docs/README.md` je úplná autoritativní mapa dokumentace, ale není univerzální pre-Issue read.
 
@@ -102,7 +122,7 @@ Načti ji, když:
 
 `docs/00-project-context.md` je stabilní product context. Načti jej jen tehdy, když je potřeba k výkladu product intent/scope nebo na něj role/task explicitně routuje.
 
-## 7. Human-proxy handoff
+## 8. Human-proxy handoff
 
 K/A/D/R/P po dokončení svého kroku:
 
