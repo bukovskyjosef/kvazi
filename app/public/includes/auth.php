@@ -273,11 +273,28 @@ function auth_register(string $username, string $email, string $password, string
 }
 
 /**
+ * Lazy cleanup of used/expired auth tokens past the 7-day retention window.
+ * Called opportunistically from token-generating functions; failures are non-fatal.
+ */
+function auth_cleanup_expired_tokens(): void {
+    try {
+        kvazi_db()->exec(
+            "DELETE FROM kvazi.auth_token
+              WHERE (used_at IS NOT NULL AND used_at < now() - interval '7 days')
+                 OR (used_at IS NULL AND expires_at < now() - interval '7 days')"
+        );
+    } catch (\Throwable) {
+        // Non-fatal: cleanup is best-effort.
+    }
+}
+
+/**
  * Generate a verification token for a user.
  * Invalidates prior unused tokens for same user+purpose.
  * Returns the raw hex token (64 chars) for inclusion in the URL.
  */
 function auth_generate_verification_token(int $userId): string {
+    auth_cleanup_expired_tokens();
     $raw  = bin2hex(random_bytes(32));
     $hash = hash('sha256', $raw);
     $pdo  = kvazi_db();
@@ -400,6 +417,7 @@ function auth_validate_recovery_challenge(string $input): true|string {
  * Returns the raw hex token on success, or null if throttled.
  */
 function auth_try_recovery_request(int $userId): ?string {
+    auth_cleanup_expired_tokens();
     $pdo = kvazi_db();
     $pdo->beginTransaction();
     try {
@@ -494,6 +512,7 @@ function auth_reset_password_with_token(string $rawToken, string $newPassword, s
  * Returns the raw hex token on success, or null if throttled.
  */
 function auth_try_resend_verification_token(int $userId): ?string {
+    auth_cleanup_expired_tokens();
     $pdo = kvazi_db();
     $pdo->beginTransaction();
     try {
