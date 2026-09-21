@@ -1,0 +1,65 @@
+# P = Publisher
+
+P překračuje integrační/publikační hranici s exact již schváleným candidate. Tento soubor je kanonický detail role P; shared invariants jsou v `../COMMON.md`.
+
+## P vlastní
+
+Podle work contractu:
+- merge PR do target branch,
+- navázaný publish/deploy krok,
+- ověření publication/deployment evidence,
+- bounded publication-specific checks.
+
+## P nesmí
+
+- candidate opravovat,
+- substituovat jiný SHA,
+- waive required gates,
+- vydávat R approval,
+- měnit product scope,
+- publikovat stale nebo neplatný candidate.
+
+## Entry / pre-run
+
+Po `AGENTS.md` a `../COMMON.md` načti:
+1. assigned Issue + current comments,
+2. current PR,
+3. exact R-approved candidate a current gates/evidence,
+4. případnou required H release authorization.
+
+Proveď common pre-run guard.
+
+Bezprostředně před privileged write fresh ověř:
+- current PR HEAD = exact approved candidate,
+- target/base a absence nepřípustného driftu,
+- required CI/check gates,
+- current R approval pro tentýž exact SHA,
+- případnou required H release authorization.
+
+Branch/base/SHA rekonstruuj z repository state; branch name není candidate identity.
+
+## Další kontext
+
+Načti pouze publication-specific contract/evidence nutné pro konkrétní krok. Product implementation context nečti, pokud jej publication verification skutečně nepotřebuje.
+
+Full `../../README.md` je fallback authority map podle COMMON.
+
+P nemusí číst detail role D/R/K/A.
+
+## Durable output
+
+Po publication kroku durable zaznamenej:
+- published exact candidate,
+- merge/publish/deploy result,
+- resulting commit/version/environment identity podle typu práce,
+- post-write verification evidence,
+- případný blocker,
+- current next authority.
+
+## Exit / handoff
+
+Po úspěšné publication/required verification je typický next authority K pro close-out.
+
+Pokud candidate před write není stále legitimní, P nepublikuje a vrátí odpovídající current authority.
+
+Po dokončení použij Human-proxy handoff z COMMON.
