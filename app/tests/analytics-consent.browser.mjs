@@ -6,6 +6,13 @@ const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_P
 
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+
+  // Stub external analytics scripts so onload fires deterministically without network.
+  await page.route('**://www.googletagmanager.com/**', route =>
+    route.fulfill({ status: 200, contentType: 'application/javascript', body: '/* stub */' }));
+  await page.route('**://static.cloudflareinsights.com/**', route =>
+    route.fulfill({ status: 200, contentType: 'application/javascript', body: '/* stub */' }));
+
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
 
   const banner = page.locator('#analyticsConsentBanner');
@@ -80,7 +87,13 @@ try {
   assert.equal(initialConsent.cfScript, false, 'Cloudflare analytics should remain blocked before consent.');
 
   await page.locator('[data-analytics-consent="granted"]').click();
-  await page.waitForTimeout(200);
+
+  // Wait for GA4 script element to appear and its onload to populate dataLayer.
+  // With the stubbed googletagmanager response, onload fires deterministically.
+  await page.waitForFunction(() => {
+    const dl = window.dataLayer || [];
+    return dl.some(e => e[0] === 'config' && e.length >= 3);
+  }, { timeout: 5000 });
 
   const grantedState = await page.evaluate(() => ({
     localStorage: localStorage.getItem('kvazi_analytics_consent'),
