@@ -151,8 +151,10 @@ Nový HEAD po approval předchozí R approval invaliduje.
 
 ## Exit / handoff
 
-- `REVIEW: APPROVED` → R marks PR Ready for review → `WAITING FOR PR GATE` → po zeleném gate `READY FOR P`
+- `REVIEW: APPROVED` → R marks PR Ready for review → `WAITING FOR PR GATE` → handoff prompt pro P (Human spustí P po zeleném gate; P ověří gate stav na entry)
 - `REVIEW: CHANGES REQUIRED` → typicky `CHANGES REQUIRED — D`
 - `REVIEW: DECISION REQUIRED` → `WAITING FOR H` nebo A podle povahy
+
+R po APPROVED durable zaznamená `WAITING FOR PR GATE` a zakončí Human-proxy handoff promptem pro **P**. P vlastní gate-entry resolution: ověří gate stav na entry a podle výsledku pokračuje s publication nebo vrátí odpovídající blocker.
 
 Po dokončení použij Human-proxy handoff z COMMON.

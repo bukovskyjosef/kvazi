@@ -27,7 +27,11 @@ Po `AGENTS.md` a `../COMMON.md` načti:
 3. exact R-approved candidate a current gates/evidence,
 4. případnou required H release authorization.
 
-Proveď common pre-run guard.
+Proveď common pre-run guard. P smí vstoupit, pokud Issue ukazuje `READY FOR P` nebo `WAITING FOR PR GATE`. Při `WAITING FOR PR GATE` P ověří stav required gate:
+- gate green pro exact R-approved SHA → P pokračuje s publication,
+- gate running/pending → P nepublikuje a vrátí `WAITING FOR PR GATE` s current gate status,
+- gate failed kvůli candidate defektu → P nepublikuje a vrátí `CHANGES REQUIRED — D` s odkazem na gate failure,
+- gate failed kvůli infra/flaky příčině → P neblokuje a doporučí rerun stejného SHA.
 
 Bezprostředně před privileged write fresh ověř:
 - PR není Draft (R musí jej předtím přepnout na Ready for review),

@@ -161,6 +161,30 @@ test('D contract: corrective post-gate code change requires Draft before push', 
   );
 });
 
+test('P contract: owns gate-entry resolution from WAITING FOR PR GATE', () => {
+  const p = readFileSync('docs/agent/roles/P.md', 'utf8');
+  assert.ok(
+    p.includes('WAITING FOR PR GATE'),
+    'P contract must explicitly handle WAITING FOR PR GATE entry',
+  );
+  assert.ok(
+    p.includes('gate green') || p.includes('gate running') || p.includes('gate failed'),
+    'P contract must define behavior for each gate outcome',
+  );
+});
+
+test('R contract: APPROVED handoff routes to P, not to limbo', () => {
+  const r = readFileSync('docs/agent/roles/R.md', 'utf8');
+  assert.ok(
+    r.includes('handoff') && r.includes('P'),
+    'R contract must provide P handoff after APPROVED',
+  );
+  assert.ok(
+    r.includes('P vlastní gate-entry') || r.includes('P ověří gate'),
+    'R contract must state that P owns gate-entry resolution',
+  );
+});
+
 test('Lifecycle: ROLES.md contains WAITING FOR PR GATE in lifecycle', () => {
   const roles = readFileSync('docs/agent/ROLES.md', 'utf8');
   assert.ok(
