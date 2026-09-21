@@ -26,14 +26,18 @@ A — pokud je potřeba shaping
   ↓
 READY FOR D
   ↓
-D
+D (local pre-push → push → Draft PR)
   ↓
 READY FOR R
   ↓
-R
-  ├─ CHANGES REQUIRED → D
+R (reviews Draft PR)
+  ├─ CHANGES REQUIRED → D (PR stays Draft)
   ├─ DECISION REQUIRED → H / A
-  └─ APPROVED → READY FOR P
+  └─ APPROVED → R marks PR Ready for review
+                    ↓
+              WAITING FOR PR GATE
+                    ↓
+              PR gate green → READY FOR P
                     ↓
                     P
                     ↓
