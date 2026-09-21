@@ -20,6 +20,101 @@ function kvazi_plain_json(mixed $data): void {
     echo '<pre class="declaration">' . kvazi_html(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) . '</pre>';
 }
 
+function kvazi_export_datetime(mixed $value): ?string {
+    if ($value === null || $value === '') return null;
+    return (new DateTimeImmutable((string)$value))->format(DATE_ATOM);
+}
+
+/** ADMIN-only, data-minimized projection for manual external consultation. */
+function kvazi_ai_consultation_export(array $row, array $review): array {
+    $tokens = [];
+    foreach ($row['draft']['tokens'] as $token) {
+        $id = $token['id'];
+        $state = $review['tokens'][$id];
+        if (!empty($state['exception'])) {
+            $tokens[$id] = ['exception' => true, 'error' => null,
+                'morphology' => ['required' => false], 'lexical' => ['required' => false]];
+            continue;
+        }
+        if (isset($state['error'])) {
+            $tokens[$id] = ['exception' => false, 'error' => $state['error'],
+                'morphology' => ['required' => true], 'lexical' => ['required' => true]];
+            continue;
+        }
+        $morphology = $state['review'];
+        $decision = $morphology['decision'];
+        $catalog = $state['catalog'];
+        $tokens[$id] = [
+            'exception' => false,
+            'error' => null,
+            'morphology' => [
+                'required' => true,
+                'status' => $morphology['status'],
+                'decisionNo' => (int)$morphology['decisionNo'],
+                'usedStatus' => $morphology['usedStatus'],
+                'usedDecisionId' => $morphology['usedDecisionId'],
+                'latestDecision' => $decision === null ? null : [
+                    'decisionNo' => (int)$decision['decision_no'],
+                    'verdict' => $decision['verdict'],
+                    'reason' => $decision['reason'],
+                    'decidedAt' => kvazi_export_datetime($decision['decided_at']),
+                ],
+                'reviewKey' => $morphology['key'],
+            ],
+            'lexical' => [
+                'required' => true,
+                'expectedReal' => (bool)$state['expectedReal'],
+                'resolved' => (bool)$state['lexicallyResolved'],
+                'catalogKey' => $state['catalogKey'],
+                'catalog' => $catalog === null ? null : [
+                    'isApproved' => (bool)$catalog['is_approved'],
+                    'reason' => $catalog['reason'],
+                    'source' => $catalog['source'],
+                    'updatedAt' => kvazi_export_datetime($catalog['updated_at']),
+                ],
+            ],
+        ];
+    }
+    $action = $row['action'];
+    return [
+        'exportSchemaVersion' => '1.0',
+        'context' => [
+            'sentenceId' => (int)$row['sentence_id'],
+            'revisionId' => (int)$row['revision_id'],
+            'revisionNo' => (int)$row['revision_no'],
+            'text' => $row['text'],
+            'submittedAt' => kvazi_export_datetime($row['submitted_at']),
+            'rulesVersion' => $row['rules_version'],
+            'validatorVersion' => $row['validator_version'],
+            'validationResultId' => (int)$row['validation_result_id'],
+            'deterministicValidation' => [
+                'isValid' => (bool)$row['is_valid'],
+                'wordScore' => (int)$row['word_score'],
+                'charScore' => (int)$row['char_score'],
+            ],
+        ],
+        // Decode the stored JSON as objects here so empty {} values do not round-trip as [].
+        'draft' => json_decode($row['draft_json'], false, 512, JSON_THROW_ON_ERROR),
+        'validation' => json_decode($row['result_json'], false, 512, JSON_THROW_ON_ERROR),
+        'review' => [
+            'summary' => [
+                'canApprove' => (bool)$review['canApprove'],
+                'morphologyBlocked' => (int)$review['morphologyBlocked'],
+                'lexicalBlocked' => (int)$review['lexicalBlocked'],
+            ],
+            'tokens' => (object)$tokens,
+            'sentenceDecision' => [
+                'status' => match ($action) {
+                    'approve' => 'approved', 'return' => 'returned', 'reject' => 'rejected', default => 'pending',
+                },
+                'action' => $action,
+                'reason' => $row['reason'],
+                'decidedAt' => kvazi_export_datetime($row['decided_at']),
+            ],
+        ],
+    ];
+}
+
 /** Plain text read-only declaration, including stored evidence for owner/admin. */
 function kvazi_declaration(array $data): void {
     $labels = ['surface' => 'Použitý tvar', 'pos' => 'Slovní druh', 'lexicalStatus' => 'Skutečné slovo / kvazislovo',

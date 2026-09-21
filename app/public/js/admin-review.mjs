@@ -1,5 +1,17 @@
 const context = document.querySelector('#reviewContext');
 const message = document.querySelector('#reviewMessage');
+const copyButton = document.querySelector('#copyAiConsultationJson');
+const copySource = document.querySelector('#aiConsultationJson');
+const copyStatus = document.querySelector('#aiConsultationCopyStatus');
+copyButton?.addEventListener('click', async () => {
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+    await navigator.clipboard.writeText(copySource.textContent);
+    copyStatus.textContent = 'JSON byl zkopírován.';
+  } catch {
+    copyStatus.textContent = 'Kopírování se nezdařilo; JSON můžete označit a zkopírovat ručně.';
+  }
+});
 for (const form of document.querySelectorAll('.review-mutation')) {
   form.addEventListener('submit', async event => {
     event.preventDefault();
