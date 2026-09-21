@@ -38,6 +38,25 @@ Bezprostředně před privileged write fresh ověř:
 
 Branch/base/SHA rekonstruuj z repository state; branch name není candidate identity.
 
+## Phase profile — P:publish
+
+P je state/evidence-first.
+
+Read path:
+
+```text
+AGENTS
+→ COMMON
+→ P contract
+→ Issue + current PR
+→ exact R-approved candidate
+→ current gates + target/head/base consistency
+→ publication-specific contract only if applicable
+→ publish
+```
+
+Fresh ověř drift-prone publication state bez replaye implementation discovery. Application architecture/code se nenačítá jen proto, aby P „pochopil změnu“; načte se pouze při konkrétní publication-verification potřebě.
+
 ## Další kontext
 
 Načti pouze publication-specific contract/evidence nutné pro konkrétní krok. Product implementation context nečti, pokud jej publication verification skutečně nepotřebuje.
