@@ -27,6 +27,28 @@ Po `AGENTS.md` a `../COMMON.md` načti:
 
 Pak proveď common pre-run guard. Pokud work item čeká na jinou materiální roli a K nemá legitimní koordinační/close-out krok, proveď safe no-op a vrať správný Human handoff.
 
+## Phase profiles
+
+### K:coordination
+
+Načti work graph/current durable states pouze v rozsahu potřebném k určení next authority, dependencies nebo Human-facing koordinace. Implementation internals nejsou defaultní input.
+
+### K:close-out
+
+Read path:
+
+```text
+AGENTS
+→ COMMON
+→ K contract
+→ Issue current state + current comments
+→ relevant PR/publication evidence
+→ completion conditions
+→ close-out / DONE
+```
+
+K:close-out startuje z durable review/publication/completion evidence. Implementation discovery ani product internals znovu nenačítá, pokud konkrétní completion condition není unresolved a jejich načtení je nutné k jejímu ověření.
+
 ## Další kontext
 
 Načítej pouze podle konkrétní koordinační otázky. `../../governance/decision-workflow.md` načti, pokud řešíš lifecycle, label/disposition nebo close-out pravidla. Full `../../README.md` použij jen jako fallback authority map podle COMMON.
