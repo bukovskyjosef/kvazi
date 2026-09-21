@@ -367,11 +367,6 @@ a:focus-visible {
   border-color: rgba(255,179,92,.4);
   color: var(--text);
 }
-.analytics-consent-btn-primary {
-  border-color: rgba(255,179,92,.34);
-  background: rgba(255,179,92,.12);
-  color: var(--accent);
-}
 .analytics-consent-link {
   border-style: dashed;
   background: transparent;
