@@ -29,7 +29,9 @@ function kvazi_page_failure(Throwable $e): never {
 /** The MVP submit creates exactly one result. No automatic revalidation selection. */
 function kvazi_submission(PDO $db, int $revisionId, ?int $owner = null, bool $public = false): array {
     $sql = 'SELECT r.id AS revision_id, r.sentence_id, r.revision_no, r.rules_version AS submitted_rules,
-        r.draft_json, r.created_at AS submitted_at, s.user_id, u.username,
+        r.draft_json, r.created_at AS submitted_at, s.user_id,
+        CASE WHEN u.deleted_at IS NOT NULL THEN ' . "'zrušený uživatel'" . ' ELSE u.username END AS username,
+        u.deleted_at AS user_deleted_at,
         a.action, a.reason, a.decided_at
         FROM kvazi.sentence_revision r JOIN kvazi.sentence s ON s.id=r.sentence_id
         JOIN kvazi.user_account u ON u.id=s.user_id

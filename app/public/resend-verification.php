@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare(
                     'SELECT id FROM kvazi.user_account
                       WHERE lower(email) = lower(:e) AND email_verified_at IS NULL
+                        AND deleted_at IS NULL
                       LIMIT 1'
                 );
                 $stmt->execute([':e' => $email]);

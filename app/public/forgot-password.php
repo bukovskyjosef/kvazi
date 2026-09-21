@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo  = kvazi_db();
                     $stmt = $pdo->prepare(
                         'SELECT id FROM kvazi.user_account
-                          WHERE lower(email) = lower(:e)
+                          WHERE lower(email) = lower(:e) AND deleted_at IS NULL
                           LIMIT 1'
                     );
                     $stmt->execute([':e' => $email]);

@@ -10,6 +10,7 @@ RUN a2enconf kvazi-healthz
 
 COPY app/public/ /var/www/html/
 COPY app/data/ /var/www/data/
+COPY app/cli/ /usr/local/bin/kvazi-cli/
 
 ARG SOURCE_COMMIT=unknown
 RUN echo "$SOURCE_COMMIT" > /var/www/.build-sha
