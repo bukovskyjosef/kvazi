@@ -125,6 +125,9 @@ $csrf = auth_csrf_token();
             Vytvořit účet
           </button>
         </div>
+        <p class="form-footer" style="margin-top:12px;font-size:13px">
+          <a href="/soukromi.php">Informace o zpracování osobních údajů</a>
+        </p>
       </form>
 
       <p class="form-footer" style="margin-top:24px">

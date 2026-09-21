@@ -10,7 +10,7 @@ $_ftCfBeaconToken = getenv('CLOUDFLARE_WEB_ANALYTICS_TOKEN') ?: '';
   <div id="analyticsConsentBanner" class="analytics-consent-banner is-hidden" role="dialog" aria-live="polite" aria-labelledby="analyticsConsentTitle" aria-describedby="analyticsConsentText">
     <div class="analytics-consent-copy">
       <strong id="analyticsConsentTitle">Používáme základní analytiku</strong>
-      <p id="analyticsConsentText">Abychom mohli měřit návštěvnost a zdroje provozu, potřebujeme váš souhlas se zpracováním analytických dat. Žádné e-maily, loginy ani obsah kvazivět se neposílají.</p>
+      <p id="analyticsConsentText">Abychom mohli měřit návštěvnost a zdroje provozu, potřebujeme váš souhlas se zpracováním analytických dat. Žádné e-maily, loginy ani obsah kvazivět se neposílají. <a href="/soukromi.php#analytika">Podrobnosti o analytice</a></p>
     </div>
     <div class="analytics-consent-actions">
       <button type="button" class="analytics-consent-btn" data-analytics-consent="granted">Povolit analytiku</button>
@@ -20,6 +20,7 @@ $_ftCfBeaconToken = getenv('CLOUDFLARE_WEB_ANALYTICS_TOKEN') ?: '';
 
   <div class="footer-inner">
     <span>Nejdelší kvazivěta &mdash; prototyp</span>
+    <a href="/soukromi.php">Soukromí</a>
 
     <div class="footer-theme" aria-label="Přepínání motivu">
       <span class="footer-theme-label">Motiv</span>
