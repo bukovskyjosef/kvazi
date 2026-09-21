@@ -43,6 +43,56 @@ Proveď common pre-run guard. R reviewuje pouze published exact SHA v PR se zele
 
 Branch/base/SHA rekonstruuj z current PR a durable handoff; branch name není candidate identity.
 
+## Phase profiles
+
+### R:first-review
+
+Použij při prvním nezávislém review exact candidate.
+
+Read path:
+
+```text
+AGENTS
+→ COMMON
+→ R contract
+→ Issue + PR + exact candidate + D evidence
+→ READY FOR R guard
+→ review-relevant Canonical references
+→ diff + necessary surrounding context
+→ independent review
+```
+
+Defaultně se nenačítají D/P/K/A role details ani unrelated project context.
+
+### R:re-review
+
+Použij po corrective HEAD, který navazuje na předchozí R findings.
+
+Nový HEAD invaliduje předchozí finální verdict, ale nevyžaduje blind full-review restart.
+
+Read path:
+
+```text
+AGENTS
+→ COMMON
+→ R contract
+→ current Issue/PR state
+→ previous reviewed SHA + unresolved findings
+→ new exact HEAD + fresh required-gate evidence
+→ delta(previous-reviewed-SHA → new-HEAD)
+→ verify findings + scope + new regressions
+→ delta re-review verdict
+```
+
+Fresh ověř:
+- exact new HEAD a required gates,
+- předchozí reviewed SHA a findings,
+- zda corrective delta findings řeší,
+- zda delta zůstává v authorized scope,
+- zda delta nepřináší nový defect.
+
+Do broader first-review context se vrať pouze tehdy, když corrective delta materiálně mění scope, semantics, Canonical references, surrounding assumptions nebo behavior mimo původně reviewed oblast.
+
 ## Relevance-driven review context
 
 Začni work contractem, canonical references relevantními ke changed semantics, diffem a evidence. Další dokument/kód načti jen kvůli konkrétní review otázce nebo dependency.
