@@ -41,6 +41,7 @@ const PAGES = [
   '/konfigurator.php',
   '/manifest.php',
   '/vety.php',
+  '/soukromi.php',
 ];
 
 const violations = [];

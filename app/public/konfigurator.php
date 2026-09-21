@@ -104,6 +104,7 @@ try {
     <div class="actions" style="gap:10px;flex-wrap:wrap">
       <button id="submitButton" type="button" class="btn btn-accent" disabled>Odeslat kvazivětu</button>
     </div>
+    <p style="margin-top:10px;font-size:13px"><a href="/soukromi.php">Informace o zpracování osobních údajů</a></p>
     <aside class="notice" aria-label="Alternativní cesta podání" style="margin-top:16px"><strong>Nevejde se váš případ do formuláře?</strong>
       Pokud se domníváte, že vaše věta pravidla splňuje, ale konfigurátor ji neumí správně zachytit, napište nám na
       <a href="mailto:veta@kvazi.cz">veta@kvazi.cz</a>. Omezení formuláře samo o sobě neznamená, že je řešení podle pravidel zakázané.</aside>

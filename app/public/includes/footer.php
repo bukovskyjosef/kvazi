@@ -20,6 +20,7 @@ $_ftCfBeaconToken = getenv('CLOUDFLARE_WEB_ANALYTICS_TOKEN') ?: '';
 
   <div class="footer-inner">
     <span>Nejdelší kvazivěta &mdash; prototyp</span>
+    <a href="/soukromi.php">Soukromí</a>
 
     <div class="footer-theme" aria-label="Přepínání motivu">
       <span class="footer-theme-label">Motiv</span>
