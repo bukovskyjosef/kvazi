@@ -1,5 +1,7 @@
 # Claude Code
 
-Project instructions: read and follow `AGENTS.md` before working in this repository. Use `docs/README.md` for document authority and GitHub Issues for current work.
+Project instructions: read and follow `AGENTS.md` first. It is the only startup router.
 
-For configurator/validator work, follow the reachability, surface-gate and dormant-validation policy in `AGENTS.md` and `docs/architecture/03-validation.md`. Do not hide normatively allowed models by reachability and do not delete working dormant deep validators merely because the current motif makes their branch unreachable.
+For role-bound Issue/PR work, let `AGENTS.md` route you to `docs/agent/COMMON.md`, only the active role contract, then the current Issue/PR before broader project context. Do **not** force a full `docs/README.md` or `docs/00-project-context.md` read unless the router, Issue canonical references, or a concrete authority question requires it.
+
+For configurator/validator work, after the Issue/pre-run guard follow the task's canonical references and applicable validation architecture (notably `docs/architecture/03-validation.md`). Do not create a separate tool-specific interpretation.

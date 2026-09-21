@@ -9,10 +9,10 @@ Repozitář projektu **Nejdelší kvazivěta**.
 - `docs/kvazitahak/README.md`
 
 ### Pro agenty
-- `AGENTS.md` – kanonický vstupní kontrakt
-- `docs/00-project-context.md` – smysl a principy projektu
-- `docs/README.md` – jediná úplná mapa dokumentace a autority
-- GitHub Issues – jediný aktuální backlog
+- `AGENTS.md` – jediný povinný startup router
+- GitHub Issues – jediný aktuální backlog a task state
+- `AGENTS.md` pro role-bound práci routuje přes shared + active-role contract k Issue/PR a task-specific canonical references
+- `docs/README.md` – úplná mapa autority používaná jako fallback, ne universal pre-Issue read
 
 ### Pro audit
 - `AGENTS.md`

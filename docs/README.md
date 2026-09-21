@@ -21,10 +21,12 @@ Každý hráčský nebo normativní dokument má u svého začátku krátkou sek
 
 | Artefakt / kategorie | Publikum | Normativní? | Účel | Jak se mění / čte |
 |---|---|---:|---|---|
-| `/AGENTS.md` | všichni agenti | procesní vstupní kontrakt | povinný startup protocol, práce se source of truth a Definition of Done | hlavní instrukční vstup pro agenty; tool-specific instrukce jej nesmějí přebít |
-| `agent/ROLES.md` | H/K/A/D/R/P | procesní / kanonický role contract | jediná definice canonical rolí, lifecycle, pre-run authority guardu, override a Human-proxy handoffu | role-bound agent jej čte po `AGENTS.md`; ostatní dokumenty na něj pouze odkazují a nesmějí vytvářet konkurenční role model |
-| root `README.md` + tool-specific instrukční stuby (např. `CLAUDE.md`, `.github/copilot-instructions.md`) | člověk, agent | ne | orientace a přesměrování na kanonické zdroje | nesmějí duplikovat ani měnit autoritu `AGENTS.md` a tohoto souboru |
-| `00-project-context.md` | všichni agenti | ne | stabilní kontext, cíle a produktové principy projektu | vysvětluje záměr; soutěžní platnost určuje normativní balík |
+| `/AGENTS.md` | všichni agenti | procesní vstupní router | minimální povinný vstup a role-first routing | role-bound session z něj pokračuje do `agent/COMMON.md` a pouze vlastního role contractu; tool-specific instrukce jej nesmějí přebít |
+| `agent/COMMON.md` | K/A/D/R/P | procesní / kanonický shared role contract | shared activation, pre-run, authority, context-economy, override a Human-proxy invariants | povinný pro role-bound session po `AGENTS.md`; nesmí obsahovat D/R/P-specific operational detail |
+| `agent/ROLES.md` | H/K/A/D/R/P | procesní / kanonický registry | stručný seznam canonical rolí a lifecycle root | je součástí téhož delegated role-contract tree; běžný cold start nemusí číst detail ostatních rolí |
+| `agent/roles/{K,A,D,R,P}.md` | vždy jen aktivní role | procesní / kanonický role detail | self-sufficient ownership, boundaries, entry, context triggers, evidence, exit a handoff konkrétní role | role-bound session čte pouze svůj detail; D/R technical contracts žijí v příslušném role file |
+| root `README.md` + tool-specific instrukční stuby (např. `CLAUDE.md`, `.github/copilot-instructions.md`) | člověk, agent | ne | orientace a přesměrování na `AGENTS.md` | nesmějí vytvářet vlastní startup/role model ani nutit universal read `docs/README.md` před Issue |
+| `00-project-context.md` | agent podle tasku, člověk | ne | stabilní kontext, cíle a produktové principy projektu | conditional source: čte se, když je nutný pro product intent/scope nebo na něj task/role explicitně routuje |
 | `rules/01-jak-hrat.md` | hráč | ne | stručná příručka základních pravidel a vstup do hry | musí následovat normativní balík |
 | `rules/02-rozhodcovska-specifikace.md` | rozhodčí, auditor, vývojář | ano | kanonická obecná pravidla platnosti; neduplikuje přesná paradigmata | produktové změny přes explicitní rozhodnutí Josefa |
 | `rules/03-ai-policy.md` | hráč, správce | ano | normativní pravidla používání AI a nástrojů | produktové změny přes explicitní rozhodnutí Josefa |
@@ -97,7 +99,7 @@ Pokud vznikne konflikt:
 
 - hráč: `rules/01-jak-hrat.md` → `kvazitahak/00-hracsky-tahak.md` → podle potřeby `kvazitahak/01-07`
 - sporný případ / rozhodčí: `rules/02-rozhodcovska-specifikace.md` → relevantní NORMATIVNÍ modul kvazitaháku
-- auditor: `/AGENTS.md` → `00-project-context.md` → tento `README.md` → `audit/README.md` → relevantní normativní a architektonické dokumenty → `db/schema-draft.sql` **i** `docker-compose.yml` + `docker/db/init/` → skutečný `app/` stav → otevřená GitHub Issues
-- vývojář: `/AGENTS.md` → `00-project-context.md` → tento `README.md` → `architecture/00-boundaries.md` → relevantní pravidla → GitHub Issues → dotčená implementační/runtime vrstva
-- vývojář konfigurátoru/validátoru: před změnou navíc vždy `architecture/03-validation.md` → `architecture/05-konfigurator-ux.md`; reachability nesmí filtrovat modelovou nabídku a dormant deep-validace se nemaže pouze kvůli současnému motivu
-- vývojář persistence/runtime: před změnou porovnej `architecture/` + `db/schema-draft.sql` (návrh) + `docker-compose.yml`/`docker/db/init/` (executable bootstrap) + relevantní `app/` kód + GitHub Issues
+- role-bound agent: `/AGENTS.md` → `agent/COMMON.md` → pouze `agent/roles/<ACTIVE_ROLE>.md` → assigned Issue + current comments (+ relevantní PR) → pre-run guard → task Canonical references / affected surfaces → minimum complete relevant context; tento `README.md` je fallback authority map, ne universal pre-Issue read
+- auditní práce: podle work contractu A nebo R; po vlastním role contractu načti `audit/README.md` a další auditní/technické zdroje pouze pokud je konkrétní audit vyžaduje
+- D konfigurátoru/validátoru: po Issue/pre-run guardu načti `architecture/03-validation.md` a podle scope `architecture/05-konfigurator-ux.md` jako applicable canonical technický contract; reachability nesmí filtrovat modelovou nabídku a dormant deep-validace se nemaže pouze kvůli současnému motivu
+- D persistence/runtime: po Issue/pre-run guardu a task routingu porovnej podle affected surface relevantní `architecture/` + `db/schema-draft.sql` (návrh) + `docker-compose.yml`/`docker/db/init/` (executable bootstrap) + relevantní `app/` kód

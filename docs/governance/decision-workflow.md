@@ -18,11 +18,32 @@ Agenti nesmějí považovat vlastní doporučení za přijaté rozhodnutí.
 
 ## Agentní lifecycle a current authority
 
-Kanonické role, jejich kompetence, lifecycle, pre-run authority guard, Human override a povinný Human-proxy handoff vlastní výhradně `../agent/ROLES.md`.
+Kanonický role contract je jeden delegated tree: shared invariants v `../agent/COMMON.md`, registry/lifecycle root v `../agent/ROLES.md` a self-sufficient detail aktivní role v `../agent/roles/`. Role-bound cold start čte pouze COMMON + detail své aktivní role, ne detail ostatních rolí.
 
 Každý aktivní role-bound Issue musí z current durable state jednoznačně ukazovat, na koho nebo na co právě čeká (např. `READY FOR D`, `READY FOR R`, `READY FOR P`, `WAITING FOR H`, `CHANGES REQUIRED — D`, `BLOCKED BY #N`, `DONE`). Tento status je lifecycle informace, nikoli role assignment; konkrétní agentní session stále vyžaduje explicitní Human aktivaci role.
 
-Chatový nebo dříve připravený handoff prompt current durable state nepřebíjí. Pokud mu Issue/PR již neodpovídá, agent provede bezpečný no-op a Humanovi vrátí správný další krok podle `../agent/ROLES.md`.
+Chatový nebo dříve připravený handoff prompt current durable state nepřebíjí. Pokud mu Issue/PR již neodpovídá, agent provede safe no-op a Humanovi vrátí správný další krok podle aktivního role contractu a `../agent/COMMON.md`.
+
+### Ready contract a task-specific routing
+
+Work item, který je předán další materiální roli, musí durable obsahovat nebo přímo nalinkovat informace potřebné k jejímu cold startu. Permanent repository rules se do Issue nekopírují; Issue na ně odkazuje přes **Canonical references**.
+
+Implementation-ready work item má přiměřeně obsahovat:
+- Goal,
+- Scope,
+- Out of scope,
+- Requirements,
+- Acceptance criteria,
+- Constraints,
+- Dependencies,
+- **Canonical references** relevantní pro task,
+- validation expectations,
+- current next authority,
+- a pokud je to bezpečně známé, affected technical surface / likely entrypoints bez zbytečného předepisování implementace.
+
+Review-ready a publish-ready state musí navíc umožnit z Issue/PR rekonstruovat current PR, exact candidate identity a required evidence/gates. Branch name není immutable candidate identity; pokud je nutný exact candidate, autoritou je SHA.
+
+Pokud task-specific routing chybí nebo je nejednoznačný, agent použije `../README.md` jako fallback authority map místo hádání. `../00-project-context.md` je conditional product context, ne universal pre-Issue read.
 
 ## Povinná evidence v GitHub Issues
 
