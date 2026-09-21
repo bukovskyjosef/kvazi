@@ -30,11 +30,20 @@ Po `AGENTS.md` a `../COMMON.md` načti:
 Proveď common pre-run guard.
 
 Bezprostředně před privileged write fresh ověř:
-- current PR HEAD = exact approved candidate,
+- PR není Draft (R musí jej předtím přepnout na Ready for review),
+- current PR HEAD = exact R-approved candidate,
 - target/base a absence nepřípustného driftu,
-- required CI/check gates,
+- required GitHub `PR gate` = green pro tentýž exact SHA,
 - current R approval pro tentýž exact SHA,
 - případnou required H release authorization.
+
+P nesmí publikovat:
+- Draft PR,
+- SHA bez R approval,
+- SHA s missing/running/failed required `PR gate`,
+- SHA odlišný od R-reviewed candidate.
+
+Teprve kombinace `R-approved(exact SHA) + PR-gate-PASS(same SHA)` znamená `READY FOR P`.
 
 Branch/base/SHA rekonstruuj z repository state; branch name není candidate identity.
 

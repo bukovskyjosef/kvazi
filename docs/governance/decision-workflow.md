@@ -20,7 +20,7 @@ Agenti nesmějí považovat vlastní doporučení za přijaté rozhodnutí.
 
 Kanonický role contract je jeden delegated tree: shared invariants v `../agent/COMMON.md`, registry/lifecycle root v `../agent/ROLES.md` a self-sufficient detail aktivní role v `../agent/roles/`. Role-bound cold start čte pouze COMMON + detail své aktivní role, ne detail ostatních rolí.
 
-Každý aktivní role-bound Issue musí z current durable state jednoznačně ukazovat, na koho nebo na co právě čeká (např. `READY FOR D`, `READY FOR R`, `READY FOR P`, `WAITING FOR H`, `CHANGES REQUIRED — D`, `BLOCKED BY #N`, `DONE`). Tento status je lifecycle informace, nikoli role assignment; konkrétní agentní session stále vyžaduje explicitní Human aktivaci role.
+Každý aktivní role-bound Issue musí z current durable state jednoznačně ukazovat, na koho nebo na co právě čeká (např. `READY FOR D`, `READY FOR R`, `WAITING FOR PR GATE`, `READY FOR P`, `WAITING FOR H`, `CHANGES REQUIRED — D`, `BLOCKED BY #N`, `DONE`). Tento status je lifecycle informace, nikoli role assignment; konkrétní agentní session stále vyžaduje explicitní Human aktivaci role.
 
 Chatový nebo dříve připravený handoff prompt current durable state nepřebíjí. Pokud mu Issue/PR již neodpovídá, agent provede safe no-op a Humanovi vrátí správný další krok podle aktivního role contractu a `../agent/COMMON.md`.
 

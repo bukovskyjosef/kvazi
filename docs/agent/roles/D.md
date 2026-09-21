@@ -90,7 +90,7 @@ AGENTS
 → corrective code surface + relevant tests
 → correction
 → new exact HEAD
-→ pre-push → PR gate → R
+→ pre-push → push → Draft PR → R
 ```
 
 D:corrective **neopakuje celé původní implementation discovery** jen proto, že jde o novou session.
@@ -163,29 +163,50 @@ Před předáním k independent R musí D:
 1. dokončit Issue scope,
 2. mít PASS local pre-push gate pro exact commit, který byl pushnut,
 3. ověřit final diff a scope,
-4. ověřit, že PR ukazuje na tentýž published HEAD,
-5. durable zaznamenat exact HEAD SHA a local test evidence do PR nebo Issue,
-6. počkat na required GitHub `PR gate`,
-7. až po zeleném required gate předat exact SHA R.
+4. vytvořit nebo udržovat **Draft PR**,
+5. ověřit, že Draft PR HEAD = exact locally validated SHA,
+6. durable zaznamenat exact HEAD SHA a local pre-push evidence do PR nebo Issue,
+7. předat candidate R **bez čekání na GitHub `PR gate`**.
 
-Finální review target je vždy **published exact SHA** dostupný v PR se zeleným required GitHub `PR gate`. Lokální necommitnutý/nepushnutý stav není finální review target.
+D nesmí markovat PR jako Ready for review; tu hranici vlastní R po approval.
 
-Required GitHub `PR gate` zůstává autoritativní nezávislý merge gate a kontrola developerova pre-push ověření; nemá být prvním místem, kde se zjišťuje, zda candidate funguje.
+Finální review target je vždy **published exact SHA** dostupný v Draft PR s validní local pre-push evidence. Lokální necommitnutý/nepushnutý stav není finální review target.
+
+Required GitHub `PR gate` zůstává autoritativní nezávislý merge gate, ale spouští se až po R approval (viz R contract). D smí iterovat Draft PR a local pre-push bez spouštění drahého GitHub gate.
+
+### Corrective loop before R approval
+
+Po `CHANGES REQUIRED — D`:
+- PR zůstává / je převeden na Draft,
+- nový HEAD znovu invaliduje předchozí local evidence,
+- před každým push musí nový SHA znovu projít local pre-push gate,
+- po pushi nový exact SHA jde na R delta re-review,
+- GitHub `PR gate` se před R approval nespouští.
+
+### Corrective loop after post-review PR-gate failure
+
+Pokud R-approved SHA selže v required `PR gate` kvůli candidate defectu:
+- candidate se vrací D,
+- před jakýmkoli corrective push D převede PR zpět na **Draft**,
+- oprava → local pre-push PASS → push → R delta re-review,
+- předchozí R approval je pro nový HEAD neplatný,
+- teprve nové R approval znovu odstartuje gate.
+
+Infra/flaky failure stejného SHA smí být rerun bez změny SHA a bez nového R review.
 
 ## Durable output
 
 D durable zanechá:
-- branch/PR identity,
+- branch/Draft PR identity,
 - exact candidate SHA,
 - final diff/scope,
 - local pre-push evidence pro exact pushed SHA,
-- required GitHub gate evidence,
 - případné out-of-scope findings.
 
 ## Exit / handoff
 
 Legitimní finální outcome je typicky `READY FOR R`.
 
-Pokud exact candidate nemá required local pre-push evidence nebo green GitHub gate, D jej R nepředává; durable zaznamená blocker/current next authority.
+Pokud exact candidate nemá required local pre-push evidence, D jej R nepředává; durable zaznamená blocker/current next authority.
 
 Po dokončení použij Human-proxy handoff z COMMON.

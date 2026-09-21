@@ -39,7 +39,7 @@ Po `AGENTS.md` a `../COMMON.md` načti:
 3. exact candidate identity a current evidence z PR/Issue,
 4. task-specific canonical references nutné k posouzení changed semantics.
 
-Proveď common pre-run guard. R reviewuje pouze published exact SHA v PR se zeleným required GitHub `PR gate`.
+Proveď common pre-run guard. R reviewuje pouze published exact SHA v **Draft PR** s validní local pre-push evidence pro tentýž SHA. Green GitHub `PR gate` se na entry nevyžaduje; gate se spustí teprve po R approval.
 
 Branch/base/SHA rekonstruuj z current PR a durable handoff; branch name není candidate identity.
 
@@ -78,14 +78,14 @@ AGENTS
 → R contract
 → current Issue/PR state
 → previous reviewed SHA + unresolved findings
-→ new exact HEAD + fresh required-gate evidence
+→ new exact HEAD + fresh local pre-push evidence
 → delta(previous-reviewed-SHA → new-HEAD)
 → verify findings + scope + new regressions
 → delta re-review verdict
 ```
 
 Fresh ověř:
-- exact new HEAD a required gates,
+- exact new HEAD a local pre-push evidence,
 - předchozí reviewed SHA a findings,
 - zda corrective delta findings řeší,
 - zda delta zůstává v authorized scope,
@@ -104,21 +104,22 @@ R nemusí číst detail role D, P, K ani A, aby provedl review.
 ## Exact-SHA technical review contract
 
 R musí:
-- ověřit, že reviewed exact SHA odpovídá current PR HEAD,
-- zkontrolovat diff, scope, applicable specifikaci/governance a evidence z required GitHub gate,
+- ověřit, že PR je **Draft** a reviewed exact SHA odpovídá current Draft PR HEAD,
+- ověřit, že D durable zaznamenal PASS local pre-push evidence pro tentýž SHA,
+- zkontrolovat diff, scope, applicable specifikaci/governance a local pre-push evidence,
 - podle potřeby spustit **cílené lokální testy nebo reprodukci konkrétního nálezu**,
 - durable zapsat PASS/APPROVE nebo konkrétní blocker proti přesnému reviewed SHA.
 
-R **standardně znovu nespouští celý repository-authoritative integration/release gate lokálně**, pokud tentýž required gate již pro exact SHA úspěšně proběhl na GitHubu. Required GitHub `PR gate` je sdílená autoritativní test evidence a bez konkrétního důvodu se neduplikuje.
+R na entry nepotřebuje green GitHub `PR gate`; ten se spustí teprve po R approval (viz R outcome níže).
 
 Plný local gate R spouští jen tehdy, když:
-- je nutný k vyšetření konkrétní nesrovnalosti nebo CI chyby,
-- required GitHub gate pro daný typ změny neposkytuje potřebnou evidenci,
+- je nutný k vyšetření konkrétní nesrovnalosti,
+- local pre-push evidence pro daný typ změny neposkytuje potřebnou evidenci,
 - nebo to explicitně vyžaduje Issue či applicable technical contract.
 
-Samotná potřeba „ještě jednou vše ověřit“ není důvodem pro full rerun.
+Samotná potřeba „ještě jednou vše ověřit” není důvodem pro full rerun.
 
-Po corrective změně s novým HEAD SHA R nepřenáší předchozí finální verdict. Počká na nový green required GitHub `PR gate` a provede delta re-review nového exact SHA; full local integration gate bez výše uvedeného důvodu znovu nespouští.
+Po corrective změně s novým HEAD SHA R nepřenáší předchozí finální verdict. Provede delta re-review nového exact SHA; full local integration gate bez výše uvedeného důvodu znovu nespouští.
 
 ## Durable output
 
@@ -130,9 +131,27 @@ R durable zaznamená:
 - jeden overall outcome,
 - current next authority.
 
+## R outcome and Draft → Ready transition
+
+`REVIEW: CHANGES REQUIRED`
+- PR zůstává Draft,
+- `CHANGES REQUIRED — D`.
+
+`REVIEW: DECISION REQUIRED`
+- PR zůstává Draft,
+- route H/A podle povahy.
+
+`REVIEW: APPROVED`
+- approval je svázané s exact SHA,
+- R jako poslední mechanický krok přepne tentýž PR z **Draft → Ready for review**,
+- tím vznikne lifecycle `WAITING FOR PR GATE`,
+- R approval samo o sobě není `READY FOR P`.
+
+Nový HEAD po approval předchozí R approval invaliduje.
+
 ## Exit / handoff
 
-- `REVIEW: APPROVED` → `READY FOR P`
+- `REVIEW: APPROVED` → R marks PR Ready for review → `WAITING FOR PR GATE` → po zeleném gate `READY FOR P`
 - `REVIEW: CHANGES REQUIRED` → typicky `CHANGES REQUIRED — D`
 - `REVIEW: DECISION REQUIRED` → `WAITING FOR H` nebo A podle povahy
 

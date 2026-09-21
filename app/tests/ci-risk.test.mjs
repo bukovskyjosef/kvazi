@@ -77,6 +77,98 @@ test('developer pre-push runner has valid bash syntax', () => {
 });
 
 
+// --- Draft PR → R → Ready for review → PR gate lifecycle (#166) ---
+
+test('CI trigger: PR gate fires only on ready_for_review, not ordinary Draft pushes', () => {
+  const workflow = readFileSync('.github/workflows/ci.yml', 'utf8');
+  assert.ok(
+    workflow.includes('types: [ready_for_review]'),
+    'ci.yml must declare ready_for_review as the only PR event type',
+  );
+  assert.ok(
+    !workflow.includes('types: [opened') && !workflow.includes('types: [synchronize'),
+    'ci.yml must not declare opened/synchronize as PR event types',
+  );
+});
+
+test('CI trigger: required check job retains exact name "PR gate"', () => {
+  const workflow = readFileSync('.github/workflows/ci.yml', 'utf8');
+  assert.ok(
+    workflow.includes("name: PR gate"),
+    'ci.yml must contain a job with name "PR gate"',
+  );
+});
+
+test('D contract: does not require green GitHub gate before R', () => {
+  const d = readFileSync('docs/agent/roles/D.md', 'utf8');
+  assert.ok(
+    d.includes('Draft PR'),
+    'D contract must reference Draft PR delivery',
+  );
+  assert.ok(
+    d.includes('bez čekání na GitHub'),
+    'D contract must state that R handoff does not wait for GitHub PR gate',
+  );
+});
+
+test('R contract: requires Draft PR and local pre-push evidence, not green PR gate', () => {
+  const r = readFileSync('docs/agent/roles/R.md', 'utf8');
+  assert.ok(
+    r.includes('Draft PR') || r.includes('Draft'),
+    'R contract must reference Draft PR for review entry',
+  );
+  assert.ok(
+    r.includes('local pre-push evidence'),
+    'R contract must require local pre-push evidence',
+  );
+  assert.ok(
+    r.includes('WAITING FOR PR GATE'),
+    'R contract must define WAITING FOR PR GATE as post-approval state',
+  );
+});
+
+test('R contract: APPROVED leads to WAITING FOR PR GATE, not directly READY FOR P', () => {
+  const r = readFileSync('docs/agent/roles/R.md', 'utf8');
+  const approvedLine = r.split('\n').find(l => l.includes('APPROVED') && l.includes('→'));
+  assert.ok(approvedLine, 'R contract must have an APPROVED → transition line');
+  assert.ok(
+    !approvedLine.includes('READY FOR P') || approvedLine.includes('WAITING FOR PR GATE'),
+    'R APPROVED must route through WAITING FOR PR GATE before READY FOR P',
+  );
+});
+
+test('P contract: requires R approval + green required gate on same SHA', () => {
+  const p = readFileSync('docs/agent/roles/P.md', 'utf8');
+  assert.ok(
+    p.includes('R-approved') || p.includes('R approval'),
+    'P contract must require R approval',
+  );
+  assert.ok(
+    p.includes('PR gate'),
+    'P contract must require green PR gate',
+  );
+  assert.ok(
+    p.includes('Draft PR') || p.includes('nesmí publikovat'),
+    'P contract must prohibit publishing Draft PR',
+  );
+});
+
+test('D contract: corrective post-gate code change requires Draft before push', () => {
+  const d = readFileSync('docs/agent/roles/D.md', 'utf8');
+  assert.ok(
+    d.includes('převede PR zpět na') && d.includes('Draft'),
+    'D contract must require returning PR to Draft before corrective push after gate failure',
+  );
+});
+
+test('Lifecycle: ROLES.md contains WAITING FOR PR GATE in lifecycle', () => {
+  const roles = readFileSync('docs/agent/ROLES.md', 'utf8');
+  assert.ok(
+    roles.includes('WAITING FOR PR GATE'),
+    'ROLES.md lifecycle must include WAITING FOR PR GATE state',
+  );
+});
+
 test('CI risk: current remote base ref is used instead of historical PR base SHA', () => {
   const workflow = readFileSync('.github/workflows/ci.yml', 'utf8');
 
