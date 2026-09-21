@@ -193,6 +193,57 @@ test('Lifecycle: ROLES.md contains WAITING FOR PR GATE in lifecycle', () => {
   );
 });
 
+// --- Mandatory Issue-level D handoff protocol (#166) ---
+
+test('D contract: Issue-level handoff is mandatory, PR/chat do not substitute', () => {
+  const d = readFileSync('docs/agent/roles/D.md', 'utf8');
+  assert.ok(
+    d.includes('Issue-level durable handoff'),
+    'D contract must require Issue-level durable handoff',
+  );
+  assert.ok(
+    d.includes('PR body') && d.includes('nenahrazují'),
+    'D contract must state PR body does not substitute for Issue-level handoff',
+  );
+  assert.ok(
+    d.includes('chat') && d.includes('nenahrazují'),
+    'D contract must state chat does not substitute for Issue-level handoff',
+  );
+});
+
+test('D contract: handoff requires PR identity, exact HEAD SHA, scope, evidence and READY FOR R', () => {
+  const d = readFileSync('docs/agent/roles/D.md', 'utf8');
+  assert.ok(d.includes('PR identity'), 'handoff must require PR identity');
+  assert.ok(d.includes('exact current PR HEAD SHA'), 'handoff must require exact current PR HEAD SHA');
+  assert.ok(d.includes('final scope'), 'handoff must require final scope');
+  assert.ok(d.includes('exact-SHA local pre-push evidence'), 'handoff must require exact-SHA local pre-push evidence');
+  assert.ok(d.includes('READY FOR R'), 'handoff must end with READY FOR R');
+});
+
+test('D contract: final fresh-read verification of Issue + PR + HEAD before R handoff', () => {
+  const d = readFileSync('docs/agent/roles/D.md', 'utf8');
+  assert.ok(
+    d.includes('fresh-readnout current Issue') && d.includes('fresh-readnout current PR'),
+    'D contract must require fresh-read of Issue and PR before R handoff',
+  );
+  assert.ok(
+    d.includes('nesmí vrátit R handoff prompt') && d.includes('verifikace neprojde'),
+    'D contract must block R handoff if final verification fails',
+  );
+});
+
+test('D contract: corrective new HEAD requires fresh Issue-level handoff', () => {
+  const d = readFileSync('docs/agent/roles/D.md', 'utf8');
+  assert.ok(
+    d.includes('zneplatňuje předchozí Issue-level handoff'),
+    'D contract must state corrective HEAD invalidates previous handoff',
+  );
+  assert.ok(
+    d.includes('Corrective push sám o sobě R neautorizuje'),
+    'D contract must state corrective push alone does not re-authorize R',
+  );
+});
+
 test('CI risk: current remote base ref is used instead of historical PR base SHA', () => {
   const workflow = readFileSync('.github/workflows/ci.yml', 'utf8');
 

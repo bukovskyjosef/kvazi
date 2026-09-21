@@ -165,7 +165,7 @@ Před předáním k independent R musí D:
 3. ověřit final diff a scope,
 4. vytvořit nebo udržovat **Draft PR**,
 5. ověřit, že Draft PR HEAD = exact locally validated SHA,
-6. durable zaznamenat exact HEAD SHA a local pre-push evidence do PR nebo Issue,
+6. zapsat **Issue-level durable handoff** (viz požadavky níže),
 7. předat candidate R **bez čekání na GitHub `PR gate`**.
 
 D nesmí markovat PR jako Ready for review; tu hranici vlastní R po approval.
@@ -173,6 +173,32 @@ D nesmí markovat PR jako Ready for review; tu hranici vlastní R po approval.
 Finální review target je vždy **published exact SHA** dostupný v Draft PR s validní local pre-push evidence. Lokální necommitnutý/nepushnutý stav není finální review target.
 
 Required GitHub `PR gate` zůstává autoritativní nezávislý merge gate, ale spouští se až po R approval (viz R contract). D smí iterovat Draft PR a local pre-push bez spouštění drahého GitHub gate.
+
+### Povinný Issue-level durable handoff
+
+Issue-level handoff je **jediný** mechanismus lifecycle přechodu do `READY FOR R`. PR body, commit message, CI log ani chat handoff tuto povinnost nenahrazují a nesplňují.
+
+Handoff musí obsahovat:
+- PR identity (číslo + branch),
+- exact current PR HEAD SHA,
+- final scope / changed surface,
+- exact-SHA local pre-push evidence,
+- applicable gate evidence (pokud je k dispozici),
+- out-of-scope status,
+- `Current next authority: READY FOR R.`
+
+### Finální verifikace před R handoffem
+
+Bezprostředně před vrácením Human-facing R handoff promptu D musí:
+1. fresh-readnout current Issue state,
+2. fresh-readnout current PR + current PR HEAD SHA,
+3. ověřit, že Issue-level handoff existuje, obsahuje správný exact PR HEAD SHA a evidenci odpovídající tomuto SHA.
+
+D nesmí vrátit R handoff prompt, pokud finální verifikace neprojde.
+
+### Corrective new HEAD a stale handoff
+
+Každý corrective push, který změní PR HEAD, automaticky zneplatňuje předchozí Issue-level handoff. Corrective push sám o sobě R neautorizuje. Po corrective push musí D zapsat **nový** Issue-level handoff s novým exact SHA a novou evidence; teprve poté smí předat R.
 
 ### Corrective loop before R approval
 
