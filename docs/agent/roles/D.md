@@ -45,6 +45,66 @@ Branch/base/SHA rekonstruuj z repository state:
 - branch name není immutable candidate identity; tam, kde je nutný exact candidate, rozhoduje SHA,
 - nežádej Humana o branch/base/SHA, pokud je bezpečně zjistíš z repozitáře.
 
+## Phase profiles
+
+### D:first-run
+
+Použij při prvním implementačním vstupu do work itemu, pokud není aktivní corrective loop.
+
+Read path:
+
+```text
+AGENTS
+→ COMMON
+→ D contract
+→ Issue + current comments (+ PR if already present)
+→ READY FOR D guard
+→ task Canonical references / affected entrypoints
+→ minimum complete docs + code
+→ implementation
+```
+
+Default context:
+- Issue current contract: mandatory,
+- current comments: mandatory,
+- PR metadata: conditional, pokud PR už existuje,
+- task Canonical references: mandatory,
+- affected implementation code + relevant tests: mandatory podle scope,
+- full docs map / project context / unrelated architecture: conditional only.
+
+### D:corrective
+
+Použij po konkrétním R findingu nebo `CHANGES REQUIRED — D`.
+
+Read path:
+
+```text
+AGENTS
+→ COMMON
+→ D contract
+→ current Issue state
+→ existing PR + current HEAD/base
+→ unresolved R findings / review threads
+→ corrective authority guard
+→ finding-relevant Canonical references
+→ corrective code surface + relevant tests
+→ correction
+→ new exact HEAD
+→ pre-push → PR gate → R
+```
+
+D:corrective **neopakuje celé původní implementation discovery** jen proto, že jde o novou session.
+
+Fresh ověř:
+- work item stále čeká na D,
+- finding je uvnitř authorized contractu,
+- Issue/scope se materiálně nezměnilo,
+- PR/head/base a unresolved findings jsou current.
+
+Načti pouze finding-relevant Canonical references, corrective surface a relevantní testy. Rozšiř na širší first-run kontext jen tehdy, když se změnil Issue contract/Canonical references nebo finding odhalí konkrétní dependency, která původní assumptions invaliduje.
+
+Pokud finding vyžaduje chybějící product/scope rozhodnutí, D nerozšiřuje práci do analysis; routuje H/A.
+
 ## Relevance-driven implementation context
 
 Nejprve čti task-specific canonical references a explicitně affected artifacts/entrypoints. Další dokumenty, call sites nebo dependencies načítej jen podle konkrétní implementační otázky.
