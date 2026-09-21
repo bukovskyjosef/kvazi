@@ -12,6 +12,7 @@ try {
     $row = kvazi_submission($db, kvazi_revision_id());
     $review = kvazi_review_peek($db, dirname(__DIR__, 2), $row);
     $history = kvazi_revision_history($db, (int)$row['sentence_id']);
+    $aiExportJson = json_encode(kvazi_ai_consultation_export($row, $review), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     $db->commit();
 } catch (Throwable $e) { if (isset($db) && $db->inTransaction()) $db->rollBack(); kvazi_page_failure($e); }
 kvazi_page_start('Posouzení revize', 'admin');
@@ -59,6 +60,18 @@ foreach ($row['draft']['tokens'] as $token) {
     echo '</div></article>';
 }
 echo '</section>';
+?>
+<section aria-labelledby="aiConsultationHeading">
+  <h2 id="aiConsultationHeading">JSON pro AI konzultaci</h2>
+  <p>Export obsahuje aktuálně zobrazenou revizi. Data se nikam automaticky neodesílají.</p>
+  <button type="button" id="copyAiConsultationJson" class="btn btn-accent">Kopírovat JSON</button>
+  <details>
+    <summary>Zobrazit JSON</summary>
+    <pre id="aiConsultationJson" class="declaration"><?= kvazi_html($aiExportJson) ?></pre>
+  </details>
+  <p id="aiConsultationCopyStatus" role="status" aria-live="polite"></p>
+</section>
+<?php
 kvazi_history_links($history, '/admin/veta.php');
 if ($row['action'] !== null) {
     echo '<section><h2>Výsledné rozhodnutí</h2><p>' . kvazi_html(kvazi_status($row['action'])) . '</p><p class="plain-text">' . kvazi_html($row['reason']) . '</p></section>';

@@ -15,10 +15,69 @@ function token(suffix, overrides = {}) {
 function facts(ids) {
   return db(`SELECT md5(row_to_json(r)::text || row_to_json(v)::text) FROM kvazi.sentence_revision r JOIN kvazi.validation_result v ON v.revision_id=r.id WHERE r.id=${ids.revisionId}`);
 }
+function aiExport(html) {
+  const matches = [...html.matchAll(/<pre id="aiConsultationJson" class="declaration">([\s\S]*?)<\/pre>/g)];
+  assert.equal(matches.length,1,'one AI consultation JSON object');
+  const decoded = matches[0][1].replaceAll('&quot;','"').replaceAll('&#039;',"'")
+    .replaceAll('&lt;','<').replaceAll('&gt;','>').replaceAll('&amp;','&');
+  return JSON.parse(decoded);
+}
+function objectKeys(value, keys = []) {
+  if (!value || typeof value !== 'object') return keys;
+  for (const [key, child] of Object.entries(value)) { keys.push(key); objectKeys(child,keys); }
+  return keys;
+}
 async function resolve(ids, approved = false, tokenId = 't1') {
   await assertStatus(f.morph(ids, 'APPROVED', tokenId), 200);
   await assertStatus(f.catalog(ids, approved, tokenId), 200);
 }
+
+test('ADMIN AI export preserves stored snapshots and projects review without private IDs', async () => {
+  const reviewed = token('aiexport',{evidence:{morphology:'Příliš žluťoučký kůň'}});
+  const exception = {id:'t2',surface:'k',lemma:'k',pos:'preposition',lexicalStatus:'real'};
+  const ids = f.revision([reviewed,exception],{valid:true});
+  await assertStatus(f.morph(ids,'APPROVED','t1',{reason:'Morfologie ověřena.'}),200);
+  await assertStatus(f.catalog(ids,false,'t1',{reason:'Kvazislovo.',source:'IJP'}),200);
+  const detail = await f.get(adminDetail(ids),f.sessions.admin);
+  assert.equal(detail.status,200);
+  assert.match(detail.html,/id="copyAiConsultationJson"/);
+  assert.match(detail.html,/JSON pro AI konzultaci/);
+  const exported = aiExport(detail.html);
+  const storedDraft = JSON.parse(db(`SELECT draft_json FROM kvazi.sentence_revision WHERE id=${ids.revisionId}`));
+  const storedValidation = JSON.parse(db(`SELECT result_json FROM kvazi.validation_result WHERE id=${ids.validationResultId}`));
+  assert.equal(exported.exportSchemaVersion,'1.0');
+  assert.deepEqual(exported.draft,storedDraft);
+  assert.deepEqual(exported.validation,storedValidation);
+  assert.deepEqual({sentenceId:exported.context.sentenceId,revisionId:exported.context.revisionId,revisionNo:exported.context.revisionNo,
+    validationResultId:exported.context.validationResultId}, {...ids,revisionNo:1});
+  assert.equal(exported.context.text,reviewed.surface[0].toUpperCase()+reviewed.surface.slice(1)+' k.');
+  assert.equal(exported.context.rulesVersion,active);
+  assert.equal(exported.context.validatorVersion,db(`SELECT validator_version FROM kvazi.validation_result WHERE id=${ids.validationResultId}`));
+  assert.deepEqual(exported.context.deterministicValidation,{isValid:true,wordScore:7,charScore:23});
+  assert.ok(!Number.isNaN(Date.parse(exported.context.submittedAt)));
+  assert.deepEqual(exported.review.summary,{canApprove:true,morphologyBlocked:0,lexicalBlocked:0});
+  const morphology = exported.review.tokens.t1.morphology;
+  assert.equal(morphology.status,'APPROVED'); assert.equal(morphology.decisionNo,1);
+  assert.equal(morphology.usedStatus,'APPROVED'); assert.ok(Number.isInteger(morphology.usedDecisionId));
+  assert.deepEqual(Object.keys(morphology.latestDecision).sort(),['decidedAt','decisionNo','reason','verdict']);
+  assert.equal(morphology.latestDecision.reason,'Morfologie ověřena.'); assert.ok(morphology.reviewKey);
+  const catalog = exported.review.tokens.t1.lexical.catalog;
+  assert.deepEqual(catalog,{isApproved:false,reason:'Kvazislovo.',source:'IJP',updatedAt:catalog.updatedAt});
+  assert.ok(!Number.isNaN(Date.parse(catalog.updatedAt)));
+  assert.equal(exported.review.tokens.t1.lexical.expectedReal,false);
+  assert.equal(exported.review.tokens.t1.lexical.resolved,true);
+  assert.deepEqual(exported.review.tokens.t2,{exception:true,error:null,morphology:{required:false},lexical:{required:false}});
+  assert.deepEqual(exported.review.sentenceDecision,{status:'pending',action:null,reason:null,decidedAt:null});
+  const keys = objectKeys(exported);
+  for (const forbidden of ['username','email','userId','user_id','adminId','admin_id','caseId','csrf']) assert.ok(!keys.includes(forbidden),forbidden);
+
+  await assertStatus(f.decide(ids,'return','Přepracujte deklaraci.'),200);
+  const decided = aiExport((await f.get(adminDetail(ids),f.sessions.admin)).html);
+  assert.equal(decided.review.sentenceDecision.status,'returned');
+  assert.equal(decided.review.sentenceDecision.action,'return');
+  assert.equal(decided.review.sentenceDecision.reason,'Přepracujte deklaraci.');
+  assert.ok(!Number.isNaN(Date.parse(decided.review.sentenceDecision.decidedAt)));
+});
 
 test('anonymous and USER denied all admin pages and mutation; ADMIN allowed', async () => {
   const ids = f.revision();
@@ -184,6 +243,11 @@ for (const rules of ['public-1.1','public-1.2']) test(`historical ${rules}: miss
   const detail = await f.get(adminDetail(ids),f.sessions.admin);
   assert.equal(detail.status,200); assert.match(detail.html,/Historická deklarace neobsahuje dnešní úplnou zájmennou form-signature/);
   assert.match(detail.html,new RegExp(`data-field="rules_version">${rules}</`));
+  const exported = aiExport(detail.html);
+  assert.equal(exported.context.rulesVersion,rules);
+  assert.equal(exported.context.validatorVersion,db(`SELECT validator_version FROM kvazi.validation_result WHERE id=${ids.validationResultId}`));
+  assert.match(exported.review.tokens.t1.error,/Historická deklarace/);
+  assert.deepEqual(exported.review.tokens.t1.morphology,{required:true});
   await assertStatus(f.decide(ids,'approve'),422);
   await assertStatus(f.decide(ids,rules === 'public-1.1' ? 'return' : 'reject','Historical incomplete declaration.'),200);
 });

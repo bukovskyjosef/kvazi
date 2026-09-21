@@ -156,6 +156,15 @@ try {
   await admin.locator(`a[href="/admin/veta.php?revisionId=${first.revisionId}"]`).click();
   await viewport(admin,390);
   assert.equal(await admin.locator('[data-field="revision_id"]').innerText(),String(first.revisionId));
+  const aiJson = await admin.locator('#aiConsultationJson').textContent();
+  assert.equal(JSON.parse(aiJson).context.revisionId,first.revisionId);
+  await admin.evaluate(() => Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text => { window.__copiedAiJson = text; }}}));
+  await admin.getByRole('button',{name:'Kopírovat JSON',exact:true}).click();
+  assert.equal(await admin.evaluate(() => window.__copiedAiJson),aiJson);
+  assert.equal(await admin.locator('#aiConsultationCopyStatus').innerText(),'JSON byl zkopírován.');
+  await admin.evaluate(() => Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async () => { throw new Error('denied'); }}}));
+  await admin.getByRole('button',{name:'Kopírovat JSON',exact:true}).click();
+  assert.match(await admin.locator('#aiConsultationCopyStatus').innerText(),/označit a zkopírovat ručně/);
   await safeRendering(admin,true);
   async function mutation(button,path) {
     const [response] = await Promise.all([admin.waitForResponse(r => r.url().endsWith(path)),admin.waitForNavigation({waitUntil:'domcontentloaded'}),button.click()]);
